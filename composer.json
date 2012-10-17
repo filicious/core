@@ -1,0 +1,19 @@
+{
+	"name":"bit3/filesystem",
+	"description":"High level object oriented filesystem abstraction.",
+	"homepage":"http://bit3.de",
+	"authors":[
+		{
+			"name":"Tristan Lins",
+			"email":"tristan.lins@bit3.de",
+			"homepage":"http://bit3.de",
+			"role":"Developer"
+		}
+	],
+	"autoload":{
+		"psr-0":{
+			"bit3\\filesystem":"src/"
+		}
+	},
+	"minimum-stability":"dev"
+}

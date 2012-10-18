@@ -1,12 +1,28 @@
 <?php
 
+/**
+ * High level object oriented filesystem abstraction.
+ *
+ * @package php-filesystem
+ * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @link    http://bit3.de
+ * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
+ */
+
 namespace bit3\filesystem\merged;
 
 use bit3\filesystem\Filesystem;
 use bit3\filesystem\File;
 use bit3\filesystem\FilesystemException;
 
-class VirtualFile extends File
+/**
+ * A virtual file in a merged filesystem.
+ *
+ * @package php-filesystem
+ * @author  Tristan Lins <tristan.lins@bit3.de>
+ */
+class VirtualFile
+    extends File
 {
     /**
      * @var string
@@ -30,9 +46,11 @@ class VirtualFile extends File
      */
     public function __construct($parentPath, $fileName, MergedFilesystem $fs)
     {
-        $this->parentPath = $parentPath != '.' ? $parentPath : '';
-        $this->fileName = $fileName;
-        $this->fs = $fs;
+        $this->parentPath = $parentPath != '.'
+            ? $parentPath
+            : '';
+        $this->fileName   = $fileName;
+        $this->fs         = $fs;
     }
 
     public function getPath()

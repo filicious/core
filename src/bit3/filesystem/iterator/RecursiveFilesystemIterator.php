@@ -1,12 +1,27 @@
 <?php
 
+/**
+ * High level object oriented filesystem abstraction.
+ *
+ * @package php-filesystem
+ * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @link    http://bit3.de
+ * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
+ */
+
 namespace bit3\filesystem\iterator;
 
-use SplStack;
 use RecursiveIterator;
-use bit3\filesystem\File;
 
-class RecursiveFilesystemIterator extends FilesystemIterator implements RecursiveIterator
+/**
+ * Recursive filesystem iterator
+ *
+ * @package php-filesystem
+ * @author  Tristan Lins <tristan.lins@bit3.de>
+ */
+class RecursiveFilesystemIterator
+    extends FilesystemIterator
+    implements RecursiveIterator
 {
     /**
      * (PHP 5 &gt;= 5.1.0)<br/>

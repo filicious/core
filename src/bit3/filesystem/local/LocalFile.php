@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * High level object oriented filesystem abstraction.
+ *
+ * @package php-filesystem
+ * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @link    http://bit3.de
+ * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
+ */
+
 namespace bit3\filesystem\local;
 
 use bit3\filesystem\Filesystem;
@@ -7,7 +16,14 @@ use bit3\filesystem\File;
 use bit3\filesystem\FilesystemException;
 use bit3\filesystem\Util;
 
-class LocalFile extends File
+/**
+ * A file from the local file system.
+ *
+ * @package php-filesystem
+ * @author  Tristan Lins <tristan.lins@bit3.de>
+ */
+class LocalFile
+    extends File
 {
     /**
      * @var string
@@ -25,12 +41,12 @@ class LocalFile extends File
      */
     public function __construct($fileName, LocalFilesystem $fs)
     {
-        $fileName = Util::normalizePath($fileName);
+        $fileName         = Util::normalizePath($fileName);
         $absoluteFileName = Util::normalizePath($fs->getBasePath() . $fileName);
 
         parent::__construct($absoluteFileName);
         $this->fileName = $fileName;
-        $this->fs = $fs;
+        $this->fs       = $fs;
     }
 
     /**
@@ -238,10 +254,11 @@ class LocalFile extends File
 
         $substr = strlen($this->fs->getBasePath());
 
-        return array_map(function($path) use ($substr) {
+        return array_map(function ($path) use ($substr) {
             $path = substr($path, $substr);
             return new LocalFile($path, $this->fs);
-        }, glob($this->getRealPath() . '/' . $pattern));
+        },
+            glob($this->getRealPath() . '/' . $pattern));
     }
 
     public function listAll()
@@ -249,15 +266,17 @@ class LocalFile extends File
         $files = scandir($this->getRealPath());
 
         // skip dot files
-        $files = array_filter($files, function($file) {
-            return $file != '.' && $file != '..';
-        });
+        $files = array_filter($files,
+            function ($file) {
+                return $file != '.' && $file != '..';
+            });
 
         $parent = $this->getPathname();
 
-        return array_map(function($path) use ($parent) {
+        return array_map(function ($path) use ($parent) {
             return new LocalFile($parent . '/' . $path, $this->fs);
-        }, $files);
+        },
+            $files);
     }
 
     public function __toString()

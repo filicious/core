@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * High level object oriented filesystem abstraction.
+ *
+ * @package php-filesystem
+ * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @link    http://bit3.de
+ * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
+ */
+
 namespace bit3\filesystem\local;
 
 use bit3\filesystem\Filesystem;
@@ -7,7 +16,14 @@ use bit3\filesystem\File;
 use bit3\filesystem\FilesystemException;
 use bit3\filesystem\Util;
 
-class LocalFilesystem implements Filesystem
+/**
+ * Local filesystem adapter.
+ *
+ * @package php-filesystem
+ * @author  Tristan Lins <tristan.lins@bit3.de>
+ */
+class LocalFilesystem
+    implements Filesystem
 {
     /**
      * @var string

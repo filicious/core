@@ -1,12 +1,28 @@
 <?php
 
+/**
+ * High level object oriented filesystem abstraction.
+ *
+ * @package php-filesystem
+ * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @link    http://bit3.de
+ * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
+ */
+
 namespace bit3\filesystem\merged;
 
 use bit3\filesystem\Filesystem;
 use bit3\filesystem\File;
 use bit3\filesystem\FilesystemException;
 
-class MergedFile extends File
+/**
+ * File from a mounted filesystem structure.
+ *
+ * @package php-filesystem
+ * @author  Tristan Lins <tristan.lins@bit3.de>
+ */
+class MergedFile
+    extends File
 {
     /**
      * @var string
@@ -28,8 +44,8 @@ class MergedFile extends File
     public function __construct($mount, File $file, MergedFilesystem $fs)
     {
         $this->mount = $mount;
-        $this->file = $file;
-        $this->fs = $fs;
+        $this->file  = $file;
+        $this->fs    = $fs;
         $this->setFileClass('bit3\filesystem\File');
     }
 

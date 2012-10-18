@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * High level object oriented filesystem abstraction.
+ *
+ * @package php-filesystem
+ * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @link    http://bit3.de
+ * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
+ */
+
 namespace bit3\filesystem;
 
 use SplFileInfo;
@@ -7,7 +16,15 @@ use Traversable;
 use IteratorAggregate;
 use ArrayIterator;
 
-abstract class File extends SplFileInfo implements IteratorAggregate
+/**
+ * A file object
+ *
+ * @package php-filesystem
+ * @author  Tristan Lins <tristan.lins@bit3.de>
+ */
+abstract class File
+    extends SplFileInfo
+    implements IteratorAggregate
 {
     /**
      * Get the underlaying filesystem for this file.
@@ -119,7 +136,7 @@ abstract class File extends SplFileInfo implements IteratorAggregate
     /**
      * Sets access and modification time of file
      *
-     * @param int $time = time()
+     * @param int $time  = time()
      * @param int $atime = time()
      *
      * @return bool
@@ -172,9 +189,10 @@ abstract class File extends SplFileInfo implements IteratorAggregate
      */
     public function globFiles($pattern)
     {
-        return array_filter($this->glob($pattern), function(File $path) {
-            return $path->isFile();
-        });
+        return array_filter($this->glob($pattern),
+            function (File $path) {
+                return $path->isFile();
+            });
     }
 
     /**
@@ -184,9 +202,10 @@ abstract class File extends SplFileInfo implements IteratorAggregate
      */
     public function globDirectories($pattern)
     {
-        return array_filter($this->glob($pattern), function(File $path) {
-            return $path->isDir();
-        });
+        return array_filter($this->glob($pattern),
+            function (File $path) {
+                return $path->isDir();
+            });
     }
 
     /**
@@ -206,9 +225,10 @@ abstract class File extends SplFileInfo implements IteratorAggregate
      */
     public function listFiles()
     {
-        return array_filter($this->listAll(), function(File $path) {
-            return $path->isFile();
-        });
+        return array_filter($this->listAll(),
+            function (File $path) {
+                return $path->isFile();
+            });
     }
 
     /**
@@ -218,9 +238,10 @@ abstract class File extends SplFileInfo implements IteratorAggregate
      */
     public function listDirectories()
     {
-        return array_filter($this->listAll(), function(File $path) {
-            return $path->isDir();
-        });
+        return array_filter($this->listAll(),
+            function (File $path) {
+                return $path->isDir();
+            });
     }
 
     /**

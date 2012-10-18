@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * High level object oriented filesystem abstraction.
+ *
+ * @package php-filesystem
+ * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @link    http://bit3.de
+ * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
+ */
+
 require_once(__DIR__ . '/../src/bit3/filesystem/File.php');
 require_once(__DIR__ . '/../src/bit3/filesystem/Filesystem.php');
 require_once(__DIR__ . '/../src/bit3/filesystem/FilesystemException.php');

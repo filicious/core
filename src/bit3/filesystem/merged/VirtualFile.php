@@ -13,6 +13,7 @@ namespace bit3\filesystem\merged;
 
 use bit3\filesystem\Filesystem;
 use bit3\filesystem\File;
+use bit3\filesystem\BasicFileImpl;
 use bit3\filesystem\FilesystemException;
 
 /**
@@ -22,7 +23,7 @@ use bit3\filesystem\FilesystemException;
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
 class VirtualFile
-    extends File
+    extends BasicFileImpl
 {
     /**
      * @var string
@@ -53,121 +54,6 @@ class VirtualFile
         $this->fs         = $fs;
     }
 
-    public function getPath()
-    {
-        return $this->parentPath;
-    }
-
-    public function getFilename()
-    {
-        return $this->fileName;
-    }
-
-    public function getExtension()
-    {
-        return preg_replace('#^.*\.(\w+)$', '$1', $this->fileName);
-    }
-
-    public function getBasename($suffix = null)
-    {
-        return basename($this->fileName, $suffix);
-    }
-
-    public function getPathname()
-    {
-        return $this->parentPath . '/' . $this->fileName;
-    }
-
-    public function getPerms()
-    {
-        return 0777;
-    }
-
-    public function getInode()
-    {
-        return -1;
-    }
-
-    public function getSize()
-    {
-        return 0;
-    }
-
-    public function getOwner()
-    {
-        return '';
-    }
-
-    public function getGroup()
-    {
-        return '';
-    }
-
-    public function getATime()
-    {
-        return time();
-    }
-
-    public function getMTime()
-    {
-        return time();
-    }
-
-    public function getCTime()
-    {
-        return time();
-    }
-
-    public function getType()
-    {
-        return 'dir';
-    }
-
-    public function isWritable()
-    {
-        return false;
-    }
-
-    public function isReadable()
-    {
-        return false;
-    }
-
-    public function isExecutable()
-    {
-        return false;
-    }
-
-    public function isFile()
-    {
-        return false;
-    }
-
-    public function isDir()
-    {
-        return true;
-    }
-
-    public function isLink()
-    {
-        return true;
-    }
-
-    public function getLinkTarget()
-    {
-        return '.';
-    }
-
-    public function getRealPath()
-    {
-        return $this->fileName;
-    }
-
-    public function getFileInfo($class_name = null)
-    {
-        return $this;
-    }
-
     /**
      * Get the underlaying filesystem for this file.
      *
@@ -178,52 +64,180 @@ class VirtualFile
         return $this->fs;
     }
 
+    public function isFile()
+    {
+        return false;
+    }
+
+    public function isDirectory()
+    {
+        return true;
+    }
+
+    public function isLink()
+    {
+        return false;
+    }
+
+    public function getType()
+    {
+        return 'dir';
+    }
+
+    public function getPathname()
+    {
+        return $this->parentPath . '/' . $this->fileName;
+    }
+
+    public function getLinkTarget()
+    {
+        return false;
+    }
+
+    public function getBasename($suffix = null)
+    {
+        return basename($this->fileName, $suffix);
+    }
+
     /**
-     * Change file group.
+     * Returns the the path of this pathname's parent, or <em>null</em> if this pathname does not name a parent directory.
      *
-     * @param mixed $group
-     *
-     * @return bool
+     * @return File|null
      */
-    public function chgrp($group)
+    public function getParent()
+    {
+        return $this->parentPath ? $this->fs->getFile(dirname($this->parentPath)) : null;
+    }
+
+    /**
+     * Return the time that the file denoted by this pathname was las modified.
+     *
+     * @return int
+     */
+    public function getAccessTime()
     {
         return false;
     }
 
     /**
-     * Change file mode.
+     * Sets the last-modified time of the file or directory named by this pathname.
      *
-     * @param int  $mode
-     *
-     * @return bool
+     * @param int $time
      */
-    public function chmod($mode)
+    public function setAccessTime($time)
     {
         return false;
     }
 
     /**
-     * Change file owner.
+     * Return the time that the file denoted by this pathname was las modified.
+     *
+     * @return int
+     */
+    public function getCreationTime()
+    {
+        return false;
+    }
+
+    /**
+     * Return the time that the file denoted by this pathname was las modified.
+     *
+     * @return int
+     */
+    public function getLastModified()
+    {
+        return false;
+    }
+
+    /**
+     * Sets the last-modified time of the file or directory named by this pathname.
+     *
+     * @param int $time
+     */
+    public function setLastModified($time)
+    {
+        return false;
+    }
+
+    public function getSize()
+    {
+        return 0;
+    }
+
+    public function getOwner()
+    {
+        return -1;
+    }
+
+    /**
+     * Set the owner of the file denoted by this pathname.
      *
      * @param string|int $user
      *
      * @return bool
      */
-    public function chown($user)
+    public function setOwner($user)
     {
         return false;
     }
 
+    public function getGroup()
+    {
+        return -1;
+    }
+
     /**
-     * Copies file
+     * Change the group of the file denoted by this pathname.
      *
-     * @param File $destination
+     * @param mixed $group
      *
      * @return bool
      */
-    public function copy(File $destination)
+    public function setGroup($group)
     {
         return false;
+    }
+
+    public function getMode()
+    {
+        return 0555;
+    }
+
+    /**
+     * Set the mode of the file denoted by this pathname.
+     *
+     * @param int  $mode
+     *
+     * @return bool
+     */
+    public function setMode($mode)
+    {
+        return false;
+    }
+
+    public function isReadable()
+    {
+        return true;
+    }
+
+    public function isWritable()
+    {
+        return false;
+    }
+
+    public function isExecutable()
+    {
+        return true;
+    }
+
+    /**
+     * Checks whether a file or directory exists.
+     *
+     * @return bool
+     */
+    public function exists()
+    {
+        return true;
     }
 
     /**
@@ -237,47 +251,25 @@ class VirtualFile
     }
 
     /**
-     * Checks whether a file or directory exists.
+     * Copies file
+     *
+     * @param File $destination
      *
      * @return bool
      */
-    public function exists()
+    public function copyTo(File $destination, $recursive = false)
     {
         return false;
     }
 
     /**
-     * Portable advisory shared file locking. (reader)
+     * Renames a file or directory
      *
-     * @param bool $noblocking
-     *
-     * @return bool
-     */
-    public function lockShared($noblocking = false)
-    {
-        return false;
-    }
-
-    /**
-     * Portable advisory exclusive file locking. (writer)
-     *
-     * @param bool $noblocking
+     * @param File $destination
      *
      * @return bool
      */
-    public function lockExclusive($noblocking = false)
-    {
-        return false;
-    }
-
-    /**
-     * Unlock a file.
-     *
-     * @param File $path
-     *
-     * @return bool
-     */
-    public function unlock()
+    public function moveTo(File $destination)
     {
         return false;
     }
@@ -303,33 +295,13 @@ class VirtualFile
     }
 
     /**
-     * Renames a file or directory
-     *
-     * @param File $destination
+     * Create new empty file.
      *
      * @return bool
      */
-    public function rename(File $destination)
+    public function createNewFile()
     {
         return false;
-    }
-
-    /**
-     * Sets access and modification time of file
-     *
-     * @param int $time  = time()
-     * @param int $atime = time()
-     *
-     * @return bool
-     */
-    public function touch($time = null, $atime = null)
-    {
-        return false;
-    }
-
-    public function openFile($open_mode = 'r', $use_include_path = false, $context = null)
-    {
-        return null;
     }
 
     /**
@@ -355,6 +327,26 @@ class VirtualFile
     public function glob($pattern, $flags = 0)
     {
         return $this->fs->glob($this->parentPath . '/' . $this->fileName . '/' . $pattern, $flags);
+    }
+
+    /**
+     * Get the real url, e.g. file:/real/path/to/file to the pathname.
+     *
+     * @return string
+     */
+    public function getRealUrl()
+    {
+        return null;
+    }
+
+    /**
+     * Get a public url, e.g. http://www.example.com/path/to/public/file to the file.
+     *
+     * @return string
+     */
+    public function getPublicUrl()
+    {
+        return null;
     }
 
     public function __toString()

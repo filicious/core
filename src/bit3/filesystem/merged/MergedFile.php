@@ -13,6 +13,7 @@ namespace bit3\filesystem\merged;
 
 use bit3\filesystem\Filesystem;
 use bit3\filesystem\File;
+use bit3\filesystem\BasicFileImpl;
 use bit3\filesystem\FilesystemException;
 
 /**
@@ -22,7 +23,7 @@ use bit3\filesystem\FilesystemException;
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
 class MergedFile
-    extends File
+    implements File
 {
     /**
      * @var string
@@ -46,7 +47,7 @@ class MergedFile
         $this->mount = $mount;
         $this->file  = $file;
         $this->fs    = $fs;
-        $this->setFileClass('bit3\filesystem\File');
+        $this->setFileClass('bit3\filesystem\merged\MergedFile');
     }
 
     /**
@@ -59,24 +60,29 @@ class MergedFile
         return $this->fs;
     }
 
-    public function getPath()
+    public function isFile()
     {
-        return $this->mount . $this->file->getPath();
+        return $this->file->isFile();
     }
 
-    public function getFilename()
+    public function isLink()
     {
-        return $this->mount . $this->file->getFilename();
+        return $this->file->isLink();
     }
 
-    public function getExtension()
+    public function isDirectory()
     {
-        return $this->mount . $this->file->getExtension();
+        return $this->file->isDirectory();
     }
 
-    public function getBasename($suffix = null)
+    /**
+     * Get the type of this file.
+     *
+     * @return "file"|"directory"|"link"|"unknown"
+     */
+    public function getType()
     {
-        return $this->mount . $this->file->getBasename($suffix);
+        return $this->file->getType();
     }
 
     public function getPathname()
@@ -84,14 +90,96 @@ class MergedFile
         return $this->mount . $this->file->getPathname();
     }
 
-    public function getPerms()
+    public function getLinkTarget()
     {
-        return $this->file->getPerms();
+        return $this->file->getLinkTarget();
     }
 
-    public function getInode()
+    public function getBasename($suffix = null)
     {
-        return $this->file->getInode();
+        return $this->mount . $this->file->getBasename($suffix);
+    }
+
+    /**
+     * Get the extension of the file.
+     *
+     * @return mixed
+     */
+    public function getExtension()
+    {
+        return $this->file->getExtension();
+    }
+
+    /**
+     * Returns the the path of this pathname's parent, or <em>null</em> if this pathname does not name a parent directory.
+     *
+     * @return File|null
+     */
+    public function getParent()
+    {
+        $parent = $this->file->getParent();
+
+        if ($parent === null) {
+            $parent = dirname($this->mount);
+
+            if ($parent != '.') {
+                return $this->fs->getFile($parent);
+            }
+
+            return null;
+        }
+
+        return $parent;
+    }
+
+    /**
+     * Return the time that the file denoted by this pathname was las modified.
+     *
+     * @return int
+     */
+    public function getAccessTime()
+    {
+        return $this->file->getAccessTime();
+    }
+
+    /**
+     * Sets the last-modified time of the file or directory named by this pathname.
+     *
+     * @param int $time
+     */
+    public function setAccessTime($time)
+    {
+        return $this->file->setAccessTime($time);
+    }
+
+    /**
+     * Return the time that the file denoted by this pathname was las modified.
+     *
+     * @return int
+     */
+    public function getCreationTime()
+    {
+        return $this->file->getCreationTime();
+    }
+
+    /**
+     * Return the time that the file denoted by this pathname was las modified.
+     *
+     * @return int
+     */
+    public function getLastModified()
+    {
+        return $this->file->getLastModified();
+    }
+
+    /**
+     * Sets the last-modified time of the file or directory named by this pathname.
+     *
+     * @param int $time
+     */
+    public function setLastModified($time)
+    {
+        return $this->file->setLastModified($time);
     }
 
     public function getSize()
@@ -104,34 +192,55 @@ class MergedFile
         return $this->file->getOwner();
     }
 
+    /**
+     * Set the owner of the file denoted by this pathname.
+     *
+     * @param string|int $user
+     *
+     * @return bool
+     */
+    public function setOwner($user)
+    {
+        return $this->file->setOwner($user);
+    }
+
     public function getGroup()
     {
         return $this->file->getGroup();
     }
 
-    public function getATime()
+    /**
+     * Change the group of the file denoted by this pathname.
+     *
+     * @param mixed $group
+     *
+     * @return bool
+     */
+    public function setGroup($group)
     {
-        return $this->file->getATime();
+        return $this->file->setGroup($group);
     }
 
-    public function getMTime()
+    /**
+     * Get the mode of the file denoted by this pathname.
+     *
+     * @return int
+     */
+    public function getMode()
     {
-        return $this->file->getMTime();
+        // TODO: Implement getMode() method.
     }
 
-    public function getCTime()
+    /**
+     * Set the mode of the file denoted by this pathname.
+     *
+     * @param int  $mode
+     *
+     * @return bool
+     */
+    public function setMode($mode)
     {
-        return $this->file->getCTime();
-    }
-
-    public function getType()
-    {
-        return $this->file->getType();
-    }
-
-    public function isWritable()
-    {
-        return $this->file->isWritable();
+        return $this->file->setMode($mode);
     }
 
     public function isReadable()
@@ -139,102 +248,14 @@ class MergedFile
         return $this->file->isReadable();
     }
 
+    public function isWritable()
+    {
+        return $this->file->isWritable();
+    }
+
     public function isExecutable()
     {
         return $this->file->isExecutable();
-    }
-
-    public function isFile()
-    {
-        return $this->file->isFile();
-    }
-
-    public function isDir()
-    {
-        return $this->file->isDir();
-    }
-
-    public function isLink()
-    {
-        return $this->file->isLink();
-    }
-
-    public function getLinkTarget()
-    {
-        return $this->file->getLinkTarget();
-    }
-
-    public function getRealPath()
-    {
-        return $this->file->getRealPath();
-    }
-
-    public function getFileInfo($class_name = null)
-    {
-        return $this->file->getFileInfo($class_name);
-    }
-
-    public function getPathInfo($class_name = null)
-    {
-        return new MergedFile($this->mount, $this->file->getPathInfo($class_name), $this->fs);
-    }
-
-    /**
-     * Change file group.
-     *
-     * @param mixed $group
-     *
-     * @return bool
-     */
-    public function chgrp($group)
-    {
-        return $this->file->chgrp($group);
-    }
-
-    /**
-     * Change file mode.
-     *
-     * @param int  $mode
-     *
-     * @return bool
-     */
-    public function chmod($mode)
-    {
-        return $this->file->chmod($mode);
-    }
-
-    /**
-     * Change file owner.
-     *
-     * @param string|int $user
-     *
-     * @return bool
-     */
-    public function chown($user)
-    {
-        return $this->file->chown($user);
-    }
-
-    /**
-     * Copies file
-     *
-     * @param File $destination
-     *
-     * @return bool
-     */
-    public function copy(File $destination)
-    {
-        return $this->file->copy($destination);
-    }
-
-    /**
-     * Delete a file or directory.
-     *
-     * @return bool
-     */
-    public function delete()
-    {
-        return $this->file->delete();
     }
 
     /**
@@ -248,39 +269,38 @@ class MergedFile
     }
 
     /**
-     * Portable advisory shared file locking. (reader)
-     *
-     * @param bool $noblocking
+     * Delete a file or directory.
      *
      * @return bool
      */
-    public function lockShared($noblocking = false)
+    public function delete()
     {
-        return $this->file->lockShared($noblocking);
+        return $this->file->delete();
     }
 
     /**
-     * Portable advisory exclusive file locking. (writer)
+     * Copies file
      *
-     * @param bool $noblocking
+     * @param File $destination
+     * @param bool $recursive
      *
      * @return bool
      */
-    public function lockExclusive($noblocking = false)
+    public function copyTo(File $destination, $recursive = false)
     {
-        return $this->file->lockExclusive($noblocking);
+        return $this->file->copyTo($destination, $recursive);
     }
 
     /**
-     * Unlock a file.
+     * Renames a file or directory
      *
-     * @param File $path
+     * @param File $destination
      *
      * @return bool
      */
-    public function unlock()
+    public function moveTo(File $destination)
     {
-        return $this->file->unlock();
+        return $this->file->moveTo($destination);
     }
 
     /**
@@ -304,40 +324,13 @@ class MergedFile
     }
 
     /**
-     * Renames a file or directory
-     *
-     * @param File $destination
+     * Create new empty file.
      *
      * @return bool
      */
-    public function rename(File $destination)
+    public function createNewFile()
     {
-        return $this->file->rename($destination);
-    }
-
-    /**
-     * Sets access and modification time of file
-     *
-     * @param int $time  = time()
-     * @param int $atime = time()
-     *
-     * @return bool
-     */
-    public function touch($time = null, $atime = null)
-    {
-        return $this->file->touch($time, $atime);
-    }
-
-    /**
-     * @param string $open_mode
-     * @param bool   $use_include_path
-     * @param null   $context
-     *
-     * @return null|\SplFileObject
-     */
-    public function openFile($open_mode = 'r', $use_include_path = false, $context = null)
-    {
-        return null;
+        return $this->file->createNewFile();
     }
 
     /**
@@ -349,7 +342,7 @@ class MergedFile
      */
     public function openStream($mode = 'r')
     {
-        return false;
+        return $this->file->openStream($mode);
     }
 
     /**
@@ -363,5 +356,75 @@ class MergedFile
     public function glob($pattern, $flags = 0)
     {
         return $this->file->glob($pattern, $flags);
+    }
+
+    /**
+     * List all files.
+     *
+     * @return array<File>
+     */
+    public function globFiles($pattern)
+    {
+        return $this->file->globFiles($pattern);
+    }
+
+    /**
+     * List all files.
+     *
+     * @return array<File>
+     */
+    public function globDirectories($pattern)
+    {
+        return $this->file->globDirectories($pattern);
+    }
+
+    /**
+     * List all files.
+     *
+     * @return array<File>
+     */
+    public function listAll()
+    {
+        return $this->file->listAll();
+    }
+
+    /**
+     * List all files.
+     *
+     * @return array<File>
+     */
+    public function listFiles()
+    {
+        return $this->file->listFiles();
+    }
+
+    /**
+     * List all files.
+     *
+     * @return array<File>
+     */
+    public function listDirectories()
+    {
+        return $this->file->listDirectories();
+    }
+
+    /**
+     * Get the real url, e.g. file:/real/path/to/file to the pathname.
+     *
+     * @return string
+     */
+    public function getRealUrl()
+    {
+        return $this->file->getRealUrl();
+    }
+
+    /**
+     * Get a public url, e.g. http://www.example.com/path/to/public/file to the file.
+     *
+     * @return string
+     */
+    public function getPublicUrl()
+    {
+        return $this->file->getPublicUrl();
     }
 }

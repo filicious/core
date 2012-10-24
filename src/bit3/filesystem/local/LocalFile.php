@@ -13,6 +13,7 @@ namespace bit3\filesystem\local;
 
 use bit3\filesystem\Filesystem;
 use bit3\filesystem\File;
+use bit3\filesystem\BasicFileImpl;
 use bit3\filesystem\FilesystemException;
 use bit3\filesystem\Util;
 
@@ -23,12 +24,17 @@ use bit3\filesystem\Util;
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
 class LocalFile
-    extends File
+    extends BasicFileImpl
 {
     /**
      * @var string
      */
-    protected $fileName;
+    protected $pathname;
+
+    /**
+     * @var string
+     */
+    protected $realpath;
 
     /**
      * @var LocalFilesystem
@@ -39,82 +45,243 @@ class LocalFile
      * @param                 $fileName
      * @param LocalFilesystem $fs
      */
-    public function __construct($fileName, LocalFilesystem $fs)
+    public function __construct($pathname, LocalFilesystem $fs)
     {
-        $fileName         = Util::normalizePath($fileName);
-        $absoluteFileName = Util::normalizePath($fs->getBasePath() . $fileName);
-
-        parent::__construct($absoluteFileName);
-        $this->fileName = $fileName;
-        $this->fs       = $fs;
+        parent::__construct($fs);
+        $this->pathname = Util::normalizePath($pathname);
+        $this->realpath = Util::normalizePath($fs->getBasePath() . $pathname);
     }
 
     /**
-     * Get the underlaying filesystem for this file.
+     * Test whether this pathname is a file.
      *
-     * @return Filesystem
+     * @return bool
      */
-    public function getFilesystem()
+    public function isFile()
     {
-        return $this->fs;
+        return $this->exists() && is_file($this->realpath);
     }
 
+    /**
+     * Test whether this pathname is a link.
+     *
+     * @return bool
+     */
+    public function isLink()
+    {
+        return $this->exists() && is_link($this->realpath);
+    }
+
+    /**
+     * Test whether this pathname is a directory.
+     *
+     * @return bool
+     */
+    public function isDirectory()
+    {
+        return $this->exists() && is_dir($this->realpath);
+    }
+
+    /**
+     * Returns the absolute pathname.
+     *
+     * @return string
+     */
     public function getPathname()
     {
-        return $this->fileName;
+        return $this->pathname;
     }
 
     /**
-     * Change file group.
+     * Get the link target of the link.
      *
-     * @param mixed $group
-     *
-     * @return bool
+     * @return string
      */
-    public function chgrp($group)
+    public function getLinkTarget()
     {
-        return chgrp($this->getRealPath(), $group);
+        return $this->isLink() && readlink($this->realpath);
     }
 
     /**
-     * Change file mode.
+     * Returns the the path of this pathname's parent, or <em>null</em> if this pathname does not name a parent directory.
      *
-     * @param int  $mode
-     *
-     * @return bool
+     * @return File|null
      */
-    public function chmod($mode)
+    public function getParent()
     {
-        return chmod($this->getRealPath(), $mode);
+        return $this->fs->getFile(dirname($this->pathname));
     }
 
     /**
-     * Change file owner.
+     * Return the time that the file denoted by this pathname was las modified.
+     *
+     * @return int
+     */
+    public function getAccessTime()
+    {
+        return $this->exists() ? fileatime($this->realpath) : false;
+    }
+
+    /**
+     * Sets the last-modified time of the file or directory named by this pathname.
+     *
+     * @param int $time
+     */
+    public function setAccessTime($time)
+    {
+        if ($this->exists()) {
+            return touch($this->realpath, $this->getLastModified(), time());
+        }
+        return false;
+    }
+
+    /**
+     * Return the time that the file denoted by this pathname was las modified.
+     *
+     * @return int
+     */
+    public function getCreationTime()
+    {
+        return $this->exists() ? filectime($this->realpath) : false;
+    }
+
+    /**
+     * Return the time that the file denoted by this pathname was las modified.
+     *
+     * @return int
+     */
+    public function getLastModified()
+    {
+        return $this->exists() ? filemtime($this->realpath) : false;
+    }
+
+    /**
+     * Sets the last-modified time of the file or directory named by this pathname.
+     *
+     * @param int $time
+     */
+    public function setLastModified($time)
+    {
+        if ($this->exists()) {
+            return touch($this->realpath, time(), $this->getAccessTime());
+        }
+        return false;
+    }
+
+    /**
+     * Get the size of the file denoted by this pathname.
+     *
+     * @return int
+     */
+    public function getSize()
+    {
+        return $this->exists() ? filesize($this->realpath) : false;
+    }
+
+    /**
+     * Get the owner of the file denoted by this pathname.
+     *
+     * @return string|int
+     */
+    public function getOwner()
+    {
+        return $this->exists() ? fileowner($this->realpath) : false;
+    }
+
+    /**
+     * Set the owner of the file denoted by this pathname.
      *
      * @param string|int $user
      *
      * @return bool
      */
-    public function chown($user)
+    public function setOwner($user)
     {
-        return chown($this->getRealPath(), $user);
+        return $this->exists() ? chown($this->realpath, $user) : false;
     }
 
     /**
-     * Copies file
+     * Get the group of the file denoted by this pathname.
      *
-     * @param File $destination
+     * @return string|int
+     */
+    public function getGroup()
+    {
+        return $this->exists() ? filegroup($this->realpath) : false;
+    }
+
+    /**
+     * Change the group of the file denoted by this pathname.
+     *
+     * @param mixed $group
      *
      * @return bool
      */
-    public function copy(File $destination)
+    public function setGroup($group)
     {
-        if ($destination instanceof LocalFile) {
-            return copy($this->getRealPath(), $destination->getRealPath());
-        }
-        else {
-            return Util::streamCopy($this, $destination);
-        }
+        return $this->exists() ? chgrp($this->realpath, $group) : false;
+    }
+
+    /**
+     * Get the mode of the file denoted by this pathname.
+     *
+     * @return int
+     */
+    public function getMode()
+    {
+        return $this->exists() ? fileperms($this->realpath) : false;
+    }
+
+    /**
+     * Set the mode of the file denoted by this pathname.
+     *
+     * @param int  $mode
+     *
+     * @return bool
+     */
+    public function setMode($mode)
+    {
+        return $this->exists() ? chmod($this->realpath, $mode) : false;
+    }
+
+    /**
+     * Test whether this pathname is readable.
+     *
+     * @return bool
+     */
+    public function isReadable()
+    {
+        return $this->exists() && is_readable($this->realpath);
+    }
+
+    /**
+     * Test whether this pathname is writeable.
+     *
+     * @return bool
+     */
+    public function isWritable()
+    {
+        return $this->exists() && is_writable($this->realpath);
+    }
+
+    /**
+     * Test whether this pathname is executeable.
+     *
+     * @return bool
+     */
+    public function isExecutable()
+    {
+        return $this->exists() && is_executable($this->realpath);
+    }
+
+    /**
+     * Checks whether a file or directory exists.
+     *
+     * @return bool
+     */
+    public function exists()
+    {
+        return file_exists($this->realpath);
     }
 
     /**
@@ -125,77 +292,33 @@ class LocalFile
     public function delete()
     {
         if ($this->isDir()) {
-            return rmdir($this->getRealPath());
+            return rmdir($this->realpath);
         }
-        else {
-            return unlink($this->getRealPath());
+        else if ($this->isFile() || $this->isLink()) {
+            return unlink($this->realpath);
         }
     }
 
     /**
-     * Checks whether a file or directory exists.
+     * Copies file
+     *
+     * @param File $destination
      *
      * @return bool
      */
-    public function exists()
+    public function copyTo(File $destination, $recursive = false)
     {
-        return file_exists($this->getRealPath());
-    }
+        if ($this->isDirectory()) {
 
-    /**
-     * Shared file locking. (reader)
-     *
-     * @param bool $noblocking
-     *
-     * @return bool
-     */
-    public function lockShared($noblocking = false)
-    {
-        // TODO: Implement lockShared() method.
-    }
-
-    /**
-     * Exclusive file locking. (writer)
-     *
-     * @param bool $noblocking
-     *
-     * @return bool
-     */
-    public function lockExclusive($noblocking = false)
-    {
-        // TODO: Implement lockExclusive() method.
-    }
-
-    /**
-     * Unlock file.
-     *
-     * @param File $path
-     *
-     * @return bool
-     */
-    public function unlock()
-    {
-        // TODO: Implement unlock() method.
-    }
-
-    /**
-     * Makes directory
-     *
-     * @return bool
-     */
-    public function mkdir()
-    {
-        return mkdir($this->getRealPath());
-    }
-
-    /**
-     * Makes directory
-     *
-     * @return bool
-     */
-    public function mkdirs()
-    {
-        return mkdir($this->getRealPath(), 0777, true);
+        }
+        else if ($this->isFile()) {
+            if ($destination instanceof LocalFile) {
+                return copy($this->realpath, $destination->realpath);
+            }
+            else {
+                return Util::streamCopy($this, $destination);
+            }
+        }
     }
 
     /**
@@ -205,10 +328,10 @@ class LocalFile
      *
      * @return bool
      */
-    public function rename(File $destination)
+    public function moveTo(File $destination)
     {
         if ($destination instanceof LocalFile) {
-            return rename($this->getRealPath(), $destination);
+            return rename($this->realpath, $destination);
         }
         else {
             return Util::streamCopy($this, $destination) && $this->delete();
@@ -216,16 +339,33 @@ class LocalFile
     }
 
     /**
-     * Sets access and modification time of file
-     *
-     * @param int $time  = time()
-     * @param int $atime = time()
+     * Makes directory
      *
      * @return bool
      */
-    public function touch($time = null, $atime = null)
+    public function mkdir()
     {
-        return touch($this->getRealPath(), $time, $atime);
+        return mkdir($this->realpath);
+    }
+
+    /**
+     * Makes directory
+     *
+     * @return bool
+     */
+    public function mkdirs()
+    {
+        return mkdir($this->realpath, 0777, true);
+    }
+
+    /**
+     * Create new empty file.
+     *
+     * @return bool
+     */
+    public function createNewFile()
+    {
+        return touch($this->realpath);
     }
 
     /**
@@ -237,7 +377,7 @@ class LocalFile
      */
     public function openStream($mode = 'r')
     {
-        return fopen($this->getRealPath(), $mode);
+        return fopen($this->realpath, $mode);
     }
 
     /**
@@ -258,12 +398,12 @@ class LocalFile
             $path = substr($path, $substr);
             return new LocalFile($path, $this->fs);
         },
-            glob($this->getRealPath() . '/' . $pattern));
+            glob($this->realpath . '/' . $pattern));
     }
 
     public function listAll()
     {
-        $files = scandir($this->getRealPath());
+        $files = scandir($this->realpath);
 
         // skip dot files
         $files = array_filter($files,
@@ -279,8 +419,28 @@ class LocalFile
             $files);
     }
 
+    /**
+     * Get the real url, e.g. file:/real/path/to/file to the pathname.
+     *
+     * @return string
+     */
+    public function getRealUrl()
+    {
+        return 'file:' . $this->realpath;
+    }
+
+    /**
+     * Get a public url, e.g. http://www.example.com/path/to/public/file to the file.
+     *
+     * @return string
+     */
+    public function getPublicUrl()
+    {
+
+    }
+
     public function __toString()
     {
-        return $this->fileName;
+        return $this->pathname;
     }
 }

@@ -22,107 +22,213 @@ use ArrayIterator;
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
-abstract class File
-    extends SplFileInfo
-    implements IteratorAggregate
+interface File
+    extends IteratorAggregate
 {
     /**
-     * Get the underlaying filesystem for this file.
+     * Get the underlaying filesystem for this pathname.
      *
      * @return Filesystem
      */
-    public abstract function getFilesystem();
+    public function getFilesystem();
 
     /**
-     * Change file group.
-     *
-     * @param mixed $group
+     * Test whether this pathname is a file.
      *
      * @return bool
      */
-    public abstract function chgrp($group);
+    public function isFile();
 
     /**
-     * Change file mode.
-     *
-     * @param int  $mode
+     * Test whether this pathname is a link.
      *
      * @return bool
      */
-    public abstract function chmod($mode);
+    public function isLink();
 
     /**
-     * Change file owner.
+     * Test whether this pathname is a directory.
+     *
+     * @return bool
+     */
+    public function isDirectory();
+
+    /**
+     * Get the type of this file.
+     *
+     * @return "file"|"directory"|"link"|"unknown"
+     */
+    public function getType();
+
+    /**
+     * Returns the absolute pathname.
+     *
+     * @return string
+     */
+    public function getPathname();
+
+    /**
+     * Get the link target of the link.
+     *
+     * @return string
+     */
+    public function getLinkTarget();
+
+    /**
+     * Get the name of the file or directory.
+     *
+     * @return string
+     */
+    public function getBasename($suffix = '');
+
+    /**
+     * Get the extension of the file.
+     *
+     * @return mixed
+     */
+    public function getExtension();
+
+    /**
+     * Returns the the path of this pathname's parent, or <em>null</em> if this pathname does not name a parent directory.
+     *
+     * @return File|null
+     */
+    public function getParent();
+
+    /**
+     * Return the time that the file denoted by this pathname was las modified.
+     *
+     * @return int
+     */
+    public function getAccessTime();
+
+    /**
+     * Sets the last-modified time of the file or directory named by this pathname.
+     *
+     * @param int $time
+     */
+    public function setAccessTime($time);
+
+    /**
+     * Return the time that the file denoted by this pathname was las modified.
+     *
+     * @return int
+     */
+    public function getCreationTime();
+
+    /**
+     * Return the time that the file denoted by this pathname was las modified.
+     *
+     * @return int
+     */
+    public function getLastModified();
+
+    /**
+     * Sets the last-modified time of the file or directory named by this pathname.
+     *
+     * @param int $time
+     */
+    public function setLastModified($time);
+
+    /**
+     * Get the size of the file denoted by this pathname.
+     *
+     * @return int
+     */
+    public function getSize();
+
+    /**
+     * Get the owner of the file denoted by this pathname.
+     *
+     * @return string|int
+     */
+    public function getOwner();
+
+    /**
+     * Set the owner of the file denoted by this pathname.
      *
      * @param string|int $user
      *
      * @return bool
      */
-    public abstract function chown($user);
+    public function setOwner($user);
 
     /**
-     * Copies file
+     * Get the group of the file denoted by this pathname.
      *
-     * @param File $destination
+     * @return string|int
+     */
+    public function getGroup();
+
+    /**
+     * Change the group of the file denoted by this pathname.
+     *
+     * @param mixed $group
      *
      * @return bool
      */
-    public abstract function copy(File $destination);
+    public function setGroup($group);
 
     /**
-     * Delete a file or directory.
+     * Get the mode of the file denoted by this pathname.
+     *
+     * @return int
+     */
+    public function getMode();
+
+    /**
+     * Set the mode of the file denoted by this pathname.
+     *
+     * @param int  $mode
      *
      * @return bool
      */
-    public abstract function delete();
+    public function setMode($mode);
+
+    /**
+     * Test whether this pathname is readable.
+     *
+     * @return bool
+     */
+    public function isReadable();
+
+    /**
+     * Test whether this pathname is writeable.
+     *
+     * @return bool
+     */
+    public function isWritable();
+
+    /**
+     * Test whether this pathname is executeable.
+     *
+     * @return bool
+     */
+    public function isExecutable();
 
     /**
      * Checks whether a file or directory exists.
      *
      * @return bool
      */
-    public abstract function exists();
+    public function exists();
 
     /**
-     * Portable advisory shared file locking. (reader)
-     *
-     * @param bool $noblocking
+     * Delete a file or directory.
      *
      * @return bool
      */
-    public abstract function lockShared($noblocking = false);
+    public function delete();
 
     /**
-     * Portable advisory exclusive file locking. (writer)
+     * Copies file
      *
-     * @param bool $noblocking
+     * @param File $destination
+     * @param bool $recursive
      *
      * @return bool
      */
-    public abstract function lockExclusive($noblocking = false);
-
-    /**
-     * Unlock a file.
-     *
-     * @param File $path
-     *
-     * @return bool
-     */
-    public abstract function unlock();
-
-    /**
-     * Makes directory
-     *
-     * @return bool
-     */
-    public abstract function mkdir();
-
-    /**
-     * Makes directories
-     *
-     * @return bool
-     */
-    public abstract function mkdirs();
+    public function copyTo(File $destination, $recursive = false);
 
     /**
      * Renames a file or directory
@@ -131,37 +237,28 @@ abstract class File
      *
      * @return bool
      */
-    public abstract function rename(File $destination);
+    public function moveTo(File $destination);
 
     /**
-     * Sets access and modification time of file
-     *
-     * @param int $time  = time()
-     * @param int $atime = time()
+     * Makes directory
      *
      * @return bool
      */
-    public abstract function touch($time = null, $atime = null);
+    public function mkdir();
 
     /**
-     * Alias for File->delete()
+     * Makes directories
      *
      * @return bool
      */
-    public function rmdir()
-    {
-        return $this->delete();
-    }
+    public function mkdirs();
 
     /**
-     * Alias for File->delete()
+     * Create new empty file.
      *
      * @return bool
      */
-    public function unlink()
-    {
-        return $this->delete();
-    }
+    public function createNewFile();
 
     /**
      * Gets an stream for the file.
@@ -170,7 +267,7 @@ abstract class File
      *
      * @return mixed
      */
-    public abstract function openStream($mode = 'r');
+    public function openStream($mode = 'r');
 
     /**
      * Find pathnames matching a pattern.
@@ -180,79 +277,54 @@ abstract class File
      *
      * @return array<File>
      */
-    public abstract function glob($pattern);
+    public function glob($pattern);
 
     /**
      * List all files.
      *
      * @return array<File>
      */
-    public function globFiles($pattern)
-    {
-        return array_filter($this->glob($pattern),
-            function (File $path) {
-                return $path->isFile();
-            });
-    }
+    public function globFiles($pattern);
 
     /**
      * List all files.
      *
      * @return array<File>
      */
-    public function globDirectories($pattern)
-    {
-        return array_filter($this->glob($pattern),
-            function (File $path) {
-                return $path->isDir();
-            });
-    }
+    public function globDirectories($pattern);
 
     /**
      * List all files.
      *
      * @return array<File>
      */
-    public function listAll()
-    {
-        return $this->glob('*');
-    }
+    public function listAll();
 
     /**
      * List all files.
      *
      * @return array<File>
      */
-    public function listFiles()
-    {
-        return array_filter($this->listAll(),
-            function (File $path) {
-                return $path->isFile();
-            });
-    }
+    public function listFiles();
 
     /**
      * List all files.
      *
      * @return array<File>
      */
-    public function listDirectories()
-    {
-        return array_filter($this->listAll(),
-            function (File $path) {
-                return $path->isDir();
-            });
-    }
+    public function listDirectories();
 
     /**
-     * (PHP 5 &gt;= 5.0.0)<br/>
-     * Retrieve an external iterator
-     * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
-     * @return Traversable An instance of an object implementing <b>Iterator</b> or
-     * <b>Traversable</b>
+     * Get the real url, e.g. file:/real/path/to/file to the pathname.
+     *
+     * @return string
      */
-    public function getIterator()
-    {
-        return new ArrayIterator($this->listAll());
-    }
+    public function getRealUrl();
+
+    /**
+     * Get a public url, e.g. http://www.example.com/path/to/public/file to the file.
+     *
+     * @return string
+     */
+    public function getPublicUrl();
 }

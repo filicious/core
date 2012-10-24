@@ -31,11 +31,17 @@ class LocalFilesystem
     protected $basePath;
 
     /**
+     * @var LocalPublicProvider
+     */
+    protected $publicProvider;
+
+    /**
      * @param string $basePath
      */
-    public function __construct($basePath = '/')
+    public function __construct($basePath = '/', LocalPublicProvider $publicProvider = null)
     {
         $this->basePath = Util::normalizePath($basePath) . '/';
+        $this->publicProvider = $publicProvider;
     }
 
     /**
@@ -98,5 +104,13 @@ class LocalFilesystem
         }
 
         return disk_total_space($path->getRealPath());
+    }
+
+    public function getPublicUrl(LocalFile $file)
+    {
+        if ($this->publicProvider) {
+            return $this->publicProvider->getPublicUrl($file);
+        }
+        return null;
     }
 }

@@ -36,6 +36,16 @@ abstract class BasicFileImpl implements File
     }
 
     /**
+     * Get the underlaying filesystem for this pathname.
+     *
+     * @return Filesystem
+     */
+    public function getFilesystem()
+    {
+        return $this->fs;
+    }
+
+    /**
      * Get the type of this file.
      *
      * @return "file"|"directory"|"link"|"unknown"

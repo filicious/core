@@ -52,14 +52,14 @@ abstract class BasicFileImpl implements File
      */
     public function getType()
     {
+        if ($this->isLink()) {
+            return 'link';
+        }
         if ($this->isFile()) {
             return 'file';
         }
         if ($this->isDirectory()) {
             return 'directory';
-        }
-        if ($this->isLink()) {
-            return 'link';
         }
         return 'unknown';
     }

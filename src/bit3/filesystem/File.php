@@ -261,13 +261,68 @@ interface File
     public function createNewFile();
 
     /**
-     * Gets an stream for the file.
+     * Get contents of the file. Returns <em>null</em> if file does not exists
+     * and <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @return string|null|bool
+     */
+    public function getContents();
+
+    /**
+     * Write contents to a file. Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param string $content
+     *
+     * @return bool
+     */
+    public function setContents($content);
+
+    /**
+     * Write contents to a file. Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param string $content
+     *
+     * @return bool
+     */
+    public function appendContents($content);
+
+    /**
+     * Truncate a file to a given length. Returns the new length or
+     * <em>false</em> on error (e.a. if file is a directory).
+     * @param int $size
+     *
+     * @return int|bool
+     */
+    public function truncate($size = 0);
+
+    /**
+     * Gets an stream for the file. May return <em>null</em> if streaming is not supported.
      *
      * @param string $mode
      *
-     * @return mixed
+     * @return resource|null
      */
     public function openStream($mode = 'r');
+
+    /**
+     * Calculate the md5 hash of this file.
+     * Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param bool $raw Return binary hash, instead of string hash.
+     *
+     * @return string|null
+     */
+    public function hashMD5($raw = false);
+
+    /**
+     * Calculate the sha1 hash of this file.
+     * Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param bool $raw Return binary hash, instead of string hash.
+     *
+     * @return string|null
+     */
+    public function hashSHA1($raw = false);
 
     /**
      * Find pathnames matching a pattern.

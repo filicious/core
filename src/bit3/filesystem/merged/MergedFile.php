@@ -228,7 +228,7 @@ class MergedFile
      */
     public function getMode()
     {
-        // TODO: Implement getMode() method.
+        return $this->file->getMode();
     }
 
     /**
@@ -334,6 +334,54 @@ class MergedFile
     }
 
     /**
+     * Get contents of the file. Returns <em>null</em> if file does not exists
+     * and <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @return string|null|bool
+     */
+    public function getContents()
+    {
+        return $this->file->getContents();
+    }
+
+    /**
+     * Write contents to a file. Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param string $content
+     *
+     * @return bool
+     */
+    public function setContents($content)
+    {
+        return $this->file->setContents($content);
+    }
+
+    /**
+     * Write contents to a file. Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param string $content
+     *
+     * @return bool
+     */
+    public function appendContents($content)
+    {
+        return $this->file->appendContents($content);
+    }
+
+    /**
+     * Truncate a file to a given length. Returns the new length or
+     * <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param int $size
+     *
+     * @return int|bool
+     */
+    public function truncate($size = 0)
+    {
+        return $this->file->truncate($size);
+    }
+
+    /**
      * Gets an stream for the file.
      *
      * @param string $mode
@@ -343,6 +391,28 @@ class MergedFile
     public function openStream($mode = 'r')
     {
         return $this->file->openStream($mode);
+    }
+
+    /**
+     * Calculate the md5 hash of this file.
+     * Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @return string|null
+     */
+    public function hashMD5($raw = false)
+    {
+        return $this->file->hashMD5($raw);
+    }
+
+    /**
+     * Calculate the sha1 hash of this file.
+     * Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @return string|null
+     */
+    public function hashSHA1($raw = false)
+    {
+        return $this->file->hashSHA1($raw);
     }
 
     /**

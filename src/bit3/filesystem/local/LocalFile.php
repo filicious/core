@@ -369,6 +369,89 @@ class LocalFile
     }
 
     /**
+     * Get contents of the file. Returns <em>null</em> if file does not exists
+     * and <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @return string|null|bool
+     */
+    public function getContents()
+    {
+        if (!$this->exists()) {
+            return null;
+        }
+        if (!$this->isFile()) {
+            return false;
+        }
+        return file_get_contents($this->realpath);
+    }
+
+    /**
+     * Write contents to a file. Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param string $content
+     *
+     * @return bool
+     */
+    public function setContents($content)
+    {
+        if ($this->exists() && !$this->isFile()) {
+            return false;
+        }
+        return false !== file_put_contents($this->realpath, $content);
+    }
+
+    /**
+     * Write contents to a file. Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param string $content
+     *
+     * @return bool
+     */
+    public function appendContents($content)
+    {
+        if (!$this->exists()) {
+            return null;
+        }
+        if (!$this->isFile()) {
+            return false;
+        }
+        if (false !== ($f = fopen($this->realpath, 'ab'))) {
+            if (false !== fwrite($f, $content)) {
+                fclose($f);
+                return true;
+            }
+            fclose($f);
+        }
+        return false;
+    }
+
+    /**
+     * Truncate a file to a given length. Returns the new length or
+     * <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param int $size
+     *
+     * @return int|bool
+     */
+    public function truncate($size = 0)
+    {
+        if (!$this->exists()) {
+            return null;
+        }
+        if (!$this->isFile()) {
+            return false;
+        }
+        if (false !== ($f = fopen($this->realpath, 'ab'))) {
+            if (false !== ftruncate($f, $size)) {
+                fclose($f);
+                return filesize($this->realpath);
+            }
+            fclose($f);
+        }
+        return false;
+    }
+
+    /**
      * Gets an stream for the file.
      *
      * @param string $mode
@@ -378,6 +461,40 @@ class LocalFile
     public function openStream($mode = 'r')
     {
         return fopen($this->realpath, $mode);
+    }
+
+    /**
+     * Calculate the md5 hash of this file.
+     * Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @return string|null
+     */
+    public function hashMD5($raw = false)
+    {
+        if (!$this->exists()) {
+            return null;
+        }
+        if (!$this->isFile()) {
+            return false;
+        }
+        return md5_file($this->realpath, $raw);
+    }
+
+    /**
+     * Calculate the sha1 hash of this file.
+     * Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @return string|null
+     */
+    public function hashSHA1($raw = false)
+    {
+        if (!$this->exists()) {
+            return null;
+        }
+        if (!$this->isFile()) {
+            return false;
+        }
+        return sha1_file($this->realpath, $raw);
     }
 
     /**

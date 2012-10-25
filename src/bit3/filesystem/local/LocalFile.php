@@ -458,7 +458,7 @@ class LocalFile
      *
      * @return mixed
      */
-    public function openStream($mode = 'r')
+    public function openStream($mode = 'rb')
     {
         return fopen($this->realpath, $mode);
     }

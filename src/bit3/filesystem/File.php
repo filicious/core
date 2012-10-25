@@ -302,7 +302,7 @@ interface File
      *
      * @return resource|null
      */
-    public function openStream($mode = 'r');
+    public function openStream($mode = 'rb');
 
     /**
      * Calculate the md5 hash of this file.

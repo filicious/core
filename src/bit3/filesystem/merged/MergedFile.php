@@ -388,7 +388,7 @@ class MergedFile
      *
      * @return mixed
      */
-    public function openStream($mode = 'r')
+    public function openStream($mode = 'rb')
     {
         return $this->file->openStream($mode);
     }

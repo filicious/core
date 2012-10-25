@@ -35,7 +35,7 @@ class FtpFile
 
     public function __construct($pathname, FtpFilesystem $fs)
     {
-        $this->pathname = Util::normalizePath($pathname);
+        $this->pathname = Util::normalizePath('/' . $pathname);
         $this->fs       = $fs;
     }
 
@@ -56,7 +56,9 @@ class FtpFile
      */
     public function isFile()
     {
-        // TODO: Implement isFile() method.
+        $stat = $this->fs->ftpStat($this);
+
+        return $stat ? $stat['isFile'] : false;
     }
 
     /**
@@ -66,7 +68,9 @@ class FtpFile
      */
     public function isLink()
     {
-        // TODO: Implement isLink() method.
+        $stat = $this->fs->ftpStat($this);
+
+        return $stat ? $stat['isLink'] : false;
     }
 
     /**
@@ -76,7 +80,9 @@ class FtpFile
      */
     public function isDirectory()
     {
-        // TODO: Implement isDirectory() method.
+        $stat = $this->fs->ftpStat($this);
+
+        return $stat ? $stat['isDirectory'] : false;
     }
 
     /**
@@ -86,7 +92,7 @@ class FtpFile
      */
     public function getPathname()
     {
-        // TODO: Implement getPathname() method.
+        return $this->pathname;
     }
 
     /**
@@ -96,7 +102,9 @@ class FtpFile
      */
     public function getLinkTarget()
     {
-        // TODO: Implement getLinkTarget() method.
+        $stat = $this->fs->ftpStat($this);
+
+        return $stat && $stat['isLink'] ? $stat['target'] : false;
     }
 
     /**
@@ -106,7 +114,13 @@ class FtpFile
      */
     public function getParent()
     {
-        // TODO: Implement getParent() method.
+        $parent = dirname($this->pathname);
+
+        if ($parent != '.') {
+            return $this->fs->getFile($parent);
+        }
+
+        return null;
     }
 
     /**
@@ -116,7 +130,7 @@ class FtpFile
      */
     public function getAccessTime()
     {
-        // TODO: Implement getAccessTime() method.
+        return $this->getLastModified();
     }
 
     /**
@@ -126,7 +140,7 @@ class FtpFile
      */
     public function setAccessTime($time)
     {
-        // TODO: Implement setAccessTime() method.
+        return false;
     }
 
     /**
@@ -136,7 +150,7 @@ class FtpFile
      */
     public function getCreationTime()
     {
-        // TODO: Implement getCreationTime() method.
+        return $this->getLastModified();
     }
 
     /**
@@ -146,7 +160,9 @@ class FtpFile
      */
     public function getLastModified()
     {
-        // TODO: Implement getLastModified() method.
+        $stat = $this->fs->ftpStat($this);
+
+        return $stat ? $stat['modified'] : false;
     }
 
     /**
@@ -156,7 +172,7 @@ class FtpFile
      */
     public function setLastModified($time)
     {
-        // TODO: Implement setLastModified() method.
+        return false;
     }
 
     /**
@@ -166,7 +182,9 @@ class FtpFile
      */
     public function getSize()
     {
-        // TODO: Implement getSize() method.
+        $stat = $this->fs->ftpStat($this);
+
+        return $stat ? $stat['size'] : false;
     }
 
     /**
@@ -176,7 +194,9 @@ class FtpFile
      */
     public function getOwner()
     {
-        // TODO: Implement getOwner() method.
+        $stat = $this->fs->ftpStat($this);
+
+        return $stat ? $stat['user'] : false;
     }
 
     /**
@@ -188,7 +208,7 @@ class FtpFile
      */
     public function setOwner($user)
     {
-        // TODO: Implement setOwner() method.
+        return false;
     }
 
     /**
@@ -198,7 +218,9 @@ class FtpFile
      */
     public function getGroup()
     {
-        // TODO: Implement getGroup() method.
+        $stat = $this->fs->ftpStat($this);
+
+        return $stat ? $stat['group'] : false;
     }
 
     /**
@@ -210,7 +232,7 @@ class FtpFile
      */
     public function setGroup($group)
     {
-        // TODO: Implement setGroup() method.
+        return false;
     }
 
     /**
@@ -220,7 +242,9 @@ class FtpFile
      */
     public function getMode()
     {
-        // TODO: Implement getMode() method.
+        $stat = $this->fs->ftpStat($this);
+
+        return $stat ? $stat['mode'] : false;
     }
 
     /**
@@ -232,7 +256,7 @@ class FtpFile
      */
     public function setMode($mode)
     {
-        // TODO: Implement setMode() method.
+        return $this->fs->ftpChmod($this, $mode);
     }
 
     /**
@@ -242,7 +266,9 @@ class FtpFile
      */
     public function isReadable()
     {
-        // TODO: Implement isReadable() method.
+        $stat = $this->fs->ftpStat($this);
+
+        return $stat ? $stat['mode'] & 0444 : false;
     }
 
     /**
@@ -252,7 +278,9 @@ class FtpFile
      */
     public function isWritable()
     {
-        // TODO: Implement isWritable() method.
+        $stat = $this->fs->ftpStat($this);
+
+        return $stat ? $stat['mode'] & 0222 : false;
     }
 
     /**
@@ -262,7 +290,9 @@ class FtpFile
      */
     public function isExecutable()
     {
-        // TODO: Implement isExecutable() method.
+        $stat = $this->fs->ftpStat($this);
+
+        return $stat ? $stat['mode'] & 0111 : false;
     }
 
     /**
@@ -272,7 +302,9 @@ class FtpFile
      */
     public function exists()
     {
-        // TODO: Implement exists() method.
+        $stat = $this->fs->ftpStat($this);
+
+        return $stat ? true : false;
     }
 
     /**
@@ -282,7 +314,7 @@ class FtpFile
      */
     public function delete()
     {
-        // TODO: Implement delete() method.
+        return $this->fs->ftpDelete($this);
     }
 
     /**
@@ -295,7 +327,7 @@ class FtpFile
      */
     public function copyTo(File $destination, $recursive = false)
     {
-        // TODO: Implement copyTo() method.
+        Util::streamCopy($this, $destination);
     }
 
     /**
@@ -307,7 +339,13 @@ class FtpFile
      */
     public function moveTo(File $destination)
     {
-        // TODO: Implement moveTo() method.
+        if ($destination instanceof FtpFile && $destination->getFilesystem() == $this->getFilesystem()) {
+            $this->fs->ftpRename($this, $destination);
+        }
+        else {
+            Util::streamCopy($this, $destination);
+            $this->fs->ftpDelete($this);
+        }
     }
 
     /**
@@ -317,7 +355,9 @@ class FtpFile
      */
     public function mkdir()
     {
-        // TODO: Implement mkdir() method.
+        $stat = $this->fs->ftpStat($this);
+
+        return $stat ? $this->fs->ftpMkdir($this) : $stat['isDirectory'];
     }
 
     /**
@@ -327,7 +367,17 @@ class FtpFile
      */
     public function mkdirs()
     {
-        // TODO: Implement mkdirs() method.
+        $stat = $this->fs->ftpStat($this);
+
+        if (!$stat) {
+            $parent = $this->getParent();
+
+            if ($parent) {
+                $parent->mkdirs();
+            }
+        }
+
+        return $this->mkdir();
     }
 
     /**
@@ -337,7 +387,61 @@ class FtpFile
      */
     public function createNewFile()
     {
-        // TODO: Implement createNewFile() method.
+        return $this->fs->ftpPut($this, '');
+    }
+
+    /**
+     * Get contents of the file. Returns <em>null</em> if file does not exists
+     * and <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @return string|null|bool
+     */
+    public function getContents()
+    {
+        return $this->fs->ftpGet($this);
+    }
+
+    /**
+     * Write contents to a file. Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param string $content
+     *
+     * @return bool
+     */
+    public function setContents($content)
+    {
+        return $this->fs->ftpPut($this, $content);
+    }
+
+    /**
+     * Write contents to a file. Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param string $content
+     *
+     * @return bool
+     */
+    public function appendContents($content)
+    {
+        $previous = $this->getContents();
+        return $this->fs->ftpPut($this, $previous . $content);
+    }
+
+    /**
+     * Truncate a file to a given length. Returns the new length or
+     * <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param int $size
+     *
+     * @return int|bool
+     */
+    public function truncate($size = 0)
+    {
+        $content = '';
+        if ($size > 0) {
+            $content = $this->getContents();
+            $content = substr($content, 0, $size);
+        }
+        return $this->fs->ftpPut($this, $content);
     }
 
     /**
@@ -347,9 +451,47 @@ class FtpFile
      *
      * @return mixed
      */
-    public function openStream($mode = 'r')
+    public function openStream($mode = 'rb')
     {
-        // TODO: Implement openStream() method.
+        $config = $this->fs->getConfig();
+
+        $url = $config->getSsl() ? 'ftps://' : 'ftp://';
+        $url .= $config->getUsername();
+        if ($config->getPassword()) {
+            $url .= ':' . $config->getPassword();
+        }
+        $url .= '@' . $config->getHost();
+        $url .= ':' . $config->getPort();
+        $url .= $config->getPath();
+        $url .= $this->pathname;
+
+        return fopen($url, $mode);
+    }
+
+    /**
+     * Calculate the md5 hash of this file.
+     * Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param bool $raw Return binary hash, instead of string hash.
+     *
+     * @return string|null
+     */
+    public function hashMD5($raw = false)
+    {
+        return md5($this->getContents(), $raw);
+    }
+
+    /**
+     * Calculate the sha1 hash of this file.
+     * Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param bool $raw Return binary hash, instead of string hash.
+     *
+     * @return string|null
+     */
+    public function hashSHA1($raw = false)
+    {
+        return sha1($this->getContents(), $raw);
     }
 
     /**

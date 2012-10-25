@@ -62,7 +62,7 @@ class FtpConfig
      *
      * @var string
      */
-    protected $username = '';
+    protected $username = 'anonymous';
 
     /**
      * Password to use for login.

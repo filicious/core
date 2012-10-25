@@ -202,4 +202,21 @@ class Util
 
         return (bool) stream_copy_to_stream($sourceStream, $targetStream);
     }
+
+    static public function string2bitMode($string)
+    {
+        if (strlen($string) == 3) {
+            return ($string[0] ? 4 : 0) | ($string[1] ? 2 : 0) | ($string[2] ? 1 : 0);
+        }
+        else if (strlen($string) == 9) {
+            return '0' .
+                static::string2bitMode(substr($string, 0, 3)) .
+                static::string2bitMode(substr($string, 3, 3)) .
+                static::string2bitMode(substr($string, 6, 3));
+        }
+        else if (strlen($string) == 10) {
+            return static::string2bitMode(substr($string, 1));
+        }
+        return null;
+    }
 }

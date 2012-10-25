@@ -48,8 +48,8 @@ class LocalFile
     public function __construct($pathname, LocalFilesystem $fs)
     {
         parent::__construct($fs);
-        $this->pathname = Util::normalizePath($pathname);
-        $this->realpath = Util::normalizePath($fs->getBasePath() . $pathname);
+        $this->pathname = Util::normalizePath('/' . $pathname);
+        $this->realpath = Util::normalizePath($fs->getBasePath() . '/' . $pathname);
     }
 
     /**

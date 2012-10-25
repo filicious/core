@@ -40,7 +40,7 @@ class LocalFilesystem
      */
     public function __construct($basePath = '/', LocalPublicProvider $publicProvider = null)
     {
-        $this->basePath = Util::normalizePath($basePath) . '/';
+        $this->basePath = Util::normalizePath('/' . $basePath) . '/';
         $this->publicProvider = $publicProvider;
     }
 

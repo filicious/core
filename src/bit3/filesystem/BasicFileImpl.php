@@ -92,16 +92,41 @@ abstract class BasicFileImpl implements File
     }
 
     /**
+     * Find pathnames matching a pattern.
+     *
+     * @param string $pattern
+     * @param int    $flags Use GLOB_* flags. Not all may supported on each filesystem.
+     *
+     * @return array<File>
+     */
+    public function glob($pattern)
+    {
+        $files = $this->listAll();
+
+        if (is_array($files)) {
+            return array_filter($files, function(File $path) use ($pattern) {
+                return fnmatch($pattern, $path->getPathname());
+            });
+        }
+    }
+
+    /**
      * List all files.
      *
      * @return array<File>
      */
     public function globFiles($pattern)
     {
-        return array_filter($this->glob($pattern),
-            function (File $path) {
-                return $path->isFile();
-            });
+        $files = $this->glob($pattern);
+
+        if (is_array($files)) {
+            return array_filter($files,
+                function (File $path) {
+                    return $path->isFile();
+                });
+        }
+
+        return false;
     }
 
     /**
@@ -111,20 +136,16 @@ abstract class BasicFileImpl implements File
      */
     public function globDirectories($pattern)
     {
-        return array_filter($this->glob($pattern),
-            function (File $path) {
-                return $path->isDirectory();
-            });
-    }
+        $files = $this->glob($pattern);
 
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function listAll()
-    {
-        return $this->glob('*');
+        if (is_array($files)) {
+            return array_filter($files,
+                function (File $path) {
+                    return $path->isDirectory();
+                });
+        }
+
+        return false;
     }
 
     /**
@@ -134,10 +155,16 @@ abstract class BasicFileImpl implements File
      */
     public function listFiles()
     {
-        return array_filter($this->listAll(),
-            function (File $path) {
-                return $path->isFile();
-            });
+        $files = $this->listAll();
+
+        if (is_array($files)) {
+            return array_filter($files,
+                function (File $path) {
+                    return $path->isFile();
+                });
+        }
+
+        return false;
     }
 
     /**
@@ -147,10 +174,16 @@ abstract class BasicFileImpl implements File
      */
     public function listDirectories()
     {
-        return array_filter($this->listAll(),
-            function (File $path) {
-                return $path->isDirectory();
-            });
+        $files = $this->listAll();
+
+        if (is_array($files)) {
+            return array_filter($files,
+                function (File $path) {
+                    return $path->isDirectory();
+                });
+        }
+
+        return false;
     }
 
     /**
@@ -163,5 +196,10 @@ abstract class BasicFileImpl implements File
     public function getIterator()
     {
         return new ArrayIterator($this->listAll());
+    }
+
+    public function __toString()
+    {
+        return $this->pathname;
     }
 }

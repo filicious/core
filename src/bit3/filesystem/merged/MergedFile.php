@@ -273,9 +273,9 @@ class MergedFile
      *
      * @return bool
      */
-    public function delete()
+    public function delete($recursive = false)
     {
-        return $this->file->delete();
+        return $this->file->delete($recursive);
     }
 
     /**

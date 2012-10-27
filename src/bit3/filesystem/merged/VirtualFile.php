@@ -245,7 +245,7 @@ class VirtualFile
      *
      * @return bool
      */
-    public function delete()
+    public function delete($recursive = false)
     {
         return false;
     }

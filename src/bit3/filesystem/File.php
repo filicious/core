@@ -216,9 +216,11 @@ interface File
     /**
      * Delete a file or directory.
      *
+     * @param bool $recursive
+     *
      * @return bool
      */
-    public function delete();
+    public function delete($recursive = false);
 
     /**
      * Copies file

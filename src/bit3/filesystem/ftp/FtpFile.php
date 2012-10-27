@@ -312,9 +312,27 @@ class FtpFile
      *
      * @return bool
      */
-    public function delete()
+    public function delete($recursive = false)
     {
-        return $this->fs->ftpDelete($this);
+        $stat = $this->fs->ftpStat($this);
+
+        if ($stat['isDirectory']) {
+            if ($recursive) {
+                /** @var File $file */
+                foreach ($this->listAll() as $file) {
+                    if (!$file->delete(true)) {
+                        return false;
+                    }
+                }
+            }
+            else if (count($this->listAll()) > 0) {
+                return false;
+            }
+            return $this->fs->ftpDelete($this);
+        }
+        else {
+            return $this->fs->ftpDelete($this);
+        }
     }
 
     /**

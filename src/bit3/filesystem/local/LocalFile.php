@@ -289,9 +289,20 @@ class LocalFile
      *
      * @return bool
      */
-    public function delete()
+    public function delete($recursive = false)
     {
         if ($this->isDir()) {
+            if ($recursive) {
+                /** @var File $file */
+                foreach ($this->listAll() as $file) {
+                    if (!$file->delete(true)) {
+                        return false;
+                    }
+                }
+            }
+            else if (count($this->listAll()) > 0) {
+                return false;
+            }
             return rmdir($this->realpath);
         }
         else if ($this->isFile() || $this->isLink()) {

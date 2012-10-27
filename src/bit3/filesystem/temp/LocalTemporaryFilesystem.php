@@ -60,7 +60,7 @@ class LocalTemporaryFilesystem
         return $file;
     }
 
-    public function createTempDir($prefix)
+    public function createTempDirectory($prefix)
     {
         // create a temporary file
         $file = $this->createTempFile($prefix);

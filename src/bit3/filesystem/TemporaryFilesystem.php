@@ -37,5 +37,5 @@ interface TemporaryFilesystem extends Filesystem
      *
      * @return File
      */
-    public function createTempDir($prefix);
+    public function createTempDirectory($prefix);
 }

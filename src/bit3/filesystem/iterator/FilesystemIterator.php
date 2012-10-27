@@ -12,6 +12,7 @@
 namespace bit3\filesystem\iterator;
 
 use bit3\filesystem\File;
+use bit3\filesystem\FilesystemException;
 use Traversable;
 use Iterator;
 use SeekableIterator;
@@ -33,7 +34,7 @@ class FilesystemIterator
     /**
      * Makes FilesystemIterator::current() return the filename.
      */
-    const CURRENT_AS_FILENAME = 64;
+    const CURRENT_AS_BASENAME = 64;
 
     /**
      * Makes FilesystemIterator::current() return an File instance.
@@ -82,6 +83,9 @@ class FilesystemIterator
 
     public function __construct(File $path, $flags = 0)
     {
+        if (!$path->isDirectory()) {
+            throw new FilesystemException('Path ' . $path->getPathname() . ' is not a directory.');
+        }
         $this->path  = $path;
         $this->files = $path->listAll();
         $this->keys  = array_keys($this->files);
@@ -104,8 +108,8 @@ class FilesystemIterator
             else if ($this->flags & self::CURRENT_AS_PATHNAME) {
                 return $this->files[$this->keys[$this->index]]->getPathname();
             }
-            else if ($this->flags & self::CURRENT_AS_FILENAME) {
-                return $this->files[$this->keys[$this->index]]->getFilename();
+            else if ($this->flags & self::CURRENT_AS_BASENAME) {
+                return $this->files[$this->keys[$this->index]]->getBasename();
             }
             return $this->files[$this->keys[$this->index]];
         }

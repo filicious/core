@@ -13,6 +13,7 @@ namespace bit3\filesystem\ftp;
 
 use bit3\filesystem\Filesystem;
 use bit3\filesystem\File;
+use bit3\filesystem\PublicUrlProvider;
 use bit3\filesystem\Util;
 
 /**
@@ -30,6 +31,11 @@ class FtpFilesystem
     protected $config;
 
     /**
+     * @var PublicUrlProvider
+     */
+    protected $publicUrlProvider;
+
+    /**
      * @var resource
      */
     protected $connection;
@@ -42,9 +48,10 @@ class FtpFilesystem
     /**
      * @param FtpConfig $config
      */
-    public function __construct(FtpConfig $config)
+    public function __construct(FtpConfig $config, PublicUrlProvider $publicUrlProvider = null)
     {
         $this->config = clone $config;
+        $this->publicUrlProvider = $publicUrlProvider;
 
         if ($this->config->getSsl()) {
             $this->connection = ftp_ssl_connect(
@@ -269,28 +276,106 @@ class FtpFilesystem
         return false;
     }
 
-    public function ftpGet(FtpFile $file)
+    public function ftpStreamGet(FtpFile $source, $targetStream)
     {
+        $stat = $this->ftpStat($source);
 
+        if ($stat and !$stat['isDirectory']) {
+            $real = $this->getBasePath() . $source->getPathname();
+
+            return ftp_fget($this->connection, $targetStream, $real, FTP_BINARY);
+        }
+
+        return false;
     }
 
-    public function ftpPut(FtpFile $file, $content)
+    public function ftpStreamPut(FtpFile $target, $sourceStream)
     {
+        $stat = $this->ftpStat($target);
 
+        if (!$stat or !$stat['isDirectory']) {
+            $real = $this->getBasePath() . $target->getPathname();
+
+            return ftp_fput($this->connection, $real, $sourceStream, FTP_BINARY);
+        }
+
+        return false;
+    }
+
+    public function ftpGet(FtpFile $source, File $target)
+    {
+        $stat = $this->ftpStat($source);
+
+        if ($stat and !$stat['isDirectory']) {
+            $realSource = $this->getBasePath() . $source->getPathname();
+            $realTarget = $target->getRealUrl();
+
+            return ftp_get($this->connection, $realTarget, $realSource, FTP_BINARY);
+        }
+
+        return false;
+    }
+
+    public function ftpPut(FtpFile $target, File $source)
+    {
+        $stat = $this->ftpStat($target);
+
+        if (!$stat or !$stat['isDirectory']) {
+            $realSource = $source->getRealUrl();
+            $realTarget = $this->getBasePath() . $target->getPathname();
+
+            return ftp_put($this->connection, $realTarget, $realSource, FTP_BINARY);
+        }
+
+        return false;
     }
 
     public function ftpMkdir(FtpFile $file)
     {
+        $stat = $this->ftpStat($file);
 
+        if (!$stat) {
+            $real = $this->getBasePath() . $file->getPathname();
+
+            return ftp_mkdir($this->connection, $real);
+        }
+
+        return false;
     }
 
     public function ftpRename(FtpFile $source, FtpFile $target)
     {
+        $sourceStat = $this->ftpStat($source);
+        $targetStat = $this->ftpStat($target);
 
+        if ($sourceStat and (!$targetStat or (!$sourceStat['isDirectory'] and !$targetStat['isDirectory']))) {
+            $realSource = $this->getBasePath() . $source->getPathname();
+            $realTarget = $this->getBasePath() . $target->getPathname();
+
+            return ftp_rename($this->connection, $realSource, $realTarget);
+        }
+
+        return false;
     }
 
     public function ftpRmdir(FtpFile $file)
     {
+        $stat = $this->ftpStat($file);
 
+        if ($stat && $stat['isDirectory']) {
+            $real = $this->getBasePath() . $file->getPathname();
+
+            return ftp_rmdir($this->connection, $real);
+        }
+
+        return false;
+    }
+
+    /**
+     * @return \bit3\filesystem\PublicUrlProvider
+     */
+    public function getPublicUrlProvider()
+    {
+        return $this->publicUrlProvider;
     }
 }

@@ -79,6 +79,13 @@ class FtpConfig
     protected $path = '';
 
     /**
+     * Show the password in public urls.
+     *
+     * @var bool
+     */
+    protected $visiblePassword = false;
+
+    /**
      * @var Cache
      */
     protected $cache;
@@ -233,5 +240,21 @@ class FtpConfig
             $this->cache = new ArrayCache();
         }
         return $this->cache;
+    }
+
+    /**
+     * @param boolean $visiblePassword
+     */
+    public function setVisiblePassword($visiblePassword)
+    {
+        $this->visiblePassword = (bool) $visiblePassword;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getVisiblePassword()
+    {
+        return $this->visiblePassword;
     }
 }

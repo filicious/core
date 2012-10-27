@@ -141,11 +141,14 @@ class FtpFilesystemTest extends \PHPUnit_Framework_TestCase
 
     public function testTree()
     {
-        $root = $this->fs->getFile('.FRmoneyplex.ini');
+        $root = $this->fs->getFile('foo.txt');
         $list = $this->fs->ftpList($root);
         $stat = $this->fs->ftpStat($root);
-        $stream = $root->openStream();
-        echo file_get_contents($stream);
+
+
+        $stream = $root->openStream('w');
+        fwrite($stream, "Hello World!\n");
+        fclose($stream);
 
         var_dump($list, $stat);
     }

@@ -11,10 +11,10 @@
 
 namespace bit3\filesystem\ftp;
 
+use bit3\filesystem\FS;
 use bit3\filesystem\Filesystem;
 use bit3\filesystem\File;
 use bit3\filesystem\BasicFileImpl;
-use bit3\filesystem\FilesystemException;
 use bit3\filesystem\Util;
 
 /**
@@ -405,7 +405,13 @@ class FtpFile
      */
     public function createNewFile()
     {
-        return $this->fs->ftpPut($this, '');
+        $stream = fopen('php://memory', 'w+');
+
+        // write empty string to initialize the stream,
+        // otherwise something unexpected may happen
+        fwrite($stream, '');
+
+        return $this->fs->ftpStreamPut($this, $stream);
     }
 
     /**
@@ -416,7 +422,20 @@ class FtpFile
      */
     public function getContents()
     {
-        return $this->fs->ftpGet($this);
+        $stat = $this->fs->ftpStat($this);
+
+        if ($stat) {
+            $tempFS = FS::getSystemTemporaryFilesystem();
+            $tempFile = $tempFS->createTempFile('ftp_');
+
+            if ($this->fs->ftpGet($this, $tempFile)) {
+                return $tempFile->getContents();
+            }
+
+            return false;
+        }
+
+        return null;
     }
 
     /**
@@ -428,7 +447,17 @@ class FtpFile
      */
     public function setContents($content)
     {
-        return $this->fs->ftpPut($this, $content);
+        $stat = $this->fs->ftpStat($this);
+
+        if (!$stat or !$stat['isDirectory']) {
+            $tempFS = FS::getSystemTemporaryFilesystem();
+            $tempFile = $tempFS->createTempFile('ftp_');
+            $tempFile->setContents($content);
+
+            return $this->fs->ftpPut($this, $tempFile);
+        }
+
+        return false;
     }
 
     /**
@@ -483,7 +512,13 @@ class FtpFile
         $url .= $config->getPath();
         $url .= $this->pathname;
 
-        return fopen($url, $mode);
+        $stream_options = array(
+            'ftp'  => array('overwrite' => true),
+            'ftps' => array('overwrite' => true),
+        );
+        $stream_context = stream_context_create($stream_options);
+
+        return fopen($url, $mode, null, $stream_context);
     }
 
     /**
@@ -513,16 +548,21 @@ class FtpFile
     }
 
     /**
-     * Find pathnames matching a pattern.
-     *
-     * @param string $pattern
-     * @param int    $flags Use GLOB_* flags. Not all may supported on each filesystem.
+     * List all files.
      *
      * @return array<File>
      */
-    public function glob($pattern)
+    public function listAll()
     {
-        // TODO: Implement glob() method.
+        $stat = $this->fs->ftpStat($this);
+
+        if ($stat['isDirectory']) {
+            return array_map(function($stat) {
+                return new FtpFile($this->getPathname() . '/' . $stat->name, $this->fs);
+            }, $this->fs->ftpList($this));
+        }
+
+        return false;
     }
 
     /**
@@ -532,7 +572,24 @@ class FtpFile
      */
     public function getRealUrl()
     {
-        // TODO: Implement getRealUrl() method.
+        $config = $this->fs->getConfig();
+
+        $url = $config->getSsl() ? 'ftps://' : 'ftp://';
+        $url .= $config->getUsername();
+        if ($config->getPassword()) {
+            if ($config->getVisiblePassword()) {
+                $url .= ':' . $config->getPassword();
+            }
+            else {
+                $url .= ':***';
+            }
+        }
+        $url .= '@' . $config->getHost();
+        $url .= ':' . $config->getPort();
+        $url .= $config->getPath();
+        $url .= $this->pathname;
+
+        return $url;
     }
 
     /**
@@ -542,6 +599,8 @@ class FtpFile
      */
     public function getPublicUrl()
     {
-        // TODO: Implement getPublicUrl() method.
+        $publicUrlProvider = $this->fs->getPublicUrlProvider();
+
+        return $publicUrlProvider ? $publicUrlProvider->getPublicUrl($this) : false;
     }
 }

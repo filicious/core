@@ -564,11 +564,8 @@ class LocalFile
      */
     public function getPublicUrl()
     {
+        $publicUrlProvider = $this->fs->getPublicUrlProvider();
 
-    }
-
-    public function __toString()
-    {
-        return $this->pathname;
+        return $publicUrlProvider ? $publicUrlProvider->getPublicUrl($this) : false;
     }
 }

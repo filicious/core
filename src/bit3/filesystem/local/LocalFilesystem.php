@@ -13,7 +13,7 @@ namespace bit3\filesystem\local;
 
 use bit3\filesystem\Filesystem;
 use bit3\filesystem\File;
-use bit3\filesystem\FilesystemException;
+use bit3\filesystem\PublicUrlProvider;
 use bit3\filesystem\Util;
 
 /**
@@ -31,17 +31,17 @@ class LocalFilesystem
     protected $basePath;
 
     /**
-     * @var LocalPublicProvider
+     * @var PublicUrlProvider
      */
-    protected $publicProvider;
+    protected $publicUrlProvider;
 
     /**
      * @param string $basePath
      */
-    public function __construct($basePath = '/', LocalPublicProvider $publicProvider = null)
+    public function __construct($basePath = '/', PublicUrlProvider $publicUrlProvider = null)
     {
         $this->basePath = Util::normalizePath('/' . $basePath) . '/';
-        $this->publicProvider = $publicProvider;
+        $this->publicUrlProvider = $publicUrlProvider;
     }
 
     /**
@@ -106,11 +106,11 @@ class LocalFilesystem
         return disk_total_space($path->getRealPath());
     }
 
-    public function getPublicUrl(LocalFile $file)
+    /**
+     * @return PublicUrlProvider
+     */
+    public function getPublicUrlProvider()
     {
-        if ($this->publicProvider) {
-            return $this->publicProvider->getPublicUrl($file);
-        }
-        return null;
+        return $this->publicUrlProvider;
     }
 }

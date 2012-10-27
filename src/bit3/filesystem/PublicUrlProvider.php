@@ -9,9 +9,9 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace bit3\filesystem\local;
+namespace bit3\filesystem;
 
-interface LocalPublicProvider
+interface PublicUrlProvider
 {
-    public function getPublicUrl(LocalFile $file);
+    public function getPublicUrl(File $file);
 }

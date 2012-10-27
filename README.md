@@ -49,6 +49,326 @@ All files/directories created with these methods will be deleted if the filesyst
 
 `BasicFileImpl` is a basic abstract implementation of `File`.
 
+Work with the filesystem
+========================
+
+Get the root `/` node of a filesystem
+-------------------------------------
+
+```php
+/** @var Filesystem $fs */
+/** @var File $root */
+$root = $fs->getRoot();
+```
+
+Get a file from the filesystem
+------------------------------
+
+```php
+/** @var Filesystem $fs */
+/** @var File $file */
+$file = $fs->getFile('/example.txt');
+```
+
+Test if file exists and test if it is a file, directory or link
+---------------------------------------------------------------
+
+```php
+/** @var File $file */
+if ($file->exists()) {
+	if ($file->isLink()) {
+		// $file is a link
+	}
+	if ($file->isFile()) {
+		// $file is a file
+	}
+	if ($file->isDirectory()) {
+		// $file is a directory
+	}
+}
+```
+
+Get basic informations about a file
+-----------------------------------
+
+```php
+/** @var File $file */
+// get the passname INSIDE of the filesystem (this may not be the real pathname)
+$pathname = $file->getPathname();
+
+// get the basename
+$basename = $file->getBasename();
+
+// the the extension
+$extension = $file->getExtension();
+
+// get the parent directory
+/** @var File $parent */
+$parent = $file->getParent();
+
+// get last access time
+$accessTime = $file->getAccessTime();
+
+// get creation time
+$creationTime = $file->getCreationTime();
+
+// get last modified time
+$lastModified = $file->getLastModified();
+
+// get file size
+$size = $file->getSize();
+
+// get owner (may be the name or uid)
+$owner = $file->getOwner();
+
+// get group (may be the name or gid)
+$group = $file->getGroup();
+```
+
+Get and test permissions
+------------------------
+
+```php
+/** @var File $file */
+// get permissions
+$mode = $file->getMode();
+
+// test if file is readable
+if ($file->isReadable()) {
+	// do something...
+}
+
+// test if file is writeable
+if ($file->isWriteable()) {
+	// do something...
+}
+
+// test if file is executable
+if ($file->isExecutable()) {
+	// do something...
+}
+```
+
+Delete files and directories
+----------------------------
+
+```php
+/** @var File $file */
+if ($file->isDirectory()) {
+	$file->delete(true); // recursive delete!!!
+}
+else {
+	$file->delete();
+}
+```
+
+Copy files
+----------
+
+Keep in mind: `$source` and `$target` does not need to be files the same filesystem!
+
+```php
+/** @var File $source */
+/** @var File $target */
+$source->copyTo($target);
+```
+
+Rename/Move files
+-----------------
+
+Keep in mind: `$source` and `$target` does not need to be files the same filesystem!
+
+```php
+/** @var File $source */
+/** @var File $target */
+$source->moveTo($target);
+```
+
+Create a directory
+------------------
+
+```php
+/** @var File $file */
+if (!$file->exists()) {
+	$file->mkdir();
+}
+```
+
+Create a directory path (including all missing parent directories)
+------------------------------------------------------------------
+
+```php
+/** @var File $file */
+if (!$file->exists()) {
+	$file->mkdirs();
+}
+```
+
+Create a new empty file
+-----------------------
+
+```php
+/** @var File $file */
+if (!$file->exists()) {
+	$file->createNewFile();
+}
+```
+
+Read and write files
+--------------------
+
+```php
+/** @var File $file */
+// read the file
+$content = $file->getContents();
+
+// write to the file
+$file->setContents("Hello world!\n");
+
+// append to the file
+$file->appendContents("The world is like a pizza!\n");
+```
+
+Truncate files
+--------------
+
+```php
+/** @var File $file */
+$file->truncate(1024); // truncate to 1024 bytes
+```
+
+Streaming files
+---------------
+
+```php
+/** @var File $file */
+// read the file
+$stream = $file->openStream('rb');
+$content = stream_get_contents($stream);
+fclose($stream);
+
+// write to the file
+$stream = $file->openStream('wb');
+fwrite($stream, "Hello world!\n");
+fclose($stream);
+
+// append to the file
+$stream = $file->openStream('ab');
+fwrite($stream, "The world is like a pizza!\n");
+fclose($stream);
+```
+
+Calculate file hashes
+---------------------
+
+```php
+/** @var File $file */
+// get md5 hash
+$md5 = $file->hashMD5();
+
+// get raw md5 hash
+$md5raw = $file->hashMD5(true);
+
+// get sha1 hash
+$sha1 = $file->hashSHA1();
+
+// get raw sha1 hash
+$sha1raw = $file->hashSHA1(true);
+```
+
+List files in a directory
+-------------------------
+
+```php
+/** @var File $file */
+if ($file->isDirectory()) {
+	// get files and directories
+	$children = $file->listAll();
+
+	// get files only
+	$files = $file->listFiles();
+
+	// get directories only
+	$directories = $file->listDirectories();
+}
+```
+
+Glob files in a directory
+-------------------------
+
+```php
+/** @var File $file */
+if ($file->isDirectory()) {
+	// get files and directories
+	$children = $file->glob('*example*');
+
+	// get files only
+	$files = $file->globFiles('*example*');
+
+	// get directories only
+	$directories = $file->globDirectories('*example*');
+}
+```
+
+Iterate directories (simple)
+----------------------------
+
+Keep in mind: the *magic* childrens `.` and `..` will never be visible to you!
+
+```php
+/** @var File $file */
+if ($file->isDirectory()) {
+	/** @var File $child */
+	foreach ($file as $child) {
+		// do somethink with $child
+	}
+}
+```
+
+Iterate directories (expert)
+----------------------------
+
+Keep in mind: the *magic* childrens `.` and `..` will never be visible to you!
+
+```php
+use bit3\filesystem\iterator\FilesystemIterator;
+
+/** @var File $file */
+if ($file->isDirectory()) {
+	$iterator = new FilesystemIterator($file, FilesystemIterator::CURRENT_AS_PATHNAME);
+
+	/** @var string $child */
+	foreach ($file as $child) {
+		// $child will be the pathname
+	}
+}
+```
+
+Get real url to a file
+----------------------
+
+```php
+/** @var File $file */
+$url = $file->getRealUrl();
+// -> file:/real/path/to/file
+// or
+// -> ftp://username:password@host:port/path/to/file
+// or
+// ...
+```
+
+Get public url to a file
+------------------------
+
+```php
+/** @var File $file */
+$url = $file->getPublicUrl();
+// may return false|null if no public url is available
+if ($url) {
+	header('Location: ' . $url);
+}
+```
+
 Supported filesystems
 =====================
 

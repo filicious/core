@@ -43,6 +43,17 @@ class LocalTemporaryFilesystem
         }
     }
 
+    public function getFile($path)
+    {
+        $file = parent::getFile($path);
+
+        if (!$file->exists()) {
+            $this->temporaryFiles[] = $file;
+        }
+
+        return $file;
+    }
+
     public function createTempFile($prefix)
     {
         // create a temporary file
@@ -52,10 +63,7 @@ class LocalTemporaryFilesystem
         $file = substr($pathname, strlen($this->getBasePath()));
 
         // create new local file object
-        $file = new LocalFile($file, $this);
-
-        // register temporary file
-        $this->temporaryFiles[] = $file;
+        $file = $this->getFile($file);
 
         return $file;
     }

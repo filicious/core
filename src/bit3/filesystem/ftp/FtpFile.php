@@ -58,7 +58,7 @@ class FtpFile
     {
         $stat = $this->fs->ftpStat($this);
 
-        return $stat ? $stat['isFile'] : false;
+        return $stat ? $stat->isFile : false;
     }
 
     /**
@@ -70,7 +70,7 @@ class FtpFile
     {
         $stat = $this->fs->ftpStat($this);
 
-        return $stat ? $stat['isLink'] : false;
+        return $stat ? $stat->isLink : false;
     }
 
     /**
@@ -82,7 +82,7 @@ class FtpFile
     {
         $stat = $this->fs->ftpStat($this);
 
-        return $stat ? $stat['isDirectory'] : false;
+        return $stat ? $stat->isDirectory : false;
     }
 
     /**
@@ -104,7 +104,7 @@ class FtpFile
     {
         $stat = $this->fs->ftpStat($this);
 
-        return $stat && $stat['isLink'] ? $stat['target'] : false;
+        return $stat && $stat->isLink ? $stat->target : false;
     }
 
     /**
@@ -162,7 +162,7 @@ class FtpFile
     {
         $stat = $this->fs->ftpStat($this);
 
-        return $stat ? $stat['modified'] : false;
+        return $stat ? $stat->modified : false;
     }
 
     /**
@@ -184,7 +184,7 @@ class FtpFile
     {
         $stat = $this->fs->ftpStat($this);
 
-        return $stat ? $stat['size'] : false;
+        return $stat ? $stat->size : false;
     }
 
     /**
@@ -196,7 +196,7 @@ class FtpFile
     {
         $stat = $this->fs->ftpStat($this);
 
-        return $stat ? $stat['user'] : false;
+        return $stat ? $stat->user : false;
     }
 
     /**
@@ -220,7 +220,7 @@ class FtpFile
     {
         $stat = $this->fs->ftpStat($this);
 
-        return $stat ? $stat['group'] : false;
+        return $stat ? $stat->group : false;
     }
 
     /**
@@ -244,7 +244,7 @@ class FtpFile
     {
         $stat = $this->fs->ftpStat($this);
 
-        return $stat ? $stat['mode'] : false;
+        return $stat ? $stat->mode : false;
     }
 
     /**
@@ -268,7 +268,7 @@ class FtpFile
     {
         $stat = $this->fs->ftpStat($this);
 
-        return $stat ? $stat['mode'] & 0444 : false;
+        return $stat ? $stat->mode & 0444 : false;
     }
 
     /**
@@ -280,7 +280,7 @@ class FtpFile
     {
         $stat = $this->fs->ftpStat($this);
 
-        return $stat ? $stat['mode'] & 0222 : false;
+        return $stat ? $stat->mode & 0222 : false;
     }
 
     /**
@@ -292,7 +292,7 @@ class FtpFile
     {
         $stat = $this->fs->ftpStat($this);
 
-        return $stat ? $stat['mode'] & 0111 : false;
+        return $stat ? $stat->mode & 0111 : false;
     }
 
     /**
@@ -316,7 +316,7 @@ class FtpFile
     {
         $stat = $this->fs->ftpStat($this);
 
-        if ($stat['isDirectory']) {
+        if ($stat->isDirectory) {
             if ($recursive) {
                 /** @var File $file */
                 foreach ($this->listAll() as $file) {
@@ -375,7 +375,7 @@ class FtpFile
     {
         $stat = $this->fs->ftpStat($this);
 
-        return $stat ? $this->fs->ftpMkdir($this) : $stat['isDirectory'];
+        return $stat ? $this->fs->ftpMkdir($this) : $stat->isDirectory;
     }
 
     /**
@@ -449,7 +449,7 @@ class FtpFile
     {
         $stat = $this->fs->ftpStat($this);
 
-        if (!$stat or !$stat['isDirectory']) {
+        if (!$stat or !$stat->isDirectory) {
             $tempFS = FS::getSystemTemporaryFilesystem();
             $tempFile = $tempFS->createTempFile('ftp_');
             $tempFile->setContents($content);
@@ -556,7 +556,7 @@ class FtpFile
     {
         $stat = $this->fs->ftpStat($this);
 
-        if ($stat['isDirectory']) {
+        if ($stat->isDirectory) {
             return array_map(function($stat) {
                 return new FtpFile($this->getPathname() . '/' . $stat->name, $this->fs);
             }, $this->fs->ftpList($this));

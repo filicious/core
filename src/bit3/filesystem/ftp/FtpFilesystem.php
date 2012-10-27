@@ -165,8 +165,8 @@ class FtpFilesystem
 
         $cached = $this->config->getCache()->fetch($cacheKey);
 
-        if (!$cached) {
-            $this->ftpList($file->getParent());
+        if ($cached === null) {
+            $this->ftpList($file);
 
             $cached = $this->config->getCache()->fetch($cacheKey);
         }
@@ -181,21 +181,21 @@ class FtpFilesystem
 
         $cached = $this->config->getCache()->fetch($cacheKey);
 
-        if ($cached !== null) {
+        if ($cached === null) {
             $cached = array();
-            $list = ftp_nlist($this->connection, '-la ' . $real);
+            $list = ftp_rawlist($this->connection, '-la ' . $real);
 
             $isSingleFile = true;
 
             foreach ($list as $item) {
-                if (preg_match('#^([\-ldrwxsSt]{10})\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\w{3}\s+\d{2}\s+(?:\d{2}:\d{2}|\d{4}))\s+(.*)(\s+->\s+(.*))?$#s', $item, $match)) {
+                if (preg_match('#^([\-ldrwxsSt]{10})\s+(\d+)\s+([\w\d]+)\s+([\w\d]+)\s+(\d+)\s+(\w{3}\s+\d{2}\s+(?:\d{2}:\d{2}|\d{4}))\s+(.*?)(\s+->\s+(.*))?$#s', $item, $match)) {
                     $stat = (object) array(
                         'perms'       => $match[1],
                         'mode'        => Util::string2bitMode($match[1]),
                         'type'        => (int) $match[2],
-                        'isDirectory' => $match[2] == 2,
-                        'isFile'      => $match[2] == 1,
-                        'isLink'      => $match[2] == 1 && $match[1][0] == 'l',
+                        'isDirectory' => $match[1][0] == 'd',
+                        'isFile'      => $match[1][0] != 'd',
+                        'isLink'      => $match[1][0] == 'l',
                         'user'        => (int) $match[3],
                         'group'       => (int) $match[4],
                         'size'        => (int) $match[5],
@@ -204,14 +204,13 @@ class FtpFilesystem
                         'target'      => isset($match[9]) ? $match[9] : null
                     );
 
-                    if ($match[2] == 100) {
+                    if ($stat->name == '.') {
                         $isSingleFile = false;
-
-                        if ($match[7] == '.') {
-                            $directoryCacheKey = $this->cacheKey . ':stat:' . $real;
-                            $this->config->getCache()->store($directoryCacheKey, $stat);
-                        }
-                        else if ($match[7] == '..') {
+                        $directoryCacheKey = $this->cacheKey . ':stat:' . $real;
+                        $this->config->getCache()->store($directoryCacheKey, $stat);
+                    }
+                    else if ($stat->name == '..') {
+                        if (dirname($real) != $real) {
                             $directoryCacheKey = $this->cacheKey . ':stat:' . dirname($real);
                             $this->config->getCache()->store($directoryCacheKey, $stat);
                         }
@@ -256,7 +255,7 @@ class FtpFilesystem
         if ($stat) {
             $real = $this->getBasePath() . $file->getPathname();
 
-            if ($stat['isDirectory']) {
+            if ($stat->isDirectory) {
                 if (ftp_rmdir($this->connection, $real)) {
                     $this->config->getCache()->store($this->cacheKey . ':stat:' . $real, null);
                     $this->config->getCache()->store($this->cacheKey . ':list:' . $real, null);
@@ -280,7 +279,7 @@ class FtpFilesystem
     {
         $stat = $this->ftpStat($source);
 
-        if ($stat and !$stat['isDirectory']) {
+        if ($stat and !$stat->isDirectory) {
             $real = $this->getBasePath() . $source->getPathname();
 
             return ftp_fget($this->connection, $targetStream, $real, FTP_BINARY);
@@ -293,7 +292,7 @@ class FtpFilesystem
     {
         $stat = $this->ftpStat($target);
 
-        if (!$stat or !$stat['isDirectory']) {
+        if (!$stat or !$stat->isDirectory) {
             $real = $this->getBasePath() . $target->getPathname();
 
             return ftp_fput($this->connection, $real, $sourceStream, FTP_BINARY);
@@ -306,7 +305,7 @@ class FtpFilesystem
     {
         $stat = $this->ftpStat($source);
 
-        if ($stat and !$stat['isDirectory']) {
+        if ($stat and !$stat->isDirectory) {
             $realSource = $this->getBasePath() . $source->getPathname();
             $realTarget = $target->getRealUrl();
 
@@ -320,7 +319,7 @@ class FtpFilesystem
     {
         $stat = $this->ftpStat($target);
 
-        if (!$stat or !$stat['isDirectory']) {
+        if (!$stat or !$stat->isDirectory) {
             $realSource = $source->getRealUrl();
             $realTarget = $this->getBasePath() . $target->getPathname();
 
@@ -362,7 +361,7 @@ class FtpFilesystem
     {
         $stat = $this->ftpStat($file);
 
-        if ($stat && $stat['isDirectory']) {
+        if ($stat && $stat->isDirectory) {
             $real = $this->getBasePath() . $file->getPathname();
 
             return ftp_rmdir($this->connection, $real);

@@ -22,9 +22,37 @@ use bit3\filesystem\iterator\RecursiveFilesystemIterator;
 class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
 {
     /**
+     * @var string
+     */
+    protected $path;
+
+    /**
      * @var LocalFilesystem
      */
     protected $fs;
+
+    protected $files = array(
+        'example.txt',
+        'zap/file.txt',
+    );
+
+    protected $dirs = array(
+        'foo',
+        'foo/bar',
+        'zap',
+    );
+
+    protected $links = array(
+        'foo/file.lnk' => 'file',
+        'zap/bar.lnk'  => 'dir',
+    );
+
+    protected $notExists = array(
+        'does_not_exists.missing',
+        'foo/does_not_exists.missing',
+        'foo/bar/does_not_exists.missing',
+        'zap/does_not_exists.missing',
+    );
 
     /**
      * Sets up the fixture, for example, opens a network connection.
@@ -32,7 +60,32 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
      */
     protected function setUp()
     {
-        $this->fs = new LocalFilesystem(__DIR__ . '/../../../../src');
+        /** create a test structure */
+        $this->path = tempnam(sys_get_temp_dir(), 'php_filesystem_test_');
+        unlink($this->path);
+        mkdir($this->path);
+
+        // create directory <path>/foo/bar/
+        mkdir($this->path . '/foo');
+        mkdir($this->path . '/foo/bar');
+
+        // create directory <path>/zap
+        mkdir($this->path . '/zap');
+
+        // create file <path>/example.txt
+        file_put_contents($this->path . '/example.txt', 'The world is like a pizza!');
+
+        // create file <path>/zap/file.txt
+        file_put_contents($this->path . '/zap/file.txt', 'Hello World!');
+
+        // create link <path>/foo/zap.lnk -> ../zap/file.txt
+        symlink('../zap/file.txt', $this->path . '/foo/file.lnk');
+
+        // create link <path>/zap/bar.lnk -> ../foo/bar/
+        symlink('../foo/bar/', $this->path . '/zap/bar.lnk');
+
+        // create the filesystem object
+        $this->fs = new LocalFilesystem($this->path);
     }
 
     /**
@@ -41,6 +94,217 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
      */
     protected function tearDown()
     {
+        // delete temporary files
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator(
+                $this->path,
+                \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::CURRENT_AS_PATHNAME));
+
+        /** @var string $path */
+        foreach ($iterator as $path) {
+            unlink($path);
+        }
+
+        // delete temporary directories
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator(
+                $this->path,
+                \FilesystemIterator::CURRENT_AS_PATHNAME),
+            \RecursiveIteratorIterator::CHILD_FIRST);
+
+        foreach ($iterator as $path) {
+            rmdir($path);
+        }
+    }
+
+    /**
+     * @covers bit3\filesystem\local\LocalFilesystem::getRoot
+     */
+    public function testGetRoot()
+    {
+        $expected = 'file:' . $this->path . '/';
+
+        $actual = $this->fs->getRoot()->getRealUrl();
+
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @covers bit3\filesystem\local\LocalFilesystem::getFile
+     */
+    public function testGetFile()
+    {
+        // test files without leading '/'
+        foreach ($this->files as $pathname) {
+            $expected = 'file:' . $this->path . '/' . $pathname;
+            $actual = $this->fs->getFile($pathname)->getRealUrl();
+            $this->assertEquals($expected, $actual);
+        }
+
+        // test files with leading '/'
+        foreach ($this->files as $pathname) {
+            $expected = 'file:' . $this->path . '/' . $pathname;
+            $actual = $this->fs->getFile('/' . $pathname)->getRealUrl();
+            $this->assertEquals($expected, $actual);
+        }
+
+        // test directories without leading '/'
+        foreach ($this->dirs as $pathname) {
+            $expected = 'file:' . $this->path . '/' . $pathname;
+            $actual = $this->fs->getFile($pathname)->getRealUrl();
+            $this->assertEquals($expected, $actual);
+        }
+
+        // test directories with leading '/'
+        foreach ($this->dirs as $pathname) {
+            $expected = 'file:' . $this->path . '/' . $pathname;
+            $actual = $this->fs->getFile('/' . $pathname)->getRealUrl();
+            $this->assertEquals($expected, $actual);
+        }
+
+        // test links without leading '/'
+        foreach ($this->links as $pathname => $type) {
+            $expected = 'file:' . $this->path . '/' . $pathname;
+            $actual = $this->fs->getFile($pathname)->getRealUrl();
+            $this->assertEquals($expected, $actual);
+        }
+
+        // test links with leading '/'
+        foreach ($this->links as $pathname => $type) {
+            $expected = 'file:' . $this->path . '/' . $pathname;
+            $actual = $this->fs->getFile('/' . $pathname)->getRealUrl();
+            $this->assertEquals($expected, $actual);
+        }
+
+        // test non existing files without leading '/'
+        foreach ($this->notExists as $pathname => $type) {
+            $expected = 'file:' . $this->path . '/' . $pathname;
+            $actual = $this->fs->getFile($pathname)->getRealUrl();
+            $this->assertEquals($expected, $actual);
+        }
+
+        // test non existing files with leading '/'
+        foreach ($this->notExists as $pathname => $type) {
+            $expected = 'file:' . $this->path . '/' . $pathname;
+            $actual = $this->fs->getFile('/' . $pathname)->getRealUrl();
+            $this->assertEquals($expected, $actual);
+        }
+    }
+
+    /**
+     * @covers bit3\filesystem\local\LocalFile::isLink
+     */
+    public function testIsLink()
+    {
+        // test files
+        foreach ($this->files as $pathname) {
+            $file = $this->fs->getFile($pathname);
+            $this->assertFalse($file->isLink());
+        }
+
+        // test directories
+        foreach ($this->dirs as $pathname) {
+            $file = $this->fs->getFile($pathname);
+            $this->assertFalse($file->isLink());
+        }
+
+        // test links
+        foreach ($this->links as $pathname => $type) {
+            $file = $this->fs->getFile($pathname);
+            $this->assertTrue($file->isLink());
+        }
+
+        // test non existing files
+        foreach ($this->notExists as $pathname => $type) {
+            $file = $this->fs->getFile($pathname);
+            $this->assertFalse($file->isLink());
+        }
+    }
+
+    /**
+     * @covers bit3\filesystem\local\LocalFile::isFile
+     */
+    public function testIsFile()
+    {
+        // test files
+        foreach ($this->files as $pathname) {
+            $file = $this->fs->getFile($pathname);
+            $this->assertTrue($file->isFile());
+        }
+
+        // test directories
+        foreach ($this->dirs as $pathname) {
+            $file = $this->fs->getFile($pathname);
+            $this->assertFalse($file->isFile());
+        }
+
+        // test links
+        foreach ($this->links as $pathname => $type) {
+            $file = $this->fs->getFile($pathname);
+            switch ($type) {
+                case 'file':
+                    $this->assertTrue($file->isFile());
+                    break;
+                case 'dir':
+                    $this->assertFalse($file->isFile());
+                    break;
+            }
+        }
+
+        // test non existing files
+        foreach ($this->notExists as $pathname => $type) {
+            $file = $this->fs->getFile($pathname);
+            $this->assertFalse($file->isFile());
+        }
+    }
+
+    /**
+     * @covers bit3\filesystem\local\LocalFile::isDirectory
+     */
+    public function testIsDirectory()
+    {
+        // test files
+        foreach ($this->files as $pathname) {
+            $file = $this->fs->getFile($pathname);
+            $this->assertFalse($file->isDirectory());
+        }
+
+        // test directories
+        foreach ($this->dirs as $pathname) {
+            $file = $this->fs->getFile($pathname);
+            $this->assertTrue($file->isDirectory());
+        }
+
+        // test links
+        foreach ($this->links as $pathname => $type) {
+            $file = $this->fs->getFile($pathname);
+            switch ($type) {
+                case 'file':
+                    $this->assertFalse($file->isDirectory());
+                    break;
+                case 'dir':
+                    $this->assertTrue($file->isDirectory());
+                    break;
+            }
+        }
+
+        // test non existing files
+        foreach ($this->notExists as $pathname => $type) {
+            $file = $this->fs->getFile($pathname);
+            $this->assertFalse($file->isDirectory());
+        }
+    }
+
+    /**
+     * @covers bit3\filesystem\local\LocalFile::exists
+     */
+    public function testExists()
+    {
+        $file = $this->fs->getFile('example.txt');
+        $this->assertTrue($file->exists());
+
+        $file = $this->fs->getFile('does_not_exists.txt');
+        $this->assertFalse($file->exists());
     }
 
     /**
@@ -53,22 +317,9 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($real, $this->fs->getBasePath());
     }
 
-    /**
-     * @covers bit3\filesystem\local\LocalFilesystem::getRoot
-     */
-    public function testGetRoot()
-    {
-        $root = $this->fs->getRoot();
-
-        $real = realpath(__DIR__ . '/../../../../src');
-
-        $this->assertEquals($real, $root->getRealPath());
-        $this->assertEquals('/', $root->__toString());
-    }
-
     public function testTree()
     {
-        $filesystemIterator = new RecursiveFilesystemIterator($this->fs->getRoot(), FilesystemIterator::CURRENT_AS_FILENAME);
+        $filesystemIterator = new RecursiveFilesystemIterator($this->fs->getRoot(), FilesystemIterator::CURRENT_AS_BASENAME);
         $treeIterator = new \RecursiveTreeIterator($filesystemIterator);
 
         foreach ($treeIterator as $path) {

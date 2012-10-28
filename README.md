@@ -165,7 +165,7 @@ else {
 Copy files
 ----------
 
-Keep in mind: `$source` and `$target` does not need to be files the same filesystem!
+Keep in mind: `$source` and `$target` does not need to be files in the same filesystem!
 
 ```php
 /** @var File $source */
@@ -176,7 +176,7 @@ $source->copyTo($target);
 Rename/Move files
 -----------------
 
-Keep in mind: `$source` and `$target` does not need to be files the same filesystem!
+Keep in mind: `$source` and `$target` does not need to be files in the same filesystem!
 
 ```php
 /** @var File $source */

@@ -141,15 +141,13 @@ class FtpFilesystemTest extends \PHPUnit_Framework_TestCase
 
     public function testTree()
     {
-        $root = $this->fs->getFile('foo.txt');
-        $list = $this->fs->ftpList($root);
-        $stat = $this->fs->ftpStat($root);
+        $root = $this->fs->getRoot();
 
+        $filesystemIterator = new RecursiveFilesystemIterator($root, FilesystemIterator::CURRENT_AS_BASENAME);
+        $treeIterator = new \RecursiveTreeIterator($filesystemIterator);
 
-        $stream = $root->openStream('w');
-        fwrite($stream, "Hello World!\n");
-        fclose($stream);
-
-        var_dump($list, $stat);
+        foreach ($treeIterator as $path) {
+            echo $path . "\n";
+        }
     }
 }

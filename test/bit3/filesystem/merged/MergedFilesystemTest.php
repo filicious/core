@@ -149,7 +149,7 @@ class MergedFilesystemTest extends \PHPUnit_Framework_TestCase
     {
         $root = $this->merged->getRoot();
 
-        $filesystemIterator = new RecursiveFilesystemIterator($root, FilesystemIterator::CURRENT_AS_FILENAME);
+        $filesystemIterator = new RecursiveFilesystemIterator($root, FilesystemIterator::CURRENT_AS_BASENAME);
         $treeIterator = new \RecursiveTreeIterator($filesystemIterator);
 
         foreach ($treeIterator as $path) {

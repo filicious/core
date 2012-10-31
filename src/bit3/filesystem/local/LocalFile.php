@@ -109,7 +109,7 @@ class LocalFile
      */
     public function getParent()
     {
-        return $this->fs->getFile(dirname($this->pathname));
+        return $this->pathname == '/' ? null : $this->fs->getFile(dirname($this->pathname));
     }
 
     /**

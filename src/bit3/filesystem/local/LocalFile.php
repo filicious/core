@@ -261,7 +261,16 @@ class LocalFile
      */
     public function isWritable()
     {
-        return $this->exists() && is_writable($this->realpath);
+        if ($this->exists()) {
+            return is_writable($this->realpath);
+        }
+
+        $parent = $this->getParent();
+        if ($parent) {
+            return $parent->isWritable();
+        }
+
+        return false;
     }
 
     /**

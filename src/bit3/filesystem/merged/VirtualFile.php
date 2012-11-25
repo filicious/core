@@ -305,6 +305,53 @@ class VirtualFile
     }
 
     /**
+     * Get contents of the file. Returns <em>null</em> if file does not exists
+     * and <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @return string|null|bool
+     */
+    public function getContents()
+    {
+        return false;
+    }
+
+    /**
+     * Write contents to a file. Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param string $content
+     *
+     * @return bool
+     */
+    public function setContents($content)
+    {
+        return false;
+    }
+
+    /**
+     * Write contents to a file. Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param string $content
+     *
+     * @return bool
+     */
+    public function appendContents($content)
+    {
+        return false;
+    }
+
+    /**
+     * Truncate a file to a given length. Returns the new length or
+     * <em>false</em> on error (e.a. if file is a directory).
+     * @param int $size
+     *
+     * @return int|bool
+     */
+    public function truncate($size = 0)
+    {
+        return false;
+    }
+
+    /**
      * Gets an stream for the file.
      *
      * @param string $mode
@@ -312,6 +359,32 @@ class VirtualFile
      * @return mixed
      */
     public function openStream($mode = 'rb')
+    {
+        return false;
+    }
+
+    /**
+     * Calculate the md5 hash of this file.
+     * Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param bool $raw Return binary hash, instead of string hash.
+     *
+     * @return string|null
+     */
+    public function hashMD5($raw = false)
+    {
+        return null;
+    }
+
+    /**
+     * Calculate the sha1 hash of this file.
+     * Returns <em>false</em> on error (e.a. if file is a directory).
+     *
+     * @param bool $raw Return binary hash, instead of string hash.
+     *
+     * @return string|null
+     */
+    public function hashSHA1($raw = false)
     {
         return false;
     }
@@ -327,6 +400,16 @@ class VirtualFile
     public function glob($pattern, $flags = 0)
     {
         return $this->fs->glob($this->parentPath . '/' . $this->fileName . '/' . $pattern, $flags);
+    }
+
+    /**
+     * List all files.
+     *
+     * @return array<File>
+     */
+    public function listAll()
+    {
+        return $this->fs->getFile($this->parentPath . '/' . $this->fileName)->listAll();
     }
 
     /**

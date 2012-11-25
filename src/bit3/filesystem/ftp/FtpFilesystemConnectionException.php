@@ -19,7 +19,7 @@ use bit3\filesystem\FilesystemException;
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
-class FtpFilesystemConnectionExtension
+class FtpFilesystemConnectionException
     extends FtpFilesystemException
 {
 }

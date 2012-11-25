@@ -549,9 +549,10 @@ class LocalFile
             });
 
         $parent = $this->getPathname();
+        $fs = $this->fs;
 
-        return array_map(function ($path) use ($parent) {
-            return new LocalFile($parent . '/' . $path, $this->fs);
+        return array_map(function ($path) use ($parent, $fs) {
+            return new LocalFile($parent . '/' . $path, $fs);
         },
             $files);
     }

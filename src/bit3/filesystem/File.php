@@ -307,6 +307,33 @@ interface File
     public function openStream($mode = 'rb');
 
     /**
+     * Get mime content type.
+     *
+     * @param int $type
+     *
+     * @return string
+     */
+    public function getMimeName();
+
+    /**
+     * Get mime content type.
+     *
+     * @param int $type
+     *
+     * @return string
+     */
+    public function getMimeType();
+
+    /**
+     * Get mime content type.
+     *
+     * @param int $type
+     *
+     * @return string
+     */
+    public function getMimeEncoding();
+
+    /**
      * Calculate the md5 hash of this file.
      * Returns <em>false</em> on error (e.a. if file is a directory).
      *

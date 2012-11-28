@@ -187,6 +187,48 @@ abstract class BasicFileImpl implements File
     }
 
     /**
+     * Get mime content type.
+     *
+     * @param int $type
+     *
+     * @return string
+     */
+    public function getMimeName()
+    {
+        $finfo = FS::getFileInfo();
+
+        return finfo_file($finfo, $this->getRealUrl(), FILEINFO_NONE);
+    }
+
+    /**
+     * Get mime content type.
+     *
+     * @param int $type
+     *
+     * @return string
+     */
+    public function getMimeType()
+    {
+        $finfo = FS::getFileInfo();
+
+        return finfo_file($finfo, $this->getRealUrl(), FILEINFO_MIME_TYPE);
+    }
+
+    /**
+     * Get mime content type.
+     *
+     * @param int $type
+     *
+     * @return string
+     */
+    public function getMimeEncoding()
+    {
+        $finfo = FS::getFileInfo();
+
+        return finfo_file($finfo, $this->getRealUrl(), FILEINFO_MIME_ENCODING);
+    }
+
+    /**
      * (PHP 5 &gt;= 5.0.0)<br/>
      * Retrieve an external iterator
      * @link http://php.net/manual/en/iteratoraggregate.getiterator.php

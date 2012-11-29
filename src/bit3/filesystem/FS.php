@@ -73,4 +73,23 @@ class FS
 
         return static::$systemTemporaryFilesystem;
     }
+
+    /**
+     * @var resource
+     */
+    protected static $finfo = null;
+
+    /**
+     * Get the FileInfo resource identifier.
+     *
+     * @return resource
+     */
+    public static function getFileInfo()
+    {
+        if (static::$finfo === null) {
+            static::$finfo = finfo_open();
+        }
+
+        return static::$finfo;
+    }
 }

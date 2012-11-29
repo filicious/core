@@ -394,6 +394,42 @@ class MergedFile
     }
 
     /**
+     * Get mime content type.
+     *
+     * @param int $type
+     *
+     * @return string
+     */
+    public function getMimeName()
+    {
+        return $this->file->getMimeName();
+    }
+
+    /**
+     * Get mime content type.
+     *
+     * @param int $type
+     *
+     * @return string
+     */
+    public function getMimeType()
+    {
+        return $this->file->getMimeType();
+    }
+
+    /**
+     * Get mime content type.
+     *
+     * @param int $type
+     *
+     * @return string
+     */
+    public function getMimeEncoding()
+    {
+        return $this->file->getMimeEncoding();
+    }
+
+    /**
      * Calculate the md5 hash of this file.
      * Returns <em>false</em> on error (e.a. if file is a directory).
      *

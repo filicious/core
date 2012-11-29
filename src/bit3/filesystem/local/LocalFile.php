@@ -300,7 +300,7 @@ class LocalFile
      */
     public function delete($recursive = false)
     {
-        if ($this->isDir()) {
+        if ($this->isDirectory()) {
             if ($recursive) {
                 /** @var File $file */
                 foreach ($this->listAll() as $file) {
@@ -375,7 +375,7 @@ class LocalFile
      */
     public function mkdirs()
     {
-        return mkdir($this->realpath, 0777, true);
+        return $this->exists() ? true : mkdir($this->realpath, 0777, true);
     }
 
     /**
@@ -553,8 +553,17 @@ class LocalFile
 
         return array_map(function ($path) use ($parent, $fs) {
             return new LocalFile($parent . '/' . $path, $fs);
-        },
-            $files);
+        }, array_values($files));
+    }
+
+    /**
+     * Get the real local path to the pathname, e.g. /real/path/to/file.
+     *
+     * @return string
+     */
+    public function getRealPath()
+    {
+        return $this->realpath;
     }
 
     /**

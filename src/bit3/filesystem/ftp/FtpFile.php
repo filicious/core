@@ -557,9 +557,10 @@ class FtpFile
         $stat = $this->fs->ftpStat($this);
 
         if ($stat->isDirectory) {
-            return array_map(function($stat) {
-                return new FtpFile($this->getPathname() . '/' . $stat->name, $this->fs);
-            }, $this->fs->ftpList($this));
+            $fs = $this->fs;
+            return array_map(function($stat, $file) use ($fs) {
+                return new FtpFile($file->getPathname() . '/' . $stat->name, $fs);
+            }, $fs->ftpList($this), array($this));
         }
 
         return false;

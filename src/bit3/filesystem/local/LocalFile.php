@@ -530,10 +530,11 @@ class LocalFile
         $pattern = Util::normalizePath($pattern);
 
         $substr = strlen($this->fs->getBasePath());
+        $fs = $this->fs;
 
-        return array_map(function ($path) use ($substr) {
+        return array_map(function ($path) use ($substr, $fs) {
             $path = substr($path, $substr);
-            return new LocalFile($path, $this->fs);
+            return new LocalFile($path, $fs);
         },
             glob($this->realpath . '/' . $pattern));
     }

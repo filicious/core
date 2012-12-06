@@ -5,6 +5,7 @@
  *
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @link    http://bit3.de
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
@@ -15,15 +16,17 @@ use Bit3\Filesystem\Filesystem;
 use Bit3\Filesystem\File;
 use Bit3\Filesystem\BasicFileImpl;
 use Bit3\Filesystem\FilesystemException;
+use Bit3\Filesystem\Util;
 
 /**
  * File from a mounted filesystem structure.
  *
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  */
 class MergedFile
-    implements File
+    extends VirtualFile
 {
     /**
      * @var string
@@ -42,12 +45,12 @@ class MergedFile
      */
     protected $fs;
 
-    public function __construct($mount, File $file, MergedFilesystem $fs)
+    public function __construct($parentPath, $mount, File $file, MergedFilesystem $fs)
     {
+        parent::__construct($parentPath, $mount, $fs);
         $this->mount = $mount;
         $this->file  = $file;
         $this->fs    = $fs;
-        $this->setFileClass('Bit3\Filesystem\Merged\MergedFile');
     }
 
     /**
@@ -87,7 +90,7 @@ class MergedFile
 
     public function getPathname()
     {
-        return $this->mount . $this->file->getPathname();
+        return Util::normalizePath(parent::getPathname() . $this->file->getPathname());
     }
 
     public function getLinkTarget()
@@ -455,15 +458,18 @@ class MergedFile
     }
 
     /**
-     * List files.
-     *
-     * @param int|string|callable
+     * List all files.
      *
      * @return array<File>
      */
     public function listFiles()
     {
-        return $this->file->listFiles();
+        $args = func_get_args();
+        // fetch nested files and those from child fs.
+        return array_merge(
+            call_user_func_array(array('parent', 'listFiles'), $args),
+            call_user_func_array(array($this->file, 'listFiles'), $args)
+        );
     }
 
     /**
@@ -484,18 +490,5 @@ class MergedFile
     public function getPublicURL()
     {
         return $this->file->getPublicURL();
-    }
-
-    /**
-     * (PHP 5 &gt;= 5.0.0)<br/>
-     * Retrieve an external iterator
-     *
-     * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
-     * @return Traversable An instance of an object implementing <b>Iterator</b> or
-     * <b>Traversable</b>
-     */
-    public function getIterator()
-    {
-        return $this->file->getIterator();
     }
 }

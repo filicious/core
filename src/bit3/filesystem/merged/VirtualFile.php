@@ -5,6 +5,7 @@
  *
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @link    http://bit3.de
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
@@ -13,6 +14,7 @@ namespace bit3\filesystem\merged;
 
 use bit3\filesystem\Filesystem;
 use bit3\filesystem\File;
+use bit3\filesystem\Util;
 use bit3\filesystem\BasicFileImpl;
 use bit3\filesystem\FilesystemException;
 
@@ -21,6 +23,7 @@ use bit3\filesystem\FilesystemException;
  *
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  */
 class VirtualFile
     extends BasicFileImpl
@@ -86,7 +89,7 @@ class VirtualFile
 
     public function getPathname()
     {
-        return $this->parentPath . '/' . $this->fileName;
+        return Util::normalizePath($this->parentPath . '/' . $this->fileName);
     }
 
     public function getLinkTarget()
@@ -386,7 +389,7 @@ class VirtualFile
      */
     public function hashSHA1($raw = false)
     {
-        return false;
+        return null;
     }
 
     /**
@@ -409,7 +412,44 @@ class VirtualFile
      */
     public function listAll()
     {
-        return $this->fs->getFile($this->parentPath . '/' . $this->fileName)->listAll();
+        $allMounts = $this->fs->mounts();
+        $filterBase = $this->getPathname();
+        // special case, we are the root element.
+        if ($filterBase != '/')
+        {
+            $filterBase .= '/';
+        }
+        $offset = strlen($filterBase);
+
+        // filter out non matching mount points in parent vfs
+        $allMounts = array_filter($allMounts, function ($path) use ($filterBase) {
+            return substr($path, 0, strlen($filterBase)) == $filterBase;
+        });
+
+        // get unique virtual children list
+        $allRoots = array_unique(array_map(function ($path) use ($filterBase, $offset) {
+            $length = strpos($path, '/', $offset+1) - $offset;
+            if ($length > 0)
+            {
+                return substr($path, $offset, $length);
+            }
+            return substr($path, $offset);
+        }, $allMounts));
+
+        $arrFiles = array();
+
+        foreach($allRoots as $subpath)
+        {
+            $objFile = new VirtualFile($this->getPathname(), $subpath, $this->fs);
+            //  it a mount point? if so, return its root.
+            if (in_array((string)$objFile, $allMounts))
+            {
+                $arrFiles[] = $this->fs->getFile((string)$objFile);
+            } else {
+                $arrFiles[] = $objFile;
+            }
+        }
+        return $arrFiles;
     }
 
     /**
@@ -434,6 +474,6 @@ class VirtualFile
 
     public function __toString()
     {
-        return $this->parentPath . '/' . $this->fileName;
+       return $this->getPathname();
     }
 }

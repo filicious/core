@@ -5,6 +5,7 @@
  *
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @link    http://bit3.de
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
@@ -15,15 +16,17 @@ use bit3\filesystem\Filesystem;
 use bit3\filesystem\File;
 use bit3\filesystem\BasicFileImpl;
 use bit3\filesystem\FilesystemException;
+use bit3\filesystem\Util;
 
 /**
  * File from a mounted filesystem structure.
  *
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  */
 class MergedFile
-    implements File
+    extends VirtualFile
 {
     /**
      * @var string
@@ -42,12 +45,12 @@ class MergedFile
      */
     protected $fs;
 
-    public function __construct($mount, File $file, MergedFilesystem $fs)
+    public function __construct($parentPath, $mount, File $file, MergedFilesystem $fs)
     {
+        parent::__construct($parentPath, $mount, $fs);
         $this->mount = $mount;
         $this->file  = $file;
         $this->fs    = $fs;
-        $this->setFileClass('bit3\filesystem\merged\MergedFile');
     }
 
     /**
@@ -87,7 +90,7 @@ class MergedFile
 
     public function getPathname()
     {
-        return $this->mount . $this->file->getPathname();
+        return Util::normalizePath(parent::getPathname() . $this->file->getPathname());
     }
 
     public function getLinkTarget()
@@ -461,7 +464,8 @@ class MergedFile
      */
     public function glob($pattern, $flags = 0)
     {
-        return $this->file->glob($pattern, $flags);
+        // fetch nested files and those from child fs.
+        return array_merge(parent::glob(), $this->file->glob());
     }
 
     /**
@@ -471,7 +475,8 @@ class MergedFile
      */
     public function globFiles($pattern)
     {
-        return $this->file->globFiles($pattern);
+        // fetch nested files and those from child fs.
+        return array_merge(parent::globFiles(), $this->file->globFiles());
     }
 
     /**
@@ -481,7 +486,8 @@ class MergedFile
      */
     public function globDirectories($pattern)
     {
-        return $this->file->globDirectories($pattern);
+        // fetch nested files and those from child fs.
+        return array_merge(parent::globDirectories(), $this->file->globDirectories());
     }
 
     /**
@@ -491,7 +497,8 @@ class MergedFile
      */
     public function listAll()
     {
-        return $this->file->listAll();
+        // fetch nested files and those from child fs.
+        return array_merge(parent::listAll(), $this->file->listAll());
     }
 
     /**
@@ -501,7 +508,8 @@ class MergedFile
      */
     public function listFiles()
     {
-        return $this->file->listFiles();
+        // fetch nested files and those from child fs.
+        return array_merge(parent::listFiles(), $this->file->listFiles());
     }
 
     /**
@@ -511,7 +519,8 @@ class MergedFile
      */
     public function listDirectories()
     {
-        return $this->file->listDirectories();
+        // fetch nested files and those from child fs.
+        return array_merge(parent::listDirectories(), $this->file->listDirectories());
     }
 
     /**

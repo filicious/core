@@ -139,6 +139,20 @@ class FtpFilesystemTest extends \PHPUnit_Framework_TestCase
     }
     */
 
+    public function testLazyConnect()
+    {
+        $class = new \ReflectionClass('bit3\filesystem\ftp\FtpFilesystem');
+        $property = $class->getProperty('connection');
+        $property->setAccessible(true);
+
+        $config = new FtpConfig('localhost');
+        $config->setLazyConnect(true);
+
+        $fs = new FtpFilesystem($config);
+
+        $this->assertEquals($property->getValue($fs), NULL);
+    }
+
     public function testTree()
     {
         $root = $this->fs->getRoot();

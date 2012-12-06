@@ -29,6 +29,8 @@ class FtpConfig
      */
     protected $host;
 
+    protected $lazyConnect = false;
+
     /**
      * Connection port.
      *
@@ -109,6 +111,25 @@ class FtpConfig
     public function getHost()
     {
         return $this->host;
+    }
+
+    /**
+     * determines if an ftp connection shall be lazy connecting or not.
+     * lazy hereby means, the connection will only established, when the first access to
+     * the filesystem has been made, this may be read, write or list access.
+     * @param bool $lazy
+     */
+    public function setLazyConnect($lazy)
+    {
+        $this->lazyConnect = $lazy;
+    }
+
+    /**
+     * 	@return bool
+     */
+    public function getLazyConnect()
+    {
+        return $this->lazyConnect;
     }
 
     /**

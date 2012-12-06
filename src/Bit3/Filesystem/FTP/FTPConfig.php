@@ -215,6 +215,10 @@ class FTPConfig
     }
 
     /**
+     * determines if an ftp connection shall be lazy connecting or not.
+     * lazy hereby means, the connection will only established, when the first access to
+     * the filesystem has been made, this may be read, write or list access.
+	 *
      * @param boolean $lazyConnect
      */
     public function setLazyConnect($lazyConnect)

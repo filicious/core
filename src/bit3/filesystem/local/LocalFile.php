@@ -502,7 +502,7 @@ class LocalFile
      *
      * @return string|null
      */
-    public function hashMD5($raw = false)
+    public function getMD5($raw = false)
     {
         if (!$this->exists()) {
             return null;
@@ -519,7 +519,7 @@ class LocalFile
      *
      * @return string|null
      */
-    public function hashSHA1($raw = false)
+    public function getSHA1($raw = false)
     {
         if (!$this->exists()) {
             return null;

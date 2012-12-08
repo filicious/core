@@ -542,7 +542,7 @@ class FTPFile
      *
      * @return string|null
      */
-    public function hashMD5($raw = false)
+    public function getMD5($raw = false)
     {
         return md5($this->getContents(), $raw);
     }
@@ -555,7 +555,7 @@ class FTPFile
      *
      * @return string|null
      */
-    public function hashSHA1($raw = false)
+    public function getSHA1($raw = false)
     {
         return sha1($this->getContents(), $raw);
     }

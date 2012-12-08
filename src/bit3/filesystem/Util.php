@@ -197,8 +197,8 @@ class Util
 
     static public function streamCopy(File $source, File $target)
     {
-        $sourceStream = $source->openStream('rb');
-        $targetStream = $target->openStream('wb');
+        $sourceStream = $source->open('rb');
+        $targetStream = $target->open('wb');
 
         return (bool) stream_copy_to_stream($sourceStream, $targetStream);
     }

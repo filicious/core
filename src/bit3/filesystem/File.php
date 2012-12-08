@@ -334,7 +334,7 @@ interface File
      *
      * @return resource|null
      */
-    public function openStream($mode = 'rb');
+    public function open($mode = 'rb');
 
     /**
      * Get mime content type.

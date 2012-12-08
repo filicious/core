@@ -358,7 +358,7 @@ class VirtualFile
      *
      * @return mixed
      */
-    public function openStream($mode = 'rb')
+    public function open($mode = 'rb')
     {
         return false;
     }

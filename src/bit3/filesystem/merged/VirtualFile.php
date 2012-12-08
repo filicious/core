@@ -302,7 +302,7 @@ class VirtualFile
      *
      * @return bool
      */
-    public function createNewFile()
+    public function createFile()
     {
         return false;
     }

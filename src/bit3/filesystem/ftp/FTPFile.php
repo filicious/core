@@ -416,7 +416,7 @@ class FTPFile
      *
      * @return bool
      */
-    public function createNewFile()
+    public function createFile()
     {
         $stream = fopen('php://memory', 'w+');
 

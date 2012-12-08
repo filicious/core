@@ -384,7 +384,7 @@ class FTPFile
      *
      * @return bool
      */
-    public function mkdir()
+    public function createDirectory()
     {
         $stat = $this->fs->ftpStat($this);
 
@@ -396,7 +396,7 @@ class FTPFile
      *
      * @return bool
      */
-    public function mkdirs()
+    public function createDirectories()
     {
         $stat = $this->fs->ftpStat($this);
 
@@ -404,11 +404,11 @@ class FTPFile
             $parent = $this->getParent();
 
             if ($parent) {
-                $parent->mkdirs();
+                $parent->createDirectories();
             }
         }
 
-        return $this->mkdir();
+        return $this->createDirectory();
     }
 
     /**

@@ -376,7 +376,7 @@ class LocalFile
      *
      * @return bool
      */
-    public function mkdir()
+    public function createDirectory()
     {
         return mkdir($this->realpath);
     }
@@ -386,7 +386,7 @@ class LocalFile
      *
      * @return bool
      */
-    public function mkdirs()
+    public function createDirectories()
     {
         return $this->exists() ? true : mkdir($this->realpath, 0777, true);
     }

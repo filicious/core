@@ -282,7 +282,7 @@ class VirtualFile
      *
      * @return bool
      */
-    public function mkdir()
+    public function createDirectory()
     {
         return false;
     }
@@ -292,7 +292,7 @@ class VirtualFile
      *
      * @return bool
      */
-    public function mkdirs()
+    public function createDirectories()
     {
         return false;
     }

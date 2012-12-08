@@ -250,7 +250,7 @@ interface File
      *
      * @return bool
      */
-    public function delete($recursive = false);
+    public function delete($recursive = false, $force = false);
 
     /**
      * Copies file

@@ -433,12 +433,12 @@ interface File
      *
      * @return string
      */
-    public function getRealUrl();
+    public function getRealURL();
 
     /**
      * Get a public url, e.g. http://www.example.com/path/to/public/file to the file.
      *
      * @return string
      */
-    public function getPublicUrl();
+    public function getPublicURL();
 }

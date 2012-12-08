@@ -528,9 +528,9 @@ class MergedFile
      *
      * @return string
      */
-    public function getRealUrl()
+    public function getRealURL()
     {
-        return $this->file->getRealUrl();
+        return $this->file->getRealURL();
     }
 
     /**
@@ -538,8 +538,8 @@ class MergedFile
      *
      * @return string
      */
-    public function getPublicUrl()
+    public function getPublicURL()
     {
-        return $this->file->getPublicUrl();
+        return $this->file->getPublicURL();
     }
 }

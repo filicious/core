@@ -585,7 +585,7 @@ class LocalFile
      *
      * @return string
      */
-    public function getRealUrl()
+    public function getRealURL()
     {
         return 'file:' . $this->realpath;
     }
@@ -595,10 +595,10 @@ class LocalFile
      *
      * @return string
      */
-    public function getPublicUrl()
+    public function getPublicURL()
     {
-        $publicUrlProvider = $this->fs->getPublicUrlProvider();
+        $publicURLProvider = $this->fs->getPublicURLProvider();
 
-        return $publicUrlProvider ? $publicUrlProvider->getPublicUrl($this) : false;
+        return $publicURLProvider ? $publicURLProvider->getPublicURL($this) : false;
     }
 }

@@ -20,7 +20,7 @@ use bit3\filesystem\cache\ArrayCache;
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
-class FtpConfig
+class FTPConfig
 {
     /**
      * Connection host.

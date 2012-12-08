@@ -23,17 +23,17 @@ use bit3\filesystem\Util;
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
-class FtpFile
+class FTPFile
     extends BasicFileImpl
 {
     protected $pathname;
 
     /**
-     * @var FtpFilesystem
+     * @var FTPFilesystem
      */
     protected $fs;
 
-    public function __construct($pathname, FtpFilesystem $fs)
+    public function __construct($pathname, FTPFilesystem $fs)
     {
         $this->pathname = Util::normalizePath('/' . $pathname);
         $this->fs       = $fs;
@@ -370,7 +370,7 @@ class FtpFile
      */
     public function moveTo(File $destination)
     {
-        if ($destination instanceof FtpFile && $destination->getFilesystem() == $this->getFilesystem()) {
+        if ($destination instanceof FTPFile && $destination->getFilesystem() == $this->getFilesystem()) {
             $this->fs->ftpRename($this, $destination);
         }
         else {
@@ -572,7 +572,7 @@ class FtpFile
         if ($stat->isDirectory) {
             $fs = $this->fs;
             return array_map(function($stat, $file) use ($fs) {
-                return new FtpFile($file->getPathname() . '/' . $stat->name, $fs);
+                return new FTPFile($file->getPathname() . '/' . $stat->name, $fs);
             }, $fs->ftpList($this), array($this));
         }
 
@@ -584,7 +584,7 @@ class FtpFile
      *
      * @return string
      */
-    public function getRealUrl()
+    public function getRealURL()
     {
         $config = $this->fs->getConfig();
 
@@ -611,10 +611,10 @@ class FtpFile
      *
      * @return string
      */
-    public function getPublicUrl()
+    public function getPublicURL()
     {
-        $publicUrlProvider = $this->fs->getPublicUrlProvider();
+        $publicURLProvider = $this->fs->getPublicURLProvider();
 
-        return $publicUrlProvider ? $publicUrlProvider->getPublicUrl($this) : false;
+        return $publicURLProvider ? $publicURLProvider->getPublicURL($this) : false;
     }
 }

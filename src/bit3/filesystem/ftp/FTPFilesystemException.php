@@ -14,12 +14,12 @@ namespace bit3\filesystem\ftp;
 use bit3\filesystem\FilesystemException;
 
 /**
- * Class FtpFilesystemException
+ * Class FTPFilesystemException
  *
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
-class FtpFilesystemException
+class FTPFilesystemException
     extends FilesystemException
 {
 }

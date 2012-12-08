@@ -11,7 +11,7 @@
 
 namespace bit3\filesystem;
 
-interface PublicUrlProvider
+interface PublicURLProvider
 {
-    public function getPublicUrl(File $file);
+    public function getPublicURL(File $file);
 }

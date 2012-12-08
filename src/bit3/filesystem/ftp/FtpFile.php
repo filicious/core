@@ -498,7 +498,7 @@ class FtpFile
      *
      * @return mixed
      */
-    public function openStream($mode = 'rb')
+    public function open($mode = 'rb')
     {
         $config = $this->fs->getConfig();
 

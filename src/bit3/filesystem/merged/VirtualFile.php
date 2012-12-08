@@ -282,17 +282,7 @@ class VirtualFile
      *
      * @return bool
      */
-    public function createDirectory()
-    {
-        return false;
-    }
-
-    /**
-     * Makes directories
-     *
-     * @return bool
-     */
-    public function createDirectories()
+    public function createDirectory($recursive = false)
     {
         return false;
     }
@@ -302,7 +292,7 @@ class VirtualFile
      *
      * @return bool
      */
-    public function createFile()
+    public function createFile($parents = false)
     {
         return false;
     }

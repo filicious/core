@@ -376,19 +376,17 @@ class LocalFile
      *
      * @return bool
      */
-    public function createDirectory()
+    public function createDirectory($recursive = false)
     {
-        return mkdir($this->realpath);
-    }
-
-    /**
-     * Makes directory
-     *
-     * @return bool
-     */
-    public function createDirectories()
-    {
-        return $this->exists() ? true : mkdir($this->realpath, 0777, true);
+        if ($this->exists()) {
+            return $this->isDirectory();
+        }
+        else if ($recursive) {
+            return mkdir($this->realpath, 0777, true);
+        }
+        else {
+            return mkdir($this->realpath);
+        }
     }
 
     /**
@@ -396,8 +394,19 @@ class LocalFile
      *
      * @return bool
      */
-    public function createFile()
+    public function createFile($parents = false)
     {
+        $parent = $this->getParent();
+
+        if ($parents) {
+            if (!($parent && $parent->createDirectory(true))) {
+                return false;
+            }
+        }
+        else if (!($parent && $parent->isDirectory())) {
+            return false;
+        }
+
         return touch($this->realpath);
     }
 
@@ -545,11 +554,13 @@ class LocalFile
         $substr = strlen($this->fs->getBasePath());
         $fs = $this->fs;
 
-        return array_map(function ($path) use ($substr, $fs) {
-            $path = substr($path, $substr);
-            return new LocalFile($path, $fs);
-        },
-            glob($this->realpath . '/' . $pattern));
+        return array_map(
+            function ($path) use ($substr, $fs) {
+                $path = substr($path, $substr);
+                return new LocalFile($path, $fs);
+            },
+            glob($this->realpath . '/' . $pattern)
+        );
     }
 
     public function listAll()
@@ -557,17 +568,22 @@ class LocalFile
         $files = scandir($this->realpath);
 
         // skip dot files
-        $files = array_filter($files,
+        $files = array_filter(
+            $files,
             function ($file) {
                 return $file != '.' && $file != '..';
-            });
+            }
+        );
 
         $parent = $this->getPathname();
         $fs = $this->fs;
 
-        return array_map(function ($path) use ($parent, $fs) {
-            return new LocalFile($parent . '/' . $path, $fs);
-        }, array_values($files));
+        return array_map(
+            function ($path) use ($parent, $fs) {
+                return new LocalFile($parent . '/' . $path, $fs);
+            },
+            $files
+        );
     }
 
     /**

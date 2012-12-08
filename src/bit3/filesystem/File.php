@@ -276,21 +276,14 @@ interface File
      *
      * @return bool
      */
-    public function createDirectory();
-
-    /**
-     * Makes directories
-     *
-     * @return bool
-     */
-    public function createDirectories();
+    public function createDirectory($recursive = false);
 
     /**
      * Create new empty file.
      *
      * @return bool
      */
-    public function createFile();
+    public function createFile($parents = false);
 
     /**
      * Get contents of the file. Returns <em>null</em> if file does not exists

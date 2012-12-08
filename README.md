@@ -331,7 +331,7 @@ Iterate directories (expert)
 Keep in mind: the *magic* childrens `.` and `..` will never be visible to you!
 
 ```php
-use bit3\filesystem\iterator\FilesystemIterator;
+use Bit3\Filesystem\Iterator\FilesystemIterator;
 
 /** @var File $file */
 if ($file->isDirectory()) {
@@ -378,8 +378,8 @@ Local filesystem
 Allow access to the local filesystem.
 
 ```php
-use bit3\filesystem\local\LocalFilesystem;
-use bit3\filesystem\iterator\RecursiveFilesystemIterator;
+use Bit3\Filesystem\Local\LocalFilesystem;
+use Bit3\Filesystem\Iterator\RecursiveFilesystemIterator;
 use RecursiveTreeIterator;
 
 // access the filesystem
@@ -407,9 +407,9 @@ A merged filesystem is similar to the [union mount](http://en.wikipedia.org/wiki
 With the merged filesystem several other filesystems can be *mounted* into a virtual structure.
 
 ```php
-use bit3\filesystem\merged\MergedFilesystem;
-use bit3\filesystem\local\LocalFilesystem;
-use bit3\filesystem\iterator\RecursiveFilesystemIterator;
+use Bit3\Filesystem\Merged\MergedFilesystem;
+use Bit3\Filesystem\Local\LocalFilesystem;
+use Bit3\Filesystem\Iterator\RecursiveFilesystemIterator;
 use RecursiveTreeIterator;
 
 // create a merged filesystem
@@ -440,9 +440,9 @@ FTP filesystem
 The `FTPFilesystem` allow access to an ftp server.
 
 ```php
-use bit3\filesystem\ftp\FTPConfig;
-use bit3\filesystem\ftp\FTPFilesystem;
-use bit3\filesystem\iterator\RecursiveFilesystemIterator;
+use Bit3\Filesystem\FTP\FTPConfig;
+use Bit3\Filesystem\FTP\FTPFilesystem;
+use Bit3\Filesystem\Iterator\RecursiveFilesystemIterator;
 use RecursiveTreeIterator;
 
 // create a ftp configuration

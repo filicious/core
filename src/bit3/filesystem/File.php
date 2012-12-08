@@ -276,14 +276,14 @@ interface File
      *
      * @return bool
      */
-    public function mkdir();
+    public function createDirectory();
 
     /**
      * Makes directories
      *
      * @return bool
      */
-    public function mkdirs();
+    public function createDirectories();
 
     /**
      * Create new empty file.

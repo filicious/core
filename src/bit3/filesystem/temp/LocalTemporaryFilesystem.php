@@ -77,7 +77,7 @@ class LocalTemporaryFilesystem
         $file->delete();
 
         // finally create a directory
-        $file->mkdir();
+        $file->createDirectory();
 
         // return the local file object
         return $file;

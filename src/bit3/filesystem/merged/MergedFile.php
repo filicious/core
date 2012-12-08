@@ -308,9 +308,9 @@ class MergedFile
      *
      * @return bool
      */
-    public function mkdir()
+    public function createDirectory()
     {
-        return $this->file->mkdir();
+        return $this->file->createDirectory();
     }
 
     /**
@@ -318,9 +318,9 @@ class MergedFile
      *
      * @return bool
      */
-    public function mkdirs()
+    public function createDirectories()
     {
-        return $this->file->mkdirs();
+        return $this->file->createDirectories();
     }
 
     /**

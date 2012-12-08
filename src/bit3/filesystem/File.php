@@ -371,7 +371,7 @@ interface File
      *
      * @return string|null
      */
-    public function hashMD5($raw = false);
+    public function getMD5($raw = false);
 
     /**
      * Calculate the sha1 hash of this file.
@@ -381,7 +381,7 @@ interface File
      *
      * @return string|null
      */
-    public function hashSHA1($raw = false);
+    public function getSHA1($raw = false);
 
     /**
      * Find pathnames matching a pattern.

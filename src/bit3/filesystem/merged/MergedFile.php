@@ -435,9 +435,9 @@ class MergedFile
      *
      * @return string|null
      */
-    public function hashMD5($raw = false)
+    public function getMD5($raw = false)
     {
-        return $this->file->hashMD5($raw);
+        return $this->file->getMD5($raw);
     }
 
     /**
@@ -446,9 +446,9 @@ class MergedFile
      *
      * @return string|null
      */
-    public function hashSHA1($raw = false)
+    public function getSHA1($raw = false)
     {
-        return $this->file->hashSHA1($raw);
+        return $this->file->getSHA1($raw);
     }
 
     /**

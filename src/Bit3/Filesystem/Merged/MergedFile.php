@@ -185,6 +185,19 @@ class MergedFile
         return $this->file->setModifyTime($time);
     }
 
+    /**
+     * Sets access and modification time of file.
+     *
+     * @param int $time
+     * @param int $atime
+     *
+     * @return bool
+     */
+    public function touch($time = null, $atime = null)
+    {
+        return $this->file->touch($time, $atime);
+    }
+
     public function getSize()
     {
         return $this->file->getSize();
@@ -445,53 +458,6 @@ class MergedFile
     }
 
     /**
-     * Find pathnames matching a pattern.
-     *
-     * @param string $pattern
-     * @param int    $flags Use GLOB_* flags. Not all may supported on each filesystem.
-     *
-     * @return array<File>
-     */
-    public function glob($pattern, $flags = 0)
-    {
-        // fetch nested files and those from child fs.
-        return array_merge(parent::glob(), $this->file->glob());
-    }
-
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function globFiles($pattern)
-    {
-        // fetch nested files and those from child fs.
-        return array_merge(parent::globFiles(), $this->file->globFiles());
-    }
-
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function globDirectories($pattern)
-    {
-        // fetch nested files and those from child fs.
-        return array_merge(parent::globDirectories(), $this->file->globDirectories());
-    }
-
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function listAll()
-    {
-        // fetch nested files and those from child fs.
-        return array_merge(parent::listAll(), $this->file->listAll());
-    }
-
-    /**
      * List all files.
      *
      * @return array<File>
@@ -500,17 +466,6 @@ class MergedFile
     {
         // fetch nested files and those from child fs.
         return array_merge(parent::listFiles(), $this->file->listFiles());
-    }
-
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function listDirectories()
-    {
-        // fetch nested files and those from child fs.
-        return array_merge(parent::listDirectories(), $this->file->listDirectories());
     }
 
     /**

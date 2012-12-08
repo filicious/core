@@ -757,17 +757,6 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
     public function testTree()
     {
         $filesystemIterator = new RecursiveFilesystemIterator($this->fs->getRoot(), FilesystemIterator::CURRENT_AS_BASENAME);

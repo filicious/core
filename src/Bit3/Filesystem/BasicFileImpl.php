@@ -11,11 +11,11 @@
 
 namespace Bit3\Filesystem;
 
-use Traversable;
-use IteratorAggregate;
 use ArrayIterator;
 use Bit3\Filesystem\Filesystem;
 use Bit3\Filesystem\File;
+use Exception;
+use Traversable;
 
 /**
  * A file object
@@ -92,101 +92,6 @@ abstract class BasicFileImpl implements File
     }
 
     /**
-     * Find pathnames matching a pattern.
-     *
-     * @param string $pattern
-     * @param int    $flags Use GLOB_* flags. Not all may supported on each filesystem.
-     *
-     * @return array<File>
-     */
-    public function glob($pattern)
-    {
-        $files = $this->listAll();
-
-        if (is_array($files)) {
-            return array_filter($files, function(File $path) use ($pattern) {
-                return fnmatch($pattern, $path->getPathname());
-            });
-        }
-    }
-
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function globFiles($pattern)
-    {
-        $files = $this->glob($pattern);
-
-        if (is_array($files)) {
-            return array_filter($files,
-                function (File $path) {
-                    return $path->isFile();
-                });
-        }
-
-        return false;
-    }
-
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function globDirectories($pattern)
-    {
-        $files = $this->glob($pattern);
-
-        if (is_array($files)) {
-            return array_filter($files,
-                function (File $path) {
-                    return $path->isDirectory();
-                });
-        }
-
-        return false;
-    }
-
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function listFiles()
-    {
-        $files = $this->listAll();
-
-        if (is_array($files)) {
-            return array_filter($files,
-                function (File $path) {
-                    return $path->isFile();
-                });
-        }
-
-        return false;
-    }
-
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function listDirectories()
-    {
-        $files = $this->listAll();
-
-        if (is_array($files)) {
-            return array_filter($files,
-                function (File $path) {
-                    return $path->isDirectory();
-                });
-        }
-
-        return false;
-    }
-
-    /**
      * Get mime content type.
      *
      * @param int $type
@@ -237,7 +142,7 @@ abstract class BasicFileImpl implements File
      */
     public function getIterator()
     {
-        return new ArrayIterator($this->listAll());
+        return new ArrayIterator($this->listFiles());
     }
 
     public function __toString()

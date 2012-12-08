@@ -396,24 +396,11 @@ class VirtualFile
     }
 
     /**
-     * Find pathnames matching a pattern.
-     *
-     * @param string $pattern
-     * @param int    $flags Use GLOB_* flags. Not all may supported on each filesystem.
-     *
-     * @return array<File>
-     */
-    public function glob($pattern, $flags = 0)
-    {
-        return $this->fs->glob($this->parentPath . '/' . $this->fileName . '/' . $pattern, $flags);
-    }
-
-    /**
      * List all files.
      *
      * @return array<File>
      */
-    public function listAll()
+    public function listFiles()
     {
         $allMounts = $this->fs->mounts();
         $filterBase = $this->getPathname();

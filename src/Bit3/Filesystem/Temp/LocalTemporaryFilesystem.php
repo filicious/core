@@ -38,7 +38,7 @@ class LocalTemporaryFilesystem
         /** @var File $file */
         foreach ($this->temporaryFiles as $file) {
             if ($file->exists()) {
-                $file->delete(true);
+                $file->delete(true, true);
             }
         }
     }

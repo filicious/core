@@ -326,7 +326,7 @@ class FTPFile
      *
      * @return bool
      */
-    public function delete($recursive = false)
+    public function delete($recursive = false, $force = false)
     {
         $stat = $this->fs->ftpStat($this);
 
@@ -334,7 +334,7 @@ class FTPFile
             if ($recursive) {
                 /** @var File $file */
                 foreach ($this->listAll() as $file) {
-                    if (!$file->delete(true)) {
+                    if (!$file->delete(true, $force)) {
                         return false;
                     }
                 }
@@ -345,6 +345,15 @@ class FTPFile
             return $this->fs->ftpDelete($this);
         }
         else {
+            if (!$this->isWritable()) {
+                if ($force) {
+                    $this->setMode(0666);
+                }
+                else {
+                    return false;
+                }
+            }
+
             return $this->fs->ftpDelete($this);
         }
     }

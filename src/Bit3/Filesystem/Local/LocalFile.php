@@ -311,13 +311,13 @@ class LocalFile
      *
      * @return bool
      */
-    public function delete($recursive = false)
+    public function delete($recursive = false, $force = false)
     {
         if ($this->isDirectory()) {
             if ($recursive) {
                 /** @var File $file */
                 foreach ($this->listAll() as $file) {
-                    if (!$file->delete(true)) {
+                    if (!$file->delete(true, $force)) {
                         return false;
                     }
                 }
@@ -327,7 +327,15 @@ class LocalFile
             }
             return rmdir($this->realpath);
         }
-        else if ($this->isFile() || $this->isLink()) {
+        else {
+            if (!$this->isWritable()) {
+                if ($force) {
+                    $this->setMode(0666);
+                }
+                else {
+                    return false;
+                }
+            }
             return unlink($this->realpath);
         }
     }

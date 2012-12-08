@@ -518,25 +518,25 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
         // test files
         foreach ($this->files as $pathname) {
             $file = $this->fs->getFile($pathname);
-            $this->assertEquals(filemtime($this->path . '/' . $pathname), $file->getLastModified());
+            $this->assertEquals(filemtime($this->path . '/' . $pathname), $file->getModifyTime());
         }
 
         // test directories
         foreach ($this->dirs as $pathname) {
             $file = $this->fs->getFile($pathname);
-            $this->assertEquals(filemtime($this->path . '/' . $pathname), $file->getLastModified());
+            $this->assertEquals(filemtime($this->path . '/' . $pathname), $file->getModifyTime());
         }
 
         // test links
         foreach ($this->links as $pathname => $type) {
             $file = $this->fs->getFile($pathname);
-            $this->assertEquals(filemtime($this->path . '/' . $pathname), $file->getLastModified());
+            $this->assertEquals(filemtime($this->path . '/' . $pathname), $file->getModifyTime());
         }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
             $file = $this->fs->getFile($pathname);
-            $this->assertEquals(null, $file->getLastModified());
+            $this->assertEquals(null, $file->getModifyTime());
         }
     }
 

@@ -130,7 +130,7 @@ class LocalFile
     public function setAccessTime($time)
     {
         if ($this->exists()) {
-            return touch($this->realpath, $this->getLastModified(), time());
+            return touch($this->realpath, $this->getModifyTime(), time());
         }
         return false;
     }
@@ -150,7 +150,7 @@ class LocalFile
      *
      * @return int
      */
-    public function getLastModified()
+    public function getModifyTime()
     {
         return $this->exists() ? filemtime($this->realpath) : false;
     }
@@ -160,7 +160,7 @@ class LocalFile
      *
      * @param int $time
      */
-    public function setLastModified($time)
+    public function setModifyTime($time)
     {
         if ($this->exists()) {
             return touch($this->realpath, time(), $this->getAccessTime());

@@ -141,14 +141,14 @@ interface File
      *
      * @return int
      */
-    public function getLastModified();
+    public function getModifyTime();
 
     /**
      * Sets the last-modified time of the file or directory named by this pathname.
      *
      * @param int $time
      */
-    public function setLastModified($time);
+    public function setModifyTime($time);
 
     /**
      * Sets access and modification time of file.

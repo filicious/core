@@ -147,7 +147,7 @@ class VirtualFile
      *
      * @return int
      */
-    public function getLastModified()
+    public function getModifyTime()
     {
         return false;
     }
@@ -157,7 +157,7 @@ class VirtualFile
      *
      * @param int $time
      */
-    public function setLastModified($time)
+    public function setModifyTime($time)
     {
         return false;
     }

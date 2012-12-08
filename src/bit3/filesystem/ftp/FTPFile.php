@@ -130,7 +130,7 @@ class FTPFile
      */
     public function getAccessTime()
     {
-        return $this->getLastModified();
+        return $this->getModifyTime();
     }
 
     /**
@@ -150,7 +150,7 @@ class FTPFile
      */
     public function getCreationTime()
     {
-        return $this->getLastModified();
+        return $this->getModifyTime();
     }
 
     /**
@@ -158,7 +158,7 @@ class FTPFile
      *
      * @return int
      */
-    public function getLastModified()
+    public function getModifyTime()
     {
         $stat = $this->fs->ftpStat($this);
 
@@ -170,7 +170,7 @@ class FTPFile
      *
      * @param int $time
      */
-    public function setLastModified($time)
+    public function setModifyTime($time)
     {
         return false;
     }

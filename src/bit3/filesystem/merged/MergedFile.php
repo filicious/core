@@ -308,19 +308,9 @@ class MergedFile
      *
      * @return bool
      */
-    public function createDirectory()
+    public function createDirectory($recursive = false)
     {
-        return $this->file->createDirectory();
-    }
-
-    /**
-     * Makes directories
-     *
-     * @return bool
-     */
-    public function createDirectories()
-    {
-        return $this->file->createDirectories();
+        return $this->file->createDirectory($recursive);
     }
 
     /**
@@ -328,9 +318,9 @@ class MergedFile
      *
      * @return bool
      */
-    public function createFile()
+    public function createFile($parents = false)
     {
-        return $this->file->createFile();
+        return $this->file->createFile($parents);
     }
 
     /**

@@ -16,6 +16,7 @@ use bit3\filesystem\Filesystem;
 use bit3\filesystem\File;
 use bit3\filesystem\BasicFileImpl;
 use bit3\filesystem\Util;
+use Exception;
 
 /**
  * File from a mounted filesystem structure.
@@ -384,19 +385,7 @@ class FTPFile
      *
      * @return bool
      */
-    public function createDirectory()
-    {
-        $stat = $this->fs->ftpStat($this);
-
-        return $stat ? $this->fs->ftpMkdir($this) : $stat->isDirectory;
-    }
-
-    /**
-     * Makes directories
-     *
-     * @return bool
-     */
-    public function createDirectories()
+    public function createDirectory($recursive = false)
     {
         $stat = $this->fs->ftpStat($this);
 
@@ -404,11 +393,23 @@ class FTPFile
             $parent = $this->getParent();
 
             if ($parent) {
-                $parent->createDirectories();
+                if ($recursive) {
+                    if (!$parent->createDirectory($recursive)) {
+                        return false;
+                    }
+                }
+                else {
+                    return false;
+                }
             }
+
+            return $this->fs->ftpMkdir($this);
+        }
+        else {
+            return $stat->isDirectory;
         }
 
-        return $this->createDirectory();
+        return $stat ?  : $stat->isDirectory;
     }
 
     /**
@@ -416,8 +417,19 @@ class FTPFile
      *
      * @return bool
      */
-    public function createFile()
+    public function createFile($parents = false)
     {
+        $parent = $this->getParent();
+
+        if ($parents) {
+            if (!($parent && $parent->createDirectory(true))) {
+                return false;
+            }
+        }
+        else if (!($parent && $parent->isDirectory())) {
+            return false;
+        }
+
         $stream = fopen('php://memory', 'w+');
 
         // write empty string to initialize the stream,

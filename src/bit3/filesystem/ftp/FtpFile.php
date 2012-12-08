@@ -176,6 +176,19 @@ class FtpFile
     }
 
     /**
+     * Sets access and modification time of file.
+     *
+     * @param int $time
+     * @param int $atime
+     *
+     * @return bool
+     */
+    public function touch($time = null, $atime = null)
+    {
+        return false;
+    }
+
+    /**
      * Get the size of the file denoted by this pathname.
      *
      * @return int

@@ -169,6 +169,19 @@ class LocalFile
     }
 
     /**
+     * Sets access and modification time of file.
+     *
+     * @param int $time
+     * @param int $atime
+     *
+     * @return bool
+     */
+    public function touch($time = null, $atime = null)
+    {
+        return touch($this->realpath);
+    }
+
+    /**
      * Get the size of the file denoted by this pathname.
      *
      * @return int

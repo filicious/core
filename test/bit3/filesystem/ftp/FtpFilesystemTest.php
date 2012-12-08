@@ -13,9 +13,9 @@ namespace bit3\filesystem\ftp;
 
 require_once(__DIR__ . '/../../../bootstrap.php');
 
-use bit3\filesystem\ftp\FtpConfig;
-use bit3\filesystem\ftp\FtpFilesystem;
-use bit3\filesystem\ftp\FtpFile;
+use bit3\filesystem\ftp\FTPConfig;
+use bit3\filesystem\ftp\FTPFilesystem;
+use bit3\filesystem\ftp\FTPFile;
 use bit3\filesystem\iterator\FilesystemIterator;
 use bit3\filesystem\iterator\RecursiveFilesystemIterator;
 
@@ -25,12 +25,12 @@ use bit3\filesystem\iterator\RecursiveFilesystemIterator;
 class FtpFilesystemTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var FtpConfig
+     * @var FTPConfig
      */
     protected $config;
 
     /**
-     * @var FtpFilesystem
+     * @var FTPFilesystem
      */
     protected $fs;
 
@@ -40,9 +40,9 @@ class FtpFilesystemTest extends \PHPUnit_Framework_TestCase
      */
     protected function setUp()
     {
-        $this->config = new FtpConfig('localhost');
+        $this->config = new FTPConfig('localhost');
 
-        $this->fs = new FtpFilesystem($this->config);
+        $this->fs = new FTPFilesystem($this->config);
     }
 
     /**

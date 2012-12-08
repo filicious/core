@@ -13,7 +13,7 @@ namespace bit3\filesystem\ftp;
 
 use bit3\filesystem\Filesystem;
 use bit3\filesystem\File;
-use bit3\filesystem\PublicUrlProvider;
+use bit3\filesystem\PublicURLProvider;
 use bit3\filesystem\Util;
 
 /**
@@ -22,18 +22,18 @@ use bit3\filesystem\Util;
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
-class FtpFilesystem
+class FTPFilesystem
     implements Filesystem
 {
     /**
-     * @var FtpConfig
+     * @var FTPConfig
      */
     protected $config;
 
     /**
-     * @var PublicUrlProvider
+     * @var PublicURLProvider
      */
-    protected $publicUrlProvider;
+    protected $publicURLProvider;
 
     /**
      * @var resource
@@ -46,12 +46,12 @@ class FtpFilesystem
     protected $cacheKey;
 
     /**
-     * @param FtpConfig $config
+     * @param FTPConfig $config
      */
-    public function __construct(FtpConfig $config, PublicUrlProvider $publicUrlProvider = null)
+    public function __construct(FTPConfig $config, PublicURLProvider $publicURLProvider = null)
     {
         $this->config = clone $config;
-        $this->publicUrlProvider = $publicUrlProvider;
+        $this->publicURLProvider = $publicURLProvider;
 
         if ($this->config->getSsl()) {
             $this->connection = ftp_ssl_connect(
@@ -67,14 +67,14 @@ class FtpFilesystem
         }
 
         if ($this->connection === false) {
-            throw new FtpFilesystemConnectionException('Could not connect to ' . $this->config->getHost());
+            throw new FTPFilesystemConnectionException('Could not connect to ' . $this->config->getHost());
         }
 
         if ($this->config->getUsername()) {
             if (!ftp_login($this->connection,
                       $this->config->getUsername(),
                       $this->config->getPassword())) {
-                throw new FtpFilesystemAuthenticationException('Could not login to ' . $this->config->getHost() . ' with username ' . $this->config->getUsername() . ':' . ($this->config->getPassword() ? '*****' : 'NOPASS'));
+                throw new FTPFilesystemAuthenticationException('Could not login to ' . $this->config->getHost() . ' with username ' . $this->config->getUsername() . ':' . ($this->config->getPassword() ? '*****' : 'NOPASS'));
             }
         }
 
@@ -82,7 +82,7 @@ class FtpFilesystem
 
         if ($this->config->getPath()) {
             if (!ftp_chdir($this->connection, $this->config->getPath())) {
-                throw new FtpFilesystemException('Could not change into directory ' . $this->config->getPath() . ' on ' . $this->config->getHost());
+                throw new FTPFilesystemException('Could not change into directory ' . $this->config->getPath() . ' on ' . $this->config->getHost());
             }
         }
 
@@ -101,7 +101,7 @@ class FtpFilesystem
      */
     public function getRoot()
     {
-        return new FtpFile('/', $this);
+        return new FTPFile('/', $this);
     }
 
     /**
@@ -113,7 +113,7 @@ class FtpFilesystem
      */
     public function getFile($path)
     {
-        return new FtpFile($path, $this);
+        return new FTPFile($path, $this);
     }
 
     /**
@@ -146,7 +146,7 @@ class FtpFilesystem
     }
 
     /**
-     * @return \bit3\filesystem\ftp\FtpConfig
+     * @return \bit3\filesystem\ftp\FTPConfig
      */
     public function getConfig()
     {
@@ -158,7 +158,7 @@ class FtpFilesystem
         return $this->config->getPath();
     }
 
-    public function ftpStat(FtpFile $file)
+    public function ftpStat(FTPFile $file)
     {
         $real = $this->getBasePath() . $file->getPathname();
         $cacheKey = $this->cacheKey . ':stat:' . $real;
@@ -174,7 +174,7 @@ class FtpFilesystem
         return $cached;
     }
 
-    public function ftpList(FtpFile $file)
+    public function ftpList(FTPFile $file)
     {
         $real = $this->getBasePath() . $file->getPathname();
         $cacheKey = $this->cacheKey . ':list:' . $real;
@@ -222,7 +222,7 @@ class FtpFilesystem
                     }
                 }
                 else {
-                    throw new FtpFilesystemException('Implementation error: Could not parse list item ' . $item);
+                    throw new FTPFilesystemException('Implementation error: Could not parse list item ' . $item);
                 }
             }
 
@@ -236,7 +236,7 @@ class FtpFilesystem
         return $cached;
     }
 
-    public function ftpChmod(FtpFile $file, $mode)
+    public function ftpChmod(FTPFile $file, $mode)
     {
         $stat = $this->ftpStat($file);
 
@@ -248,7 +248,7 @@ class FtpFilesystem
         return false;
     }
 
-    public function ftpDelete(FtpFile $file)
+    public function ftpDelete(FTPFile $file)
     {
         $stat = $this->ftpStat($file);
 
@@ -275,7 +275,7 @@ class FtpFilesystem
         return false;
     }
 
-    public function ftpStreamGet(FtpFile $source, $targetStream)
+    public function ftpStreamGet(FTPFile $source, $targetStream)
     {
         $stat = $this->ftpStat($source);
 
@@ -288,7 +288,7 @@ class FtpFilesystem
         return false;
     }
 
-    public function ftpStreamPut(FtpFile $target, $sourceStream)
+    public function ftpStreamPut(FTPFile $target, $sourceStream)
     {
         $stat = $this->ftpStat($target);
 
@@ -301,13 +301,13 @@ class FtpFilesystem
         return false;
     }
 
-    public function ftpGet(FtpFile $source, File $target)
+    public function ftpGet(FTPFile $source, File $target)
     {
         $stat = $this->ftpStat($source);
 
         if ($stat and !$stat->isDirectory) {
             $realSource = $this->getBasePath() . $source->getPathname();
-            $realTarget = $target->getRealUrl();
+            $realTarget = $target->getRealURL();
 
             return ftp_get($this->connection, $realTarget, $realSource, FTP_BINARY);
         }
@@ -315,12 +315,12 @@ class FtpFilesystem
         return false;
     }
 
-    public function ftpPut(FtpFile $target, File $source)
+    public function ftpPut(FTPFile $target, File $source)
     {
         $stat = $this->ftpStat($target);
 
         if (!$stat or !$stat->isDirectory) {
-            $realSource = $source->getRealUrl();
+            $realSource = $source->getRealURL();
             $realTarget = $this->getBasePath() . $target->getPathname();
 
             return ftp_put($this->connection, $realTarget, $realSource, FTP_BINARY);
@@ -329,7 +329,7 @@ class FtpFilesystem
         return false;
     }
 
-    public function ftpMkdir(FtpFile $file)
+    public function ftpMkdir(FTPFile $file)
     {
         $stat = $this->ftpStat($file);
 
@@ -342,7 +342,7 @@ class FtpFilesystem
         return false;
     }
 
-    public function ftpRename(FtpFile $source, FtpFile $target)
+    public function ftpRename(FTPFile $source, FTPFile $target)
     {
         $sourceStat = $this->ftpStat($source);
         $targetStat = $this->ftpStat($target);
@@ -357,7 +357,7 @@ class FtpFilesystem
         return false;
     }
 
-    public function ftpRmdir(FtpFile $file)
+    public function ftpRmdir(FTPFile $file)
     {
         $stat = $this->ftpStat($file);
 
@@ -371,10 +371,10 @@ class FtpFilesystem
     }
 
     /**
-     * @return \bit3\filesystem\PublicUrlProvider
+     * @return \bit3\filesystem\PublicURLProvider
      */
-    public function getPublicUrlProvider()
+    public function getPublicURLProvider()
     {
-        return $this->publicUrlProvider;
+        return $this->publicURLProvider;
     }
 }

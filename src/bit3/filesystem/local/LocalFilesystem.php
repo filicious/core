@@ -13,7 +13,7 @@ namespace bit3\filesystem\local;
 
 use bit3\filesystem\Filesystem;
 use bit3\filesystem\File;
-use bit3\filesystem\PublicUrlProvider;
+use bit3\filesystem\PublicURLProvider;
 use bit3\filesystem\Util;
 
 /**
@@ -31,17 +31,17 @@ class LocalFilesystem
     protected $basePath;
 
     /**
-     * @var PublicUrlProvider
+     * @var PublicURLProvider
      */
-    protected $publicUrlProvider;
+    protected $publicURLProvider;
 
     /**
      * @param string $basePath
      */
-    public function __construct($basePath = '/', PublicUrlProvider $publicUrlProvider = null)
+    public function __construct($basePath = '/', PublicURLProvider $publicURLProvider = null)
     {
         $this->basePath = Util::normalizePath('/' . $basePath) . '/';
-        $this->publicUrlProvider = $publicUrlProvider;
+        $this->publicURLProvider = $publicURLProvider;
     }
 
     /**
@@ -107,10 +107,10 @@ class LocalFilesystem
     }
 
     /**
-     * @return PublicUrlProvider
+     * @return PublicURLProvider
      */
-    public function getPublicUrlProvider()
+    public function getPublicURLProvider()
     {
-        return $this->publicUrlProvider;
+        return $this->publicURLProvider;
     }
 }

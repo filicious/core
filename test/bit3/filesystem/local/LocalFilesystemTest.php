@@ -126,7 +126,7 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
     {
         $expected = 'file:' . $this->path;
 
-        $actual = $this->fs->getRoot()->getRealUrl();
+        $actual = $this->fs->getRoot()->getRealURL();
 
         $this->assertEquals($expected, $actual);
     }
@@ -139,56 +139,56 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
         // test files without leading '/'
         foreach ($this->files as $pathname) {
             $expected = 'file:' . $this->path . '/' . $pathname;
-            $actual = $this->fs->getFile($pathname)->getRealUrl();
+            $actual = $this->fs->getFile($pathname)->getRealURL();
             $this->assertEquals($expected, $actual);
         }
 
         // test files with leading '/'
         foreach ($this->files as $pathname) {
             $expected = 'file:' . $this->path . '/' . $pathname;
-            $actual = $this->fs->getFile('/' . $pathname)->getRealUrl();
+            $actual = $this->fs->getFile('/' . $pathname)->getRealURL();
             $this->assertEquals($expected, $actual);
         }
 
         // test directories without leading '/'
         foreach ($this->dirs as $pathname) {
             $expected = 'file:' . $this->path . '/' . $pathname;
-            $actual = $this->fs->getFile($pathname)->getRealUrl();
+            $actual = $this->fs->getFile($pathname)->getRealURL();
             $this->assertEquals($expected, $actual);
         }
 
         // test directories with leading '/'
         foreach ($this->dirs as $pathname) {
             $expected = 'file:' . $this->path . '/' . $pathname;
-            $actual = $this->fs->getFile('/' . $pathname)->getRealUrl();
+            $actual = $this->fs->getFile('/' . $pathname)->getRealURL();
             $this->assertEquals($expected, $actual);
         }
 
         // test links without leading '/'
         foreach ($this->links as $pathname => $type) {
             $expected = 'file:' . $this->path . '/' . $pathname;
-            $actual = $this->fs->getFile($pathname)->getRealUrl();
+            $actual = $this->fs->getFile($pathname)->getRealURL();
             $this->assertEquals($expected, $actual);
         }
 
         // test links with leading '/'
         foreach ($this->links as $pathname => $type) {
             $expected = 'file:' . $this->path . '/' . $pathname;
-            $actual = $this->fs->getFile('/' . $pathname)->getRealUrl();
+            $actual = $this->fs->getFile('/' . $pathname)->getRealURL();
             $this->assertEquals($expected, $actual);
         }
 
         // test non existing files without leading '/'
         foreach ($this->notExists as $pathname) {
             $expected = 'file:' . $this->path . '/' . $pathname;
-            $actual = $this->fs->getFile($pathname)->getRealUrl();
+            $actual = $this->fs->getFile($pathname)->getRealURL();
             $this->assertEquals($expected, $actual);
         }
 
         // test non existing files with leading '/'
         foreach ($this->notExists as $pathname) {
             $expected = 'file:' . $this->path . '/' . $pathname;
-            $actual = $this->fs->getFile('/' . $pathname)->getRealUrl();
+            $actual = $this->fs->getFile('/' . $pathname)->getRealURL();
             $this->assertEquals($expected, $actual);
         }
     }

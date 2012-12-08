@@ -417,7 +417,7 @@ class VirtualFile
      *
      * @return string
      */
-    public function getRealUrl()
+    public function getRealURL()
     {
         return null;
     }
@@ -427,7 +427,7 @@ class VirtualFile
      *
      * @return string
      */
-    public function getPublicUrl()
+    public function getPublicURL()
     {
         return null;
     }

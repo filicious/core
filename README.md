@@ -437,23 +437,23 @@ The `MergedFilesystem` constructor accept an optional filesystem object as root 
 FTP filesystem
 --------------
 
-The `FtpFilesystem` allow access to an ftp server.
+The `FTPFilesystem` allow access to an ftp server.
 
 ```php
-use bit3\filesystem\ftp\FtpConfig;
-use bit3\filesystem\ftp\FtpFilesystem;
+use bit3\filesystem\ftp\FTPConfig;
+use bit3\filesystem\ftp\FTPFilesystem;
 use bit3\filesystem\iterator\RecursiveFilesystemIterator;
 use RecursiveTreeIterator;
 
 // create a ftp configuration
-$config = new FtpConfig('example.com');
+$config = new FTPConfig('example.com');
 $config->setPassiveMode(true);
 $config->setUsername('user');
 $config->setPassword('password');
 $config->setPath('/path/on/the/ftp');
 
 // access the filesystem
-$fs = new FtpFilesystem($config);
+$fs = new FTPFilesystem($config);
 
 // create a filesystem iterator
 $filesystemIterator = new RecursiveFilesystemIterator($root, FilesystemIterator::CURRENT_AS_BASENAME);
@@ -467,8 +467,8 @@ foreach ($treeIterator as $path) {
 }
 ```
 
-The `FtpFilesystem` constructor accept an instance of `FtpConfig` and an optional `PublicUrlProvider` as second argument.
-The `FtpConfig` object is used, to setup the ftp configuration. The instance can be reused for several `FtpFilesystem` instantiations.
+The `FTPFilesystem` constructor accept an instance of `FTPConfig` and an optional `PublicUrlProvider` as second argument.
+The `FTPConfig` object is used, to setup the ftp configuration. The instance can be reused for several `FTPFilesystem` instantiations.
 
 SSH Filesystem
 --------------

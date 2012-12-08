@@ -26,6 +26,26 @@ interface File
     extends IteratorAggregate
 {
     /**
+     * File type.
+     */
+    const TYPE_FILE = 'file';
+
+    /**
+     * Directory type.
+     */
+    const TYPE_DIRECTORY = 'directory';
+
+    /**
+     * Link type.
+     */
+    const TYPE_LINK = 'link';
+
+    /**
+     * Unknown type.
+     */
+    const TYPE_UNKNOWN = 'unknown';
+
+    /**
      * Get the underlaying filesystem for this pathname.
      *
      * @return Filesystem

@@ -53,40 +53,11 @@ class FTPFilesystem
         $this->config = clone $config;
         $this->publicURLProvider = $publicURLProvider;
 
-        if ($this->config->getSsl()) {
-            $this->connection = ftp_ssl_connect(
-                $this->config->getHost(),
-                $this->config->getPort(),
-                $this->config->getTimeout());
-        }
-        else {
-            $this->connection = ftp_connect(
-                $this->config->getHost(),
-                $this->config->getPort(),
-                $this->config->getTimeout());
-        }
-
-        if ($this->connection === false) {
-            throw new FTPFilesystemConnectionException('Could not connect to ' . $this->config->getHost());
-        }
-
-        if ($this->config->getUsername()) {
-            if (!ftp_login($this->connection,
-                      $this->config->getUsername(),
-                      $this->config->getPassword())) {
-                throw new FTPFilesystemAuthenticationException('Could not login to ' . $this->config->getHost() . ' with username ' . $this->config->getUsername() . ':' . ($this->config->getPassword() ? '*****' : 'NOPASS'));
-            }
-        }
-
-        ftp_pasv($this->connection, $this->config->getPassiveMode());
-
-        if ($this->config->getPath()) {
-            if (!ftp_chdir($this->connection, $this->config->getPath())) {
-                throw new FTPFilesystemException('Could not change into directory ' . $this->config->getPath() . ' on ' . $this->config->getHost());
-            }
-        }
-
         $this->cacheKey = 'ftpfs:' . ($this->config->getSsl() ? 'ssl:' : '') . $this->config->getUsername() . '@' . $this->config->getHost() . ':' . $this->config->getPort() . ($this->config->getPath() ?: '/');
+
+        if (!$this->config->getLazyConnect()) {
+            $this->connect();
+        }
     }
 
     public function __destruct()
@@ -140,6 +111,49 @@ class FTPFilesystem
         return -1;
     }
 
+    /**
+     *
+     */
+    public function connect()
+    {
+        if ($this->connection !== null) {
+            return;
+        }
+
+        if ($this->config->getSsl()) {
+            $this->connection = ftp_ssl_connect(
+                $this->config->getHost(),
+                $this->config->getPort(),
+                $this->config->getTimeout());
+        }
+        else {
+            $this->connection = ftp_connect(
+                $this->config->getHost(),
+                $this->config->getPort(),
+                $this->config->getTimeout());
+        }
+
+        if ($this->connection === false) {
+            throw new FTPFilesystemConnectionException('Could not connect to ' . $this->config->getHost());
+        }
+
+        if ($this->config->getUsername()) {
+            if (!ftp_login($this->connection,
+                      $this->config->getUsername(),
+                      $this->config->getPassword())) {
+                throw new FTPFilesystemAuthenticationException('Could not login to ' . $this->config->getHost() . ' with username ' . $this->config->getUsername() . ':' . ($this->config->getPassword() ? '*****' : 'NOPASS'));
+            }
+        }
+
+        ftp_pasv($this->connection, $this->config->getPassiveMode());
+
+        if ($this->config->getPath()) {
+            if (!ftp_chdir($this->connection, $this->config->getPath())) {
+                throw new FTPFilesystemException('Could not change into directory ' . $this->config->getPath() . ' on ' . $this->config->getHost());
+            }
+        }
+    }
+
     public function getConnection()
     {
         return $this->connection;
@@ -160,6 +174,8 @@ class FTPFilesystem
 
     public function ftpStat(FTPFile $file)
     {
+        $this->connect();
+
         $real = $this->getBasePath() . $file->getPathname();
         $cacheKey = $this->cacheKey . ':stat:' . $real;
 
@@ -176,6 +192,8 @@ class FTPFilesystem
 
     public function ftpList(FTPFile $file)
     {
+        $this->connect();
+
         $real = $this->getBasePath() . $file->getPathname();
         $cacheKey = $this->cacheKey . ':list:' . $real;
 
@@ -238,6 +256,8 @@ class FTPFilesystem
 
     public function ftpChmod(FTPFile $file, $mode)
     {
+        $this->connect();
+
         $stat = $this->ftpStat($file);
 
         if ($stat) {
@@ -250,6 +270,8 @@ class FTPFilesystem
 
     public function ftpDelete(FTPFile $file)
     {
+        $this->connect();
+
         $stat = $this->ftpStat($file);
 
         if ($stat) {
@@ -277,6 +299,8 @@ class FTPFilesystem
 
     public function ftpStreamGet(FTPFile $source, $targetStream)
     {
+        $this->connect();
+
         $stat = $this->ftpStat($source);
 
         if ($stat and !$stat->isDirectory) {
@@ -290,6 +314,8 @@ class FTPFilesystem
 
     public function ftpStreamPut(FTPFile $target, $sourceStream)
     {
+        $this->connect();
+
         $stat = $this->ftpStat($target);
 
         if (!$stat or !$stat->isDirectory) {
@@ -303,6 +329,8 @@ class FTPFilesystem
 
     public function ftpGet(FTPFile $source, File $target)
     {
+        $this->connect();
+
         $stat = $this->ftpStat($source);
 
         if ($stat and !$stat->isDirectory) {
@@ -317,6 +345,8 @@ class FTPFilesystem
 
     public function ftpPut(FTPFile $target, File $source)
     {
+        $this->connect();
+
         $stat = $this->ftpStat($target);
 
         if (!$stat or !$stat->isDirectory) {
@@ -331,6 +361,8 @@ class FTPFilesystem
 
     public function ftpMkdir(FTPFile $file)
     {
+        $this->connect();
+
         $stat = $this->ftpStat($file);
 
         if (!$stat) {
@@ -344,6 +376,8 @@ class FTPFilesystem
 
     public function ftpRename(FTPFile $source, FTPFile $target)
     {
+        $this->connect();
+
         $sourceStat = $this->ftpStat($source);
         $targetStat = $this->ftpStat($target);
 
@@ -359,6 +393,8 @@ class FTPFilesystem
 
     public function ftpRmdir(FTPFile $file)
     {
+        $this->connect();
+
         $stat = $this->ftpStat($file);
 
         if ($stat && $stat->isDirectory) {

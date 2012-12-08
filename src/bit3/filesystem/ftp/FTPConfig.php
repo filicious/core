@@ -79,6 +79,13 @@ class FTPConfig
     protected $path = '';
 
     /**
+     * Lazy connect to ftp server.
+     *
+     * @var bool
+     */
+    protected $lazyConnect = true;
+
+    /**
      * Show the password in public urls.
      *
      * @var bool
@@ -205,6 +212,22 @@ class FTPConfig
     public function getPassword()
     {
         return $this->password;
+    }
+
+    /**
+     * @param boolean $lazyConnect
+     */
+    public function setLazyConnect($lazyConnect)
+    {
+        $this->lazyConnect = (bool) $lazyConnect;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function getLazyConnect()
+    {
+        return $this->lazyConnect;
     }
 
     /**

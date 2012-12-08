@@ -167,9 +167,9 @@ class MergedFile
      *
      * @return int
      */
-    public function getLastModified()
+    public function getModifyTime()
     {
-        return $this->file->getLastModified();
+        return $this->file->getModifyTime();
     }
 
     /**
@@ -177,9 +177,9 @@ class MergedFile
      *
      * @param int $time
      */
-    public function setLastModified($time)
+    public function setModifyTime($time)
     {
-        return $this->file->setLastModified($time);
+        return $this->file->setModifyTime($time);
     }
 
     public function getSize()

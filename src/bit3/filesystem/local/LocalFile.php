@@ -396,7 +396,7 @@ class LocalFile
      *
      * @return bool
      */
-    public function createNewFile()
+    public function createFile()
     {
         return touch($this->realpath);
     }

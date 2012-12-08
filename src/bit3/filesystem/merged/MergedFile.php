@@ -328,9 +328,9 @@ class MergedFile
      *
      * @return bool
      */
-    public function createNewFile()
+    public function createFile()
     {
-        return $this->file->createNewFile();
+        return $this->file->createFile();
     }
 
     /**

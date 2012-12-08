@@ -290,7 +290,7 @@ interface File
      *
      * @return bool
      */
-    public function createNewFile();
+    public function createFile();
 
     /**
      * Get contents of the file. Returns <em>null</em> if file does not exists

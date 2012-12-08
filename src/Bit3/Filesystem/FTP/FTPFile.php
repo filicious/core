@@ -333,13 +333,13 @@ class FTPFile
         if ($stat->isDirectory) {
             if ($recursive) {
                 /** @var File $file */
-                foreach ($this->listAll() as $file) {
+                foreach ($this->listFiles() as $file) {
                     if (!$file->delete(true, $force)) {
                         return false;
                     }
                 }
             }
-            else if (count($this->listAll()) > 0) {
+            else if (count($this->listFiles()) > 0) {
                 return false;
             }
             return $this->fs->ftpDelete($this);
@@ -586,17 +586,40 @@ class FTPFile
      *
      * @return array<File>
      */
-    public function listAll()
+    public function listFiles()
     {
-        $stat = $this->fs->ftpStat($this);
+        list($recursive, $bitmask, $globs, $callables, $globSearchPatterns) = Util::buildFilters($this, func_get_args());
 
-        if ($stat->isDirectory) {
-            return array_map(function($stat) {
-                return new FTPFile($this->getPathname() . '/' . $stat->name, $this->fs);
-            }, $this->fs->ftpList($this));
+        $pathname = $this->getPathname();
+
+        $files = array();
+
+        $currentStats = $this->fs->ftpList($this);
+
+        foreach ($currentStats as $stat) {
+            $file = new FTPFile($pathname . '/' . $stat->name, $this->fs);
+
+            $files[] = $file;
+
+            if ($recursive &&
+                basename($stat->name) != '.' &&
+                basename($stat->name) != '..' &&
+                $stat->isDirectory ||
+                count($globSearchPatterns) &&
+                Util::applyGlobFilters($file, $globSearchPatterns)
+            ) {
+                $recuriveFiles = $file->listFiles();
+
+                $files = array_merge(
+                    $files,
+                    $recuriveFiles
+                );
+            }
         }
 
-        return false;
+        $files = Util::applyFilters($files, $bitmask, $globs, $callables);
+
+        return $files;
     }
 
     /**

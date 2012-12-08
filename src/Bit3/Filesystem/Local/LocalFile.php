@@ -316,13 +316,13 @@ class LocalFile
         if ($this->isDirectory()) {
             if ($recursive) {
                 /** @var File $file */
-                foreach ($this->listAll() as $file) {
+                foreach ($this->listFiles() as $file) {
                     if (!$file->delete(true, $force)) {
                         return false;
                     }
                 }
             }
-            else if (count($this->listAll()) > 0) {
+            else if (count($this->listFiles()) > 0) {
                 return false;
             }
             return rmdir($this->realpath);
@@ -547,50 +547,40 @@ class LocalFile
         return sha1_file($this->realpath, $raw);
     }
 
-    /**
-     * Find pathnames matching a pattern.
-     *
-     * @param string $pattern
-     * @param int    $flags Use GLOB_* flags. Not all may supported on each filesystem.
-     *
-     * @return array<File>
-     */
-    public function glob($pattern)
+    public function listFiles()
     {
-        $pattern = Util::normalizePath($pattern);
+        list($recursive, $bitmask, $globs, $callables, $globSearchPatterns) = Util::buildFilters($this, func_get_args());
 
-        $substr = strlen($this->fs->getBasePath());
+        $pathname = $this->getPathname();
 
-        return array_map(
-            function ($path) use ($substr) {
-                $path = substr($path, $substr);
-                return new LocalFile($path, $this->fs);
-            },
-            glob($this->realpath . '/' . $pattern)
-        );
-    }
+        $files = array();
 
-    public function listAll()
-    {
-        $files = scandir($this->realpath);
+        $currentFiles = scandir($this->realpath);
 
-        // skip dot files
-        $files = array_filter(
-            $files,
-            function ($file) {
-                return $file != '.' && $file != '..';
+        foreach ($currentFiles as $path) {
+            $file = new LocalFile($pathname . '/' . $path, $this->fs);
+
+            $files[] = $file;
+
+            if ($recursive &&
+                $path != '.' &&
+                $path != '..' &&
+                $file->isDirectory() ||
+                count($globSearchPatterns) &&
+                Util::applyGlobFilters($file, $globSearchPatterns)
+            ) {
+                $recuriveFiles = $file->listFiles();
+
+                $files = array_merge(
+                    $files,
+                    $recuriveFiles
+                );
             }
-        );
+        }
 
-        $parent = $this->getPathname();
-        $fs = $this->fs;
+        $files = Util::applyFilters($files, $bitmask, $globs, $callables);
 
-        return array_map(
-            function ($path) use ($parent, $fs) {
-                return new LocalFile($parent . '/' . $path, $fs);
-            },
-            $files
-        );
+        return $files;
     }
 
     /**

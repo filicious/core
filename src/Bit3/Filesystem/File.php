@@ -46,6 +46,46 @@ interface File
     const TYPE_UNKNOWN = 'unknown';
 
     /**
+     * List everything (including "." and "..")
+     */
+    const LIST_ALL = 1;
+
+    /**
+     * Return hidden files (starting with ".")
+     */
+    const LIST_HIDDEN = 2;
+
+    /**
+     * Return non-hidden (not starting with ".")
+     */
+    const LIST_VISIBLE = 4;
+
+    /**
+     * Return only files.
+     */
+    const LIST_FILES = 128;
+
+    /**
+     * Return only directories.
+     */
+    const LIST_DIRECTORIES = 256;
+
+    /**
+     * Return only links.
+     */
+    const LIST_LINKS = 512;
+
+    /**
+     * List non-links.
+     */
+    const LIST_OPAQUE = 1024;
+
+    /**
+     * List recursive.
+     */
+    const LIST_RECURSIVE = 8192;
+
+    /**
      * Get the underlaying filesystem for this pathname.
      *
      * @return Filesystem
@@ -377,49 +417,13 @@ interface File
     public function getSHA1($raw = false);
 
     /**
-     * Find pathnames matching a pattern.
+     * List files.
      *
-     * @param string $pattern
-     * @param int    $flags Use GLOB_* flags. Not all may supported on each filesystem.
-     *
-     * @return array<File>
-     */
-    public function glob($pattern);
-
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function globFiles($pattern);
-
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function globDirectories($pattern);
-
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function listAll();
-
-    /**
-     * List all files.
+     * @param int|string|callable Multiple list of LIST_* bitmask, glob pattern and callables to filter the list.
      *
      * @return array<File>
      */
     public function listFiles();
-
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function listDirectories();
 
     /**
      * Get the real url, e.g. file:/real/path/to/file to the pathname.

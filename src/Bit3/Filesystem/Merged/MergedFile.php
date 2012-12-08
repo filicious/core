@@ -182,6 +182,19 @@ class MergedFile
         return $this->file->setModifyTime($time);
     }
 
+    /**
+     * Sets access and modification time of file.
+     *
+     * @param int $time
+     * @param int $atime
+     *
+     * @return bool
+     */
+    public function touch($time = null, $atime = null)
+    {
+        return $this->file->touch($time, $atime);
+    }
+
     public function getSize()
     {
         return $this->file->getSize();
@@ -442,66 +455,15 @@ class MergedFile
     }
 
     /**
-     * Find pathnames matching a pattern.
+     * List files.
      *
-     * @param string $pattern
-     * @param int    $flags Use GLOB_* flags. Not all may supported on each filesystem.
-     *
-     * @return array<File>
-     */
-    public function glob($pattern, $flags = 0)
-    {
-        return $this->file->glob($pattern, $flags);
-    }
-
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function globFiles($pattern)
-    {
-        return $this->file->globFiles($pattern);
-    }
-
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function globDirectories($pattern)
-    {
-        return $this->file->globDirectories($pattern);
-    }
-
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function listAll()
-    {
-        return $this->file->listAll();
-    }
-
-    /**
-     * List all files.
+     * @param int|string|callable
      *
      * @return array<File>
      */
     public function listFiles()
     {
         return $this->file->listFiles();
-    }
-
-    /**
-     * List all files.
-     *
-     * @return array<File>
-     */
-    public function listDirectories()
-    {
-        return $this->file->listDirectories();
     }
 
     /**
@@ -522,5 +484,18 @@ class MergedFile
     public function getPublicURL()
     {
         return $this->file->getPublicURL();
+    }
+
+    /**
+     * (PHP 5 &gt;= 5.0.0)<br/>
+     * Retrieve an external iterator
+     *
+     * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
+     * @return Traversable An instance of an object implementing <b>Iterator</b> or
+     * <b>Traversable</b>
+     */
+    public function getIterator()
+    {
+        return $this->file->getIterator();
     }
 }

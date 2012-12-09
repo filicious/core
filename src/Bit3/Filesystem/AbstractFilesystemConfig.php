@@ -41,6 +41,7 @@ abstract class AbstractFilesystemConfig
 	 */
 	public function immutable() {
 		$this->immutable = true;
+        return $this;
 	}
 	
 	public function __clone() {
@@ -51,6 +52,7 @@ abstract class AbstractFilesystemConfig
 		if($this->immutable) {
 			throw new Exception('Config is immutable'); // TODO
 		}
+        return $this;
 	}
 	
 	protected $basePath;
@@ -66,7 +68,7 @@ abstract class AbstractFilesystemConfig
 	 * @see Bit3\Filesystem.FilesystemConfig::setBasePath()
 	 */
 	public function setBasePath($basePath) {
-		$this->checkImmutable();
-		$this->basePath = (string) $basePath;
+		$this->checkImmutable()->basePath = (string) $basePath;
+        return $this;
 	}
 }

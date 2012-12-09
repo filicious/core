@@ -109,8 +109,8 @@ class FTPFilesystemConfig
      */
     public function setHost($host)
     {
-		$this->checkImmutable();
-        $this->host = (string) $host;
+		$this->checkImmutable()->host = (string) $host;
+        return $this;
     }
 
     /**
@@ -126,8 +126,8 @@ class FTPFilesystemConfig
      */
     public function setPort($port)
     {
-		$this->checkImmutable();
-        $this->port = (int) $port;
+		$this->checkImmutable()->port = (int) $port;
+        return $this;
     }
 
     /**
@@ -143,8 +143,8 @@ class FTPFilesystemConfig
      */
     public function setTimeout($timeout)
     {
-		$this->checkImmutable();
-        $this->timeout = (int) $timeout;
+		$this->checkImmutable()->timeout = (int) $timeout;
+        return $this;
     }
 
     /**
@@ -160,8 +160,8 @@ class FTPFilesystemConfig
      */
     public function setPassiveMode($passiveMode)
     {
-		$this->checkImmutable();
-        $this->passiveMode = (bool) $passiveMode;
+		$this->checkImmutable()->passiveMode = (bool) $passiveMode;
+        return $this;
     }
 
     /**
@@ -177,8 +177,8 @@ class FTPFilesystemConfig
      */
     public function setSSL($ssl)
     {
-		$this->checkImmutable();
-        $this->ssl = (bool) $ssl;
+		$this->checkImmutable()->ssl = (bool) $ssl;
+        return $this;
     }
 
     /**
@@ -194,8 +194,8 @@ class FTPFilesystemConfig
      */
     public function setUsername($username)
     {
-		$this->checkImmutable();
-        $this->username = (string) $username;
+		$this->checkImmutable()->username = (string) $username;
+        return $this;
     }
 
     /**
@@ -211,8 +211,8 @@ class FTPFilesystemConfig
      */
     public function setPassword($password)
     {
-		$this->checkImmutable();
-        $this->password = (string) $password;
+		$this->checkImmutable()->password = (string) $password;
+        return $this;
     }
 
     /**
@@ -228,8 +228,8 @@ class FTPFilesystemConfig
      */
     public function setLazyConnect($lazyConnect)
     {
-		$this->checkImmutable();
-        $this->lazyConnect = (bool) $lazyConnect;
+		$this->checkImmutable()->lazyConnect = (bool) $lazyConnect;
+        return $this;
     }
 
     /**
@@ -245,8 +245,8 @@ class FTPFilesystemConfig
      */
     public function setCache(Cache $cache)
     {
-		$this->checkImmutable();
-        $this->cache = $cache;
+		$this->checkImmutable()->cache = $cache;
+        return $this;
     }
 
     /**
@@ -265,8 +265,8 @@ class FTPFilesystemConfig
      */
     public function setVisiblePassword($visiblePassword)
     {
-		$this->checkImmutable();
-        $this->visiblePassword = (bool) $visiblePassword;
+		$this->checkImmutable()->visiblePassword = (bool) $visiblePassword;
+        return $this;
     }
 
     /**

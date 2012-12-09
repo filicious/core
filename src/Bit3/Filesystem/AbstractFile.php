@@ -23,7 +23,8 @@ use Traversable;
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
-abstract class BasicFileImpl implements File
+abstract class AbstractFile
+	implements File
 {
     /**
      * @var Filesystem

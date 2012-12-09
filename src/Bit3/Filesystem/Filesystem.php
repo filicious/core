@@ -20,6 +20,18 @@ namespace Bit3\Filesystem;
  */
 interface Filesystem
 {
+	/**
+	 * @param FilesystemConfig $config
+	 * @return Filesystem
+	 * @throws FilesystemException
+	 */
+	public static function create(FilesystemConfig $config);
+	
+	/**
+	 * @return FilesystemConfig
+	 */
+	public function getConfig();
+	
     /**
      * Get the root (/) file node.
      *

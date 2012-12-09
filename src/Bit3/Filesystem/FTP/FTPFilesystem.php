@@ -11,6 +11,7 @@
 
 namespace Bit3\Filesystem\FTP;
 
+use Bit3\Filesystem\AbstractFilesystem;
 use Bit3\Filesystem\Filesystem;
 use Bit3\Filesystem\File;
 use Bit3\Filesystem\PublicURLProvider;
@@ -23,18 +24,10 @@ use Bit3\Filesystem\Util;
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
 class FTPFilesystem
-    implements Filesystem
+	extends AbstractFilesystem
 {
-    /**
-     * @var FTPConfig
-     */
-    protected $config;
-
-    /**
-     * @var PublicURLProvider
-     */
-    protected $publicURLProvider;
-
+	const CONFIG_CLASS = 'FTPFilesystemConfig';
+	
     /**
      * @var resource
      */
@@ -46,18 +39,29 @@ class FTPFilesystem
     protected $cacheKey;
 
     /**
-     * @param FTPConfig $config
+     * @param FTPFilesystemConfig $config
      */
-    public function __construct(FTPConfig $config, PublicURLProvider $publicURLProvider = null)
+    public function __construct(FTPFilesystemConfig $config, PublicURLProvider $provider)
     {
-        $this->config = clone $config;
-        $this->publicURLProvider = $publicURLProvider;
+    	parent::__construct($config, $provider);
 
+    	// TODO OH: since the cache comes from the config, this base key should
+    	// be generated there, too 
         $this->cacheKey = 'ftpfs:' . ($this->config->getSSL() ? 'ssl:' : '') . $this->config->getUsername() . '@' . $this->config->getHost() . ':' . $this->config->getPort() . ($this->config->getPath() ?: '/');
-
+		
         if (!$this->config->getLazyConnect()) {
             $this->connect();
         }
+    }
+    
+    /* (non-PHPdoc)
+     * @see Bit3\Filesystem\Local.AbstractFilesystem::prepareConfig()
+     * 
+     * TODO OH: this is used to avoid normalization of basepath, which was not
+     * 		done in the FTPFilesystem. If it is desired to normalize the
+     * 		basepath, just remove this method or call the parent method.
+     */
+    protected function prepareConfig() {
     }
 
     public function __destruct()
@@ -159,24 +163,11 @@ class FTPFilesystem
         return $this->connection;
     }
 
-    /**
-     * @return \Bit3\Filesystem\FTP\FTPConfig
-     */
-    public function getConfig()
-    {
-        return $this->config;
-    }
-
-    public function getBasePath()
-    {
-        return $this->config->getPath();
-    }
-
     public function ftpStat(FTPFile $file)
     {
         $this->connect();
 
-        $real = $this->getBasePath() . $file->getPathname();
+        $real = $this->config->getBasePath() . $file->getPathname();
         $cacheKey = $this->cacheKey . ':stat:' . $real;
 
         $cached = $this->config->getCache()->fetch($cacheKey);
@@ -194,7 +185,7 @@ class FTPFilesystem
     {
         $this->connect();
 
-        $real = $this->getBasePath() . $file->getPathname();
+        $real = $this->config->getBasePath() . $file->getPathname();
         $cacheKey = $this->cacheKey . ':list:' . $real;
 
         $cached = $this->config->getCache()->fetch($cacheKey);
@@ -261,7 +252,7 @@ class FTPFilesystem
         $stat = $this->ftpStat($file);
 
         if ($stat) {
-            $real = $this->getBasePath() . $file->getPathname();
+            $real = $this->config->getBasePath() . $file->getPathname();
             return ftp_chmod($this->connection, $mode, $real);
         }
 
@@ -275,7 +266,7 @@ class FTPFilesystem
         $stat = $this->ftpStat($file);
 
         if ($stat) {
-            $real = $this->getBasePath() . $file->getPathname();
+            $real = $this->config->getBasePath() . $file->getPathname();
 
             if ($stat->isDirectory) {
                 if (ftp_rmdir($this->connection, $real)) {
@@ -304,7 +295,7 @@ class FTPFilesystem
         $stat = $this->ftpStat($source);
 
         if ($stat and !$stat->isDirectory) {
-            $real = $this->getBasePath() . $source->getPathname();
+            $real = $this->config->getBasePath() . $source->getPathname();
 
             return ftp_fget($this->connection, $targetStream, $real, FTP_BINARY);
         }
@@ -319,7 +310,7 @@ class FTPFilesystem
         $stat = $this->ftpStat($target);
 
         if (!$stat or !$stat->isDirectory) {
-            $real = $this->getBasePath() . $target->getPathname();
+            $real = $this->config->getBasePath() . $target->getPathname();
 
             return ftp_fput($this->connection, $real, $sourceStream, FTP_BINARY);
         }
@@ -334,7 +325,7 @@ class FTPFilesystem
         $stat = $this->ftpStat($source);
 
         if ($stat and !$stat->isDirectory) {
-            $realSource = $this->getBasePath() . $source->getPathname();
+            $realSource = $this->config->getBasePath() . $source->getPathname();
             $realTarget = $target->getRealURL();
 
             return ftp_get($this->connection, $realTarget, $realSource, FTP_BINARY);
@@ -351,7 +342,7 @@ class FTPFilesystem
 
         if (!$stat or !$stat->isDirectory) {
             $realSource = $source->getRealURL();
-            $realTarget = $this->getBasePath() . $target->getPathname();
+            $realTarget = $this->config->getBasePath() . $target->getPathname();
 
             return ftp_put($this->connection, $realTarget, $realSource, FTP_BINARY);
         }
@@ -366,7 +357,7 @@ class FTPFilesystem
         $stat = $this->ftpStat($file);
 
         if (!$stat) {
-            $real = $this->getBasePath() . $file->getPathname();
+            $real = $this->config->getBasePath() . $file->getPathname();
 
             return ftp_mkdir($this->connection, $real);
         }
@@ -382,8 +373,8 @@ class FTPFilesystem
         $targetStat = $this->ftpStat($target);
 
         if ($sourceStat and (!$targetStat or (!$sourceStat['isDirectory'] and !$targetStat['isDirectory']))) {
-            $realSource = $this->getBasePath() . $source->getPathname();
-            $realTarget = $this->getBasePath() . $target->getPathname();
+            $realSource = $this->config->getBasePath() . $source->getPathname();
+            $realTarget = $this->config->getBasePath() . $target->getPathname();
 
             return ftp_rename($this->connection, $realSource, $realTarget);
         }
@@ -398,19 +389,11 @@ class FTPFilesystem
         $stat = $this->ftpStat($file);
 
         if ($stat && $stat->isDirectory) {
-            $real = $this->getBasePath() . $file->getPathname();
+            $real = $this->config->getBasePath() . $file->getPathname();
 
             return ftp_rmdir($this->connection, $real);
         }
 
         return false;
-    }
-
-    /**
-     * @return \Bit3\Filesystem\PublicURLProvider
-     */
-    public function getPublicURLProvider()
-    {
-        return $this->publicURLProvider;
     }
 }

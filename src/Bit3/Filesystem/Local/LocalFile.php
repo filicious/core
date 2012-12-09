@@ -13,7 +13,7 @@ namespace Bit3\Filesystem\Local;
 
 use Bit3\Filesystem\Filesystem;
 use Bit3\Filesystem\File;
-use Bit3\Filesystem\BasicFileImpl;
+use Bit3\Filesystem\AbstractFile;
 use Bit3\Filesystem\FilesystemException;
 use Bit3\Filesystem\Util;
 
@@ -24,7 +24,7 @@ use Bit3\Filesystem\Util;
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
 class LocalFile
-    extends BasicFileImpl
+    extends AbstractFile
 {
     /**
      * @var string
@@ -49,7 +49,7 @@ class LocalFile
     {
         parent::__construct($fs);
         $this->pathname = Util::normalizePath('/' . $pathname);
-        $this->realpath = Util::normalizePath($fs->getBasePath() . '/' . $pathname);
+        $this->realpath = Util::normalizePath($fs->getConfig()->getBasePath() . '/' . $pathname);
     }
 
     /**

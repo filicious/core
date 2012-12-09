@@ -20,7 +20,8 @@ use Bit3\Filesystem\Cache\ArrayCache;
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
-class FTPConfig
+class FTPFilesystemConfig
+	extends FilesystemConfig
 {
     /**
      * Connection host.
@@ -99,7 +100,8 @@ class FTPConfig
 
     public function __construct($host)
     {
-        $this->host = (string) $host;
+    	parent::__construct();
+        $this->setHost($host);
     }
 
     /**
@@ -107,7 +109,8 @@ class FTPConfig
      */
     public function setHost($host)
     {
-        $this->host = (string) $host;
+		$this->checkImmutable()->host = (string) $host;
+        return $this;
     }
 
     /**
@@ -123,7 +126,8 @@ class FTPConfig
      */
     public function setPort($port)
     {
-        $this->port = (int) $port;
+		$this->checkImmutable()->port = (int) $port;
+        return $this;
     }
 
     /**
@@ -139,7 +143,8 @@ class FTPConfig
      */
     public function setTimeout($timeout)
     {
-        $this->timeout = (int) $timeout;
+		$this->checkImmutable()->timeout = (int) $timeout;
+        return $this;
     }
 
     /**
@@ -155,7 +160,8 @@ class FTPConfig
      */
     public function setPassiveMode($passiveMode)
     {
-        $this->passiveMode = (bool) $passiveMode;
+		$this->checkImmutable()->passiveMode = (bool) $passiveMode;
+        return $this;
     }
 
     /**
@@ -171,7 +177,8 @@ class FTPConfig
      */
     public function setSSL($ssl)
     {
-        $this->ssl = (bool) $ssl;
+		$this->checkImmutable()->ssl = (bool) $ssl;
+        return $this;
     }
 
     /**
@@ -187,7 +194,8 @@ class FTPConfig
      */
     public function setUsername($username)
     {
-        $this->username = (string) $username;
+		$this->checkImmutable()->username = (string) $username;
+        return $this;
     }
 
     /**
@@ -203,7 +211,8 @@ class FTPConfig
      */
     public function setPassword($password)
     {
-        $this->password = (string) $password;
+		$this->checkImmutable()->password = (string) $password;
+        return $this;
     }
 
     /**
@@ -219,7 +228,8 @@ class FTPConfig
      */
     public function setLazyConnect($lazyConnect)
     {
-        $this->lazyConnect = (bool) $lazyConnect;
+		$this->checkImmutable()->lazyConnect = (bool) $lazyConnect;
+        return $this;
     }
 
     /**
@@ -231,27 +241,12 @@ class FTPConfig
     }
 
     /**
-     * @param string $path
-     */
-    public function setPath($path)
-    {
-        $this->path = (string) $path;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPath()
-    {
-        return $this->path;
-    }
-
-    /**
      * @param \Bit3\Filesystem\Cache\Cache $cache
      */
     public function setCache(Cache $cache)
     {
-        $this->cache = $cache;
+		$this->checkImmutable()->cache = $cache;
+        return $this;
     }
 
     /**
@@ -270,7 +265,8 @@ class FTPConfig
      */
     public function setVisiblePassword($visiblePassword)
     {
-        $this->visiblePassword = (bool) $visiblePassword;
+		$this->checkImmutable()->visiblePassword = (bool) $visiblePassword;
+        return $this;
     }
 
     /**

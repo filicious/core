@@ -299,9 +299,9 @@ class MergedFile
      *
      * @return bool
      */
-    public function copyTo(File $destination, $recursive = false)
+    public function copyTo(File $destination, $parents = false)
     {
-        return $this->file->copyTo($destination, $recursive);
+        return $this->file->copyTo($destination, $parents);
     }
 
     /**
@@ -321,9 +321,9 @@ class MergedFile
      *
      * @return bool
      */
-    public function createDirectory($recursive = false)
+    public function createDirectory($parents = false)
     {
-        return $this->file->createDirectory($recursive);
+        return $this->file->createDirectory($parents);
     }
 
     /**
@@ -403,9 +403,9 @@ class MergedFile
      *
      * @return string
      */
-    public function getMimeName()
+    public function getMIMEName()
     {
-        return $this->file->getMimeName();
+        return $this->file->getMIMEName();
     }
 
     /**
@@ -415,9 +415,9 @@ class MergedFile
      *
      * @return string
      */
-    public function getMimeType()
+    public function getMIMEType()
     {
-        return $this->file->getMimeType();
+        return $this->file->getMIMEType();
     }
 
     /**
@@ -427,9 +427,9 @@ class MergedFile
      *
      * @return string
      */
-    public function getMimeEncoding()
+    public function getMIMEEncoding()
     {
-        return $this->file->getMimeEncoding();
+        return $this->file->getMIMEEncoding();
     }
 
     /**

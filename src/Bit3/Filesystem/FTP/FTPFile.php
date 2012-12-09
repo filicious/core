@@ -366,7 +366,7 @@ class FTPFile
      *
      * @return bool
      */
-    public function copyTo(File $destination, $recursive = false)
+    public function copyTo(File $destination, $parents = false)
     {
         Util::streamCopy($this, $destination);
     }
@@ -394,7 +394,7 @@ class FTPFile
      *
      * @return bool
      */
-    public function createDirectory($recursive = false)
+    public function createDirectory($parents = false)
     {
         $stat = $this->fs->ftpStat($this);
 
@@ -402,8 +402,8 @@ class FTPFile
             $parent = $this->getParent();
 
             if ($parent) {
-                if ($recursive) {
-                    if (!$parent->createDirectory($recursive)) {
+                if ($parents) {
+                    if (!$parent->createDirectory(true)) {
                         return false;
                     }
                 }
@@ -414,11 +414,8 @@ class FTPFile
 
             return $this->fs->ftpMkdir($this);
         }
-        else {
-            return $stat->isDirectory;
-        }
-
-        return $stat ?  : $stat->isDirectory;
+        
+        return $stat->isDirectory;
     }
 
     /**
@@ -536,7 +533,7 @@ class FTPFile
     {
         $config = $this->fs->getConfig();
 
-        $url = $config->getSsl() ? 'ftps://' : 'ftp://';
+        $url = $config->getSSL() ? 'ftps://' : 'ftp://';
         $url .= $config->getUsername();
         if ($config->getPassword()) {
             $url .= ':' . $config->getPassword();
@@ -631,7 +628,7 @@ class FTPFile
     {
         $config = $this->fs->getConfig();
 
-        $url = $config->getSsl() ? 'ftps://' : 'ftp://';
+        $url = $config->getSSL() ? 'ftps://' : 'ftp://';
         $url .= $config->getUsername();
         if ($config->getPassword()) {
             if ($config->getVisiblePassword()) {

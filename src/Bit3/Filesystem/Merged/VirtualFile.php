@@ -257,7 +257,7 @@ class VirtualFile
      *
      * @return bool
      */
-    public function copyTo(File $destination, $recursive = false)
+    public function copyTo(File $destination, $parents = false)
     {
         return false;
     }
@@ -279,7 +279,7 @@ class VirtualFile
      *
      * @return bool
      */
-    public function createDirectory($recursive = false)
+    public function createDirectory($parents = false)
     {
         return false;
     }

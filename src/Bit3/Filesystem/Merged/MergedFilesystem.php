@@ -159,9 +159,9 @@ class MergedFilesystem
      *
      * @return int
      */
-    public function diskFreeSpace(File $path = null)
+    public function getFreeSpace(File $path = null)
     {
-        // TODO: Implement diskFreeSpace() method.
+        // TODO: Implement getFreeSpace() method.
     }
 
     /**
@@ -171,9 +171,9 @@ class MergedFilesystem
      *
      * @return int
      */
-    public function diskTotalSpace(File $path = null)
+    public function getTotalSpace(File $path = null)
     {
-        // TODO: Implement diskTotalSpace() method.
+        // TODO: Implement getTotalSpace() method.
     }
 
     /**

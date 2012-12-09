@@ -347,7 +347,7 @@ class LocalFile
      *
      * @return bool
      */
-    public function copyTo(File $destination, $recursive = false)
+    public function copyTo(File $destination, $parents = false)
     {
         if ($this->isDirectory()) {
 
@@ -384,12 +384,12 @@ class LocalFile
      *
      * @return bool
      */
-    public function createDirectory($recursive = false)
+    public function createDirectory($parents = false)
     {
         if ($this->exists()) {
             return $this->isDirectory();
         }
-        else if ($recursive) {
+        else if ($parents) {
             return mkdir($this->realpath, 0777, true);
         }
         else {

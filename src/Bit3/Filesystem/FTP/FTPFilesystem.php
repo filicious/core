@@ -53,7 +53,7 @@ class FTPFilesystem
         $this->config = clone $config;
         $this->publicURLProvider = $publicURLProvider;
 
-        $this->cacheKey = 'ftpfs:' . ($this->config->getSsl() ? 'ssl:' : '') . $this->config->getUsername() . '@' . $this->config->getHost() . ':' . $this->config->getPort() . ($this->config->getPath() ?: '/');
+        $this->cacheKey = 'ftpfs:' . ($this->config->getSSL() ? 'ssl:' : '') . $this->config->getUsername() . '@' . $this->config->getHost() . ':' . $this->config->getPort() . ($this->config->getPath() ?: '/');
 
         if (!$this->config->getLazyConnect()) {
             $this->connect();
@@ -94,7 +94,7 @@ class FTPFilesystem
      *
      * @return int
      */
-    public function diskFreeSpace(File $path = null)
+    public function getFreeSpace(File $path = null)
     {
         return -1;
     }
@@ -106,7 +106,7 @@ class FTPFilesystem
      *
      * @return int
      */
-    public function diskTotalSpace(File $path = null)
+    public function getTotalSpace(File $path = null)
     {
         return -1;
     }
@@ -120,7 +120,7 @@ class FTPFilesystem
             return;
         }
 
-        if ($this->config->getSsl()) {
+        if ($this->config->getSSL()) {
             $this->connection = ftp_ssl_connect(
                 $this->config->getHost(),
                 $this->config->getPort(),

@@ -47,7 +47,7 @@ All files/directories created with these methods will be deleted if the filesyst
 
 `PublicUrlProvider` is an interface for a class that generated public urls for a file.
 
-`BasicFileImpl` is a basic abstract implementation of `File`.
+`AbstractFile` is a basic abstract implementation of `File`.
 
 Work with the filesystem
 ========================
@@ -440,13 +440,13 @@ FTP filesystem
 The `FTPFilesystem` allow access to an ftp server.
 
 ```php
-use Bit3\Filesystem\FTP\FTPConfig;
+use Bit3\Filesystem\FTP\FTPFilesystemConfig;
 use Bit3\Filesystem\FTP\FTPFilesystem;
 use Bit3\Filesystem\Iterator\RecursiveFilesystemIterator;
 use RecursiveTreeIterator;
 
 // create a ftp configuration
-$config = new FTPConfig('example.com');
+$config = new FTPFilesystemConfig('example.com');
 $config->setPassiveMode(true);
 $config->setUsername('user');
 $config->setPassword('password');
@@ -467,8 +467,8 @@ foreach ($treeIterator as $path) {
 }
 ```
 
-The `FTPFilesystem` constructor accept an instance of `FTPConfig` and an optional `PublicUrlProvider` as second argument.
-The `FTPConfig` object is used, to setup the ftp configuration. The instance can be reused for several `FTPFilesystem` instantiations.
+The `FTPFilesystem` constructor accept an instance of `FTPFilesystemConfig` and an optional `PublicUrlProvider` as second argument.
+The `FTPFilesystemConfig` object is used, to setup the ftp configuration. The instance can be reused for several `FTPFilesystem` instantiations.
 
 SSH Filesystem
 --------------

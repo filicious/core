@@ -13,7 +13,7 @@ namespace Bit3\Filesystem\FTP;
 
 require_once(__DIR__ . '/../../../bootstrap.php');
 
-use Bit3\Filesystem\FTP\FTPConfig;
+use Bit3\Filesystem\FTP\FTPFilesystemConfig;
 use Bit3\Filesystem\FTP\FTPFilesystem;
 use Bit3\Filesystem\FTP\FTPFile;
 use Bit3\Filesystem\Iterator\FilesystemIterator;
@@ -25,7 +25,7 @@ use Bit3\Filesystem\Iterator\RecursiveFilesystemIterator;
 class FtpFilesystemTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var FTPConfig
+     * @var FTPFilesystemConfig
      */
     protected $config;
 
@@ -40,9 +40,9 @@ class FtpFilesystemTest extends \PHPUnit_Framework_TestCase
      */
     protected function setUp()
     {
-        $this->config = new FTPConfig('localhost');
+        $this->config = FTPFilesystemConfig::create('localhost');
 
-        $this->fs = new FTPFilesystem($this->config);
+        $this->fs = FTPFilesystem::create($this->config);
     }
 
     public function testLazyConnect()

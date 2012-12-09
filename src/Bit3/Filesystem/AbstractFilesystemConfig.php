@@ -70,13 +70,6 @@ abstract class AbstractFilesystemConfig
 		$this->basePath = (string) $basePath;
 	}
 	
-	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.FilesystemConfig::normalizeBasePath()
-	 */
-	public function normalizeBasePath() {
-		$this->basePath = Util::normalizePath('/' . $this->basePath) . '/';
-	}
-	
 	protected $provider;
 	
 	/* (non-PHPdoc)

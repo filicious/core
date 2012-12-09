@@ -44,11 +44,6 @@ interface FilesystemConfig
 	public function setBasePath($basePath);
 	
 	/**
-	 * Normalize the base path set.
-	 */
-	public function normalizeBasePath();
-	
-	/**
 	 * @return PublicURLProvider
 	 */
 	public function getPublicURLProvider();

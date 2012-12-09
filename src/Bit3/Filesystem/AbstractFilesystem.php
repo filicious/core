@@ -68,6 +68,6 @@ abstract class AbstractFilesystem
      * immutable. Override in concrete classes to extend or alter behavior.
      */
     protected function prepareConfig() {
-    	$this->config->normalizeBasePath();
+    	$this->config->setBasePath(Util::normalizePath('/' . $this->config->getBasePath()) . '/');
     }
 }

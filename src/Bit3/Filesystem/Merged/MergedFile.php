@@ -299,9 +299,9 @@ class MergedFile
      *
      * @return bool
      */
-    public function copyTo(File $destination, $recursive = false)
+    public function copyTo(File $destination, $parents = false)
     {
-        return $this->file->copyTo($destination, $recursive);
+        return $this->file->copyTo($destination, $parents);
     }
 
     /**

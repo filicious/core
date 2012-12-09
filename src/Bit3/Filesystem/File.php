@@ -300,7 +300,7 @@ interface File
      *
      * @return bool
      */
-    public function copyTo(File $destination, $recursive = false);
+    public function copyTo(File $destination, $parents = false);
 
     /**
      * Renames a file or directory

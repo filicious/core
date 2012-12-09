@@ -366,9 +366,9 @@ class FTPFile
      *
      * @return bool
      */
-    public function copyTo(File $destination, $recursive = false)
+    public function copyTo(File $destination, $parents = false)
     {
-        Util::streamCopy($this, $destination);
+        Util::streamCopy($this, $parents);
     }
 
     /**

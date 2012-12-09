@@ -347,7 +347,7 @@ class LocalFile
      *
      * @return bool
      */
-    public function copyTo(File $destination, $recursive = false)
+    public function copyTo(File $destination, $parents = false)
     {
         if ($this->isDirectory()) {
 

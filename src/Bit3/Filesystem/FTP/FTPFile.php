@@ -533,7 +533,7 @@ class FTPFile
     {
         $config = $this->fs->getConfig();
 
-        $url = $config->getSsl() ? 'ftps://' : 'ftp://';
+        $url = $config->getSSL() ? 'ftps://' : 'ftp://';
         $url .= $config->getUsername();
         if ($config->getPassword()) {
             $url .= ':' . $config->getPassword();
@@ -628,7 +628,7 @@ class FTPFile
     {
         $config = $this->fs->getConfig();
 
-        $url = $config->getSsl() ? 'ftps://' : 'ftp://';
+        $url = $config->getSSL() ? 'ftps://' : 'ftp://';
         $url .= $config->getUsername();
         if ($config->getPassword()) {
             if ($config->getVisiblePassword()) {

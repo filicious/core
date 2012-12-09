@@ -169,7 +169,7 @@ class FTPConfig
     /**
      * @param bool $ssl
      */
-    public function setSsl($ssl)
+    public function setSSL($ssl)
     {
         $this->ssl = (bool) $ssl;
     }
@@ -177,7 +177,7 @@ class FTPConfig
     /**
      * @return bool
      */
-    public function getSsl()
+    public function getSSL()
     {
         return $this->ssl;
     }

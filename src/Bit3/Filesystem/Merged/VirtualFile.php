@@ -162,6 +162,19 @@ class VirtualFile
         return false;
     }
 
+    /**
+     * Sets access and modification time of file.
+     *
+     * @param int $time
+     * @param int $atime
+     *
+     * @return bool
+     */
+    public function touch($time = null, $atime = null)
+    {
+        return false;
+    }
+
     public function getSize()
     {
         return 0;
@@ -248,7 +261,7 @@ class VirtualFile
      *
      * @return bool
      */
-    public function delete($recursive = false)
+    public function delete($recursive = false, $force = false)
     {
         return false;
     }
@@ -364,7 +377,7 @@ class VirtualFile
      *
      * @return string|null
      */
-    public function hashMD5($raw = false)
+    public function getMD5($raw = false)
     {
         return null;
     }
@@ -377,7 +390,7 @@ class VirtualFile
      *
      * @return string|null
      */
-    public function hashSHA1($raw = false)
+    public function getSHA1($raw = false)
     {
         return null;
     }

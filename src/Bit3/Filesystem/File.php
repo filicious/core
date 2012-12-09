@@ -376,7 +376,7 @@ interface File
      *
      * @return string
      */
-    public function getMimeName();
+    public function getMIMEName();
 
     /**
      * Get mime content type.
@@ -385,7 +385,7 @@ interface File
      *
      * @return string
      */
-    public function getMimeType();
+    public function getMIMEType();
 
     /**
      * Get mime content type.
@@ -394,7 +394,7 @@ interface File
      *
      * @return string
      */
-    public function getMimeEncoding();
+    public function getMIMEEncoding();
 
     /**
      * Calculate the md5 hash of this file.

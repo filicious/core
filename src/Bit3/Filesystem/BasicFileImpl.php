@@ -98,7 +98,7 @@ abstract class BasicFileImpl implements File
      *
      * @return string
      */
-    public function getMimeName()
+    public function getMIMEName()
     {
         $finfo = FS::getFileInfo();
 
@@ -112,7 +112,7 @@ abstract class BasicFileImpl implements File
      *
      * @return string
      */
-    public function getMimeType()
+    public function getMIMEType()
     {
         $finfo = FS::getFileInfo();
 
@@ -126,7 +126,7 @@ abstract class BasicFileImpl implements File
      *
      * @return string
      */
-    public function getMimeEncoding()
+    public function getMIMEEncoding()
     {
         $finfo = FS::getFileInfo();
 

@@ -42,14 +42,4 @@ interface FilesystemConfig
 	 * @param string $basePath
 	 */
 	public function setBasePath($basePath);
-	
-	/**
-	 * @return PublicURLProvider
-	 */
-	public function getPublicURLProvider();
-	
-	/**
-	 * @param PublicURLProvider $provider
-	 */
-	public function setPublicURLProvider(PublicURLProvider $provider = null);
 }

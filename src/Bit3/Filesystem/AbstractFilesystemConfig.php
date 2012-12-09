@@ -69,21 +69,4 @@ abstract class AbstractFilesystemConfig
 		$this->checkImmutable();
 		$this->basePath = (string) $basePath;
 	}
-	
-	protected $provider;
-	
-	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.FilesystemConfig::getPublicURLProvider()
-	 */
-	public function getPublicURLProvider() {
-		return $this->provider;
-	}
-	
-	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.FilesystemConfig::setPublicURLProvider()
-	 */
-	public function setPublicURLProvider(PublicURLProvider $provider = null) {
-		$this->checkImmutable();
-		$this->provider = $provider;
-	}
 }

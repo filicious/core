@@ -11,8 +11,7 @@
 
 namespace Bit3\Filesystem\Local;
 
-use Bit3\Filesystem\FilesystemConfig;
-use Bit3\Filesystem\Filesystem;
+use Bit3\Filesystem\AbstractFilesystem;
 use Bit3\Filesystem\File;
 use Bit3\Filesystem\PublicURLProvider;
 use Bit3\Filesystem\Util;
@@ -28,9 +27,9 @@ class LocalFilesystem
 {
 	const CONFIG_CLASS = 'LocalFilesystemConfig';
 	
-    public function __construct(LocalFilesystemConfig $config)
+    public function __construct(LocalFilesystemConfig $config, PublicURLProvider $provider)
     {
-    	parent::__construct($config);
+    	parent::__construct($config, $provider);
     }
 
     /**

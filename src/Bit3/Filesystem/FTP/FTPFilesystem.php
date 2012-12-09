@@ -41,9 +41,9 @@ class FTPFilesystem
     /**
      * @param FTPFilesystemConfig $config
      */
-    public function __construct(FTPFilesystemConfig $config)
+    public function __construct(FTPFilesystemConfig $config, PublicURLProvider $provider)
     {
-    	parent::__construct($config);
+    	parent::__construct($config, $provider);
 
     	// TODO OH: since the cache comes from the config, this base key should
     	// be generated there, too 

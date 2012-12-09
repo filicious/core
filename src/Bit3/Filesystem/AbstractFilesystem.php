@@ -48,9 +48,10 @@ abstract class AbstractFilesystem
     /**
      * @param FilesystemConfig $config
      */
-    protected function __construct(FilesystemConfig $config)
+    protected function __construct(FilesystemConfig $config, PublicURLProvider $provider)
     {
     	$this->config = clone $config;
+    	$this->provider = $provider;
     	$this->prepareConfig();
     	$this->config->immutable();
     }
@@ -70,4 +71,20 @@ abstract class AbstractFilesystem
     protected function prepareConfig() {
     	$this->config->setBasePath(Util::normalizePath('/' . $this->config->getBasePath()) . '/');
     }
+	
+	protected $provider;
+	
+	/* (non-PHPdoc)
+	 * @see Bit3\Filesystem.FilesystemConfig::getPublicURLProvider()
+	 */
+	public function getPublicURLProvider() {
+		return $this->provider;
+	}
+	
+	/* (non-PHPdoc)
+	 * @see Bit3\Filesystem.FilesystemConfig::setPublicURLProvider()
+	 */
+	public function setPublicURLProvider(PublicURLProvider $provider = null) {
+		$this->provider = $provider;
+	}
 }

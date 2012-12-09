@@ -14,7 +14,7 @@ namespace Bit3\Filesystem\FTP;
 use Bit3\Filesystem\FS;
 use Bit3\Filesystem\Filesystem;
 use Bit3\Filesystem\File;
-use Bit3\Filesystem\BasicFileImpl;
+use Bit3\Filesystem\AbstractFile;
 use Bit3\Filesystem\Util;
 use Exception;
 
@@ -25,7 +25,7 @@ use Exception;
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
 class FTPFile
-    extends BasicFileImpl
+    extends AbstractFile
 {
     protected $pathname;
 

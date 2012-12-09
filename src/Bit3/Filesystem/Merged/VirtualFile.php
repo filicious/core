@@ -13,7 +13,7 @@ namespace Bit3\Filesystem\Merged;
 
 use Bit3\Filesystem\Filesystem;
 use Bit3\Filesystem\File;
-use Bit3\Filesystem\BasicFileImpl;
+use Bit3\Filesystem\AbstractFile;
 use Bit3\Filesystem\FilesystemException;
 
 /**
@@ -23,7 +23,7 @@ use Bit3\Filesystem\FilesystemException;
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
 class VirtualFile
-    extends BasicFileImpl
+    extends AbstractFile
 {
     /**
      * @var string

@@ -11,6 +11,7 @@
 
 namespace Bit3\Filesystem\Local;
 
+use Bit3\Filesystem\FilesystemConfig;
 use Bit3\Filesystem\Filesystem;
 use Bit3\Filesystem\File;
 use Bit3\Filesystem\PublicURLProvider;
@@ -23,33 +24,13 @@ use Bit3\Filesystem\Util;
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
 class LocalFilesystem
-    implements Filesystem
+    extends AbstractFilesystem
 {
-    /**
-     * @var string
-     */
-    protected $basePath;
-
-    /**
-     * @var PublicURLProvider
-     */
-    protected $publicURLProvider;
-
-    /**
-     * @param string $basePath
-     */
-    public function __construct($basePath = '/', PublicURLProvider $publicURLProvider = null)
+	const CONFIG_CLASS = 'LocalFilesystemConfig';
+	
+    public function __construct(LocalFilesystemConfig $config)
     {
-        $this->basePath = Util::normalizePath('/' . $basePath) . '/';
-        $this->publicURLProvider = $publicURLProvider;
-    }
-
-    /**
-     * @return string
-     */
-    public function getBasePath()
-    {
-        return $this->basePath;
+    	parent::__construct($config);
     }
 
     /**
@@ -104,13 +85,5 @@ class LocalFilesystem
         }
 
         return disk_total_space($path->getRealPath());
-    }
-
-    /**
-     * @return PublicURLProvider
-     */
-    public function getPublicURLProvider()
-    {
-        return $this->publicURLProvider;
     }
 }

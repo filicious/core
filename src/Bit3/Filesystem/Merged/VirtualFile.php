@@ -279,7 +279,7 @@ class VirtualFile
      *
      * @return bool
      */
-    public function createDirectory($recursive = false)
+    public function createDirectory($parents = false)
     {
         return false;
     }

@@ -321,9 +321,9 @@ class MergedFile
      *
      * @return bool
      */
-    public function createDirectory($recursive = false)
+    public function createDirectory($parents = false)
     {
-        return $this->file->createDirectory($recursive);
+        return $this->file->createDirectory($parents);
     }
 
     /**

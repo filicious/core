@@ -394,7 +394,7 @@ class FTPFile
      *
      * @return bool
      */
-    public function createDirectory($recursive = false)
+    public function createDirectory($parents = false)
     {
         $stat = $this->fs->ftpStat($this);
 
@@ -402,8 +402,8 @@ class FTPFile
             $parent = $this->getParent();
 
             if ($parent) {
-                if ($recursive) {
-                    if (!$parent->createDirectory($recursive)) {
+                if ($parents) {
+                    if (!$parent->createDirectory(true)) {
                         return false;
                     }
                 }
@@ -414,11 +414,8 @@ class FTPFile
 
             return $this->fs->ftpMkdir($this);
         }
-        else {
-            return $stat->isDirectory;
-        }
-
-        return $stat ?  : $stat->isDirectory;
+        
+        return $stat->isDirectory;
     }
 
     /**

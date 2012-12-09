@@ -316,7 +316,7 @@ interface File
      *
      * @return bool
      */
-    public function createDirectory($recursive = false);
+    public function createDirectory($parents = false);
 
     /**
      * Create new empty file.

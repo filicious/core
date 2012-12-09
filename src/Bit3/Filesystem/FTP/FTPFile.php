@@ -368,7 +368,7 @@ class FTPFile
      */
     public function copyTo(File $destination, $parents = false)
     {
-        Util::streamCopy($this, $parents);
+        Util::streamCopy($this, $destination);
     }
 
     /**

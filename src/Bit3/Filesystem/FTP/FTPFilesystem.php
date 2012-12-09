@@ -94,7 +94,7 @@ class FTPFilesystem
      *
      * @return int
      */
-    public function diskFreeSpace(File $path = null)
+    public function getFreeSpace(File $path = null)
     {
         return -1;
     }
@@ -106,7 +106,7 @@ class FTPFilesystem
      *
      * @return int
      */
-    public function diskTotalSpace(File $path = null)
+    public function getTotalSpace(File $path = null)
     {
         return -1;
     }

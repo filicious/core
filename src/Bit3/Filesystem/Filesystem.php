@@ -43,7 +43,7 @@ interface Filesystem
      *
      * @return int
      */
-    public function diskFreeSpace(File $path = null);
+    public function getFreeSpace(File $path = null);
 
     /**
      * Returns the total size of a filesystem or disk partition.
@@ -52,5 +52,5 @@ interface Filesystem
      *
      * @return int
      */
-    public function diskTotalSpace(File $path = null);
+    public function getTotalSpace(File $path = null);
 }

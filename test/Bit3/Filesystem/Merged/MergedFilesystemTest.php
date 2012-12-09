@@ -108,7 +108,7 @@ class MergedFilesystemTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Bit3\Filesystem\Merged\MergedFilesystem::diskFreeSpace
+     * @covers Bit3\Filesystem\Merged\MergedFilesystem::getFreeSpace
      * @todo   Implement testDiskFreeSpace().
      * /
     public function testDiskFreeSpace()
@@ -120,7 +120,7 @@ class MergedFilesystemTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @covers Bit3\Filesystem\Merged\MergedFilesystem::diskTotalSpace
+     * @covers Bit3\Filesystem\Merged\MergedFilesystem::getTotalSpace
      * @todo   Implement testDiskTotalSpace().
      * /
     public function testDiskTotalSpace()

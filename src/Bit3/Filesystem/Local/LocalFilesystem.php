@@ -81,7 +81,7 @@ class LocalFilesystem
      *
      * @return int
      */
-    public function diskFreeSpace(File $path = null)
+    public function getFreeSpace(File $path = null)
     {
         if (!$path) {
             $path = $this->getRoot();
@@ -97,7 +97,7 @@ class LocalFilesystem
      *
      * @return int
      */
-    public function diskTotalSpace(File $path = null)
+    public function getTotalSpace(File $path = null)
     {
         if (!$path) {
             $path = $this->getRoot();

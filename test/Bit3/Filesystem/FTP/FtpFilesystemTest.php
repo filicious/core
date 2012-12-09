@@ -56,7 +56,7 @@ class FtpFilesystemTest extends \PHPUnit_Framework_TestCase
 
         $fs = new FTPFilesystem($config);
 
-        $this->assertEquals($property->getValue($fs), NULL);
+        $this->assertEquals(NULL, $property->getValue($fs));
     }
 
     /**

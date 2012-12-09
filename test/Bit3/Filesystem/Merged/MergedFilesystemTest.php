@@ -70,12 +70,15 @@ class MergedFilesystemTest extends \PHPUnit_Framework_TestCase
         $this->merged->mount($this->src, 'lib/php-filesystem/src');
         $this->merged->mount($this->test, 'lib/php-filesystem/test');
         $this->merged->mount($this->nest, 'lib/php-filesystem/test/nest');
-        $this->assertEquals($this->merged->mounts(), array
-        (
-            0 => '/lib/php-filesystem/src',
-            1 => '/lib/php-filesystem/test',
-            2 => '/lib/php-filesystem/test/nest'
-        ));
+        $this->assertEquals(
+            array
+            (
+                0 => '/lib/php-filesystem/src',
+                1 => '/lib/php-filesystem/test',
+                2 => '/lib/php-filesystem/test/nest'
+            ),
+            $this->merged->mounts()
+        );
         return $this->merged;
     }
 
@@ -85,7 +88,7 @@ class MergedFilesystemTest extends \PHPUnit_Framework_TestCase
     public function testGetRoot()
     {
         $virtualRoot = new VirtualFile('', '/', $this->merged);
-        $this->assertEquals($this->merged->getRoot()->getPathname(), $virtualRoot->getPathname());
+        $this->assertEquals($virtualRoot->getPathname(), $this->merged->getRoot()->getPathname());
     }
 
     /**
@@ -146,8 +149,8 @@ class MergedFilesystemTest extends \PHPUnit_Framework_TestCase
     public function testGetVirtualFile($merged)
     {
         $this->assertEquals(
-            $merged->getFile('/lib/php-filesystem'),
-            new VirtualFile('/lib', 'php-filesystem', $merged)
+            new VirtualFile('/lib', 'php-filesystem', $merged),
+            $merged->getFile('/lib/php-filesystem')
         );
     }
 
@@ -207,6 +210,9 @@ class MergedFilesystemTest extends \PHPUnit_Framework_TestCase
         $merged->umount('lib/php-filesystem/test');
         $merged->umount('lib/php-filesystem/src');
 
-        $this->assertEquals($merged->mounts(), array());
+        $this->assertEquals(
+            $merged->mounts(),
+            array()
+        );
     }
 }

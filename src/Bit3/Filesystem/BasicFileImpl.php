@@ -142,7 +142,8 @@ abstract class BasicFileImpl implements File
      */
     public function getIterator()
     {
-        return new ArrayIterator($this->listFiles());
+    	$args = func_get_args();
+        return new ArrayIterator(call_user_func_array(array($this, 'listFiles'), $args));
     }
 
     public function __toString()

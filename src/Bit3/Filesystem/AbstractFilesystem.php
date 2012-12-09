@@ -11,6 +11,9 @@
 
 namespace Bit3\Filesystem;
 
+use \ReflectionClass;
+use \Exception;
+
 /**
  * Skeleton for Filesystem implementors.
  *
@@ -26,20 +29,22 @@ abstract class AbstractFilesystem
 	 * 		another config class.
 	 */
 	const CONFIG_CLASS = 'FilesystemConfig';
-	
+
 	/* (non-PHPdoc)
 	 * @see Bit3\Filesystem.Filesystem::create()
 	*/
-	public static function create(FilesystemConfig $config) {
+	public static function create(FilesystemConfig $config, PublicURLProvider $provider = null)
+	{
 		// the instanceof operator has lexer issues...
-		if(is_subclass_of($config, static::CONFIG_CLASS)) {
+		if((get_class($config) == static::CONFIG_CLASS) || is_subclass_of(get_class($config), static::CONFIG_CLASS)) {
 			$args = func_get_args();
 			$clazz = new ReflectionClass(get_called_class());
 			return $clazz->newInstanceArgs($args);
 		}
-		throw new Exception(); // TODO
+
+		throw new Exception(sprintf('%s is not a subclass of %s', get_class($config), static::CONFIG_CLASS));
 	}
-	
+
     /**
      * @var FilesystemConfig
      */
@@ -48,12 +53,12 @@ abstract class AbstractFilesystem
     /**
      * @param FilesystemConfig $config
      */
-    protected function __construct(FilesystemConfig $config, PublicURLProvider $provider)
+    protected function __construct(FilesystemConfig $config, PublicURLProvider $provider = null)
     {
     	$this->config = clone $config;
     	$this->provider = $provider;
     	$this->prepareConfig();
-    	$this->config->immutable();
+    	$this->config->makeImmutable();
     }
 
     /* (non-PHPdoc)
@@ -63,7 +68,7 @@ abstract class AbstractFilesystem
     {
         return $this->config;
     }
-    
+
     /**
      * Gets called before at construction time before the config is made
      * immutable. Override in concrete classes to extend or alter behavior.
@@ -71,16 +76,16 @@ abstract class AbstractFilesystem
     protected function prepareConfig() {
     	$this->config->setBasePath(Util::normalizePath('/' . $this->config->getBasePath()) . '/');
     }
-	
+
 	protected $provider;
-	
+
 	/* (non-PHPdoc)
 	 * @see Bit3\Filesystem.FilesystemConfig::getPublicURLProvider()
 	 */
 	public function getPublicURLProvider() {
 		return $this->provider;
 	}
-	
+
 	/* (non-PHPdoc)
 	 * @see Bit3\Filesystem.FilesystemConfig::setPublicURLProvider()
 	 */

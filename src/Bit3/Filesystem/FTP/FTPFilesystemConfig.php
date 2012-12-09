@@ -13,6 +13,7 @@ namespace Bit3\Filesystem\FTP;
 
 use Bit3\Filesystem\Cache\Cache;
 use Bit3\Filesystem\Cache\ArrayCache;
+use Bit3\Filesystem\AbstractFilesystemConfig;
 
 /**
  * File from a mounted filesystem structure.
@@ -21,7 +22,7 @@ use Bit3\Filesystem\Cache\ArrayCache;
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
 class FTPFilesystemConfig
-	extends FilesystemConfig
+	extends AbstractFilesystemConfig
 {
     /**
      * Connection host.
@@ -221,6 +222,23 @@ class FTPFilesystemConfig
     public function getPassword()
     {
         return $this->password;
+    }
+
+    /**
+     * @param string $path
+     */
+    public function setPath($path)
+    {
+		$this->checkImmutable()->path = (string) $path;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPath()
+    {
+        return $this->path;
     }
 
     /**

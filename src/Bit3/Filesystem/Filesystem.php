@@ -25,13 +25,13 @@ interface Filesystem
 	 * @return Filesystem
 	 * @throws FilesystemException
 	 */
-	public static function create(FilesystemConfig $config);
-	
+	public static function create(FilesystemConfig $config, PublicURLProvider $provider = null);
+
 	/**
 	 * @return FilesystemConfig
 	 */
 	public function getConfig();
-	
+
     /**
      * Get the root (/) file node.
      *

@@ -25,9 +25,9 @@ use Bit3\Filesystem\Util;
 class LocalFilesystem
     extends AbstractFilesystem
 {
-	const CONFIG_CLASS = 'LocalFilesystemConfig';
-	
-    public function __construct(LocalFilesystemConfig $config, PublicURLProvider $provider)
+	const CONFIG_CLASS = 'Bit3\Filesystem\Local\LocalFilesystemConfig';
+
+    public function __construct(LocalFilesystemConfig $config, PublicURLProvider $provider = null)
     {
     	parent::__construct($config, $provider);
     }

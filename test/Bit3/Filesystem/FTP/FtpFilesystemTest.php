@@ -51,7 +51,7 @@ class FtpFilesystemTest extends \PHPUnit_Framework_TestCase
         $property = $class->getProperty('connection');
         $property->setAccessible(true);
 
-        $config = new FTPConfig('localhost');
+        $config = new FTPFilesystemConfig('localhost');
         $config->setLazyConnect(true);
 
         $fs = new FTPFilesystem($config);

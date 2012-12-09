@@ -11,7 +11,7 @@
 
 namespace Bit3\Filesystem\Local;
 
-use Bit3\Filesystem\LocalFilesystemConfig;
+use Bit3\Filesystem\Local\LocalFilesystemConfig;
 
 require_once(__DIR__ . '/../../../bootstrap.php');
 
@@ -27,7 +27,7 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
      * @var string
      */
     protected $path;
-    
+
     /**
      * @var LocalFilesystemConfig
      */
@@ -93,7 +93,7 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
 
         // create the filesystem object
         $this->config = LocalFilesystemConfig::create($this->path);
-        
+
         $this->fs = LocalFilesystem::create($this->config);
     }
 

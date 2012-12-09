@@ -27,17 +27,17 @@ interface FilesystemConfig
 	 * @throws FilesystemException
 	 */
 	public static function create();
-	
+
 	/**
 	 * Make this config immutable
 	 */
-	public function immutable();
-	
+	public function makeImmutable();
+
 	/**
 	 * @return string
 	 */
 	public function getBasePath();
-	
+
 	/**
 	 * @param string $basePath
 	 */

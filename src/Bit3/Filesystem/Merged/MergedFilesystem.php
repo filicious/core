@@ -12,8 +12,9 @@
 
 namespace Bit3\Filesystem\Merged;
 
-use Bit3\Filesystem\Filesystem;
+use Bit3\Filesystem\AbstractFilesystem;
 use Bit3\Filesystem\File;
+use Bit3\Filesystem\Filesystem;
 use Bit3\Filesystem\FilesystemException;
 use Bit3\Filesystem\Util;
 
@@ -25,8 +26,15 @@ use Bit3\Filesystem\Util;
  * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  */
 class MergedFilesystem
-    implements Filesystem
+    extends AbstractFilesystem
 {
+    /**
+     * @var string The name of the config class used by instances of this
+     * 		filesystem implementation. Override in concrete classes to specify
+     * 		another config class.
+     */
+    const CONFIG_CLASS = 'FilesystemConfig';
+
     /**
      * The root (/) filesystem.
      *
@@ -41,7 +49,7 @@ class MergedFilesystem
     /**
      * @param Filesystem $root
      */
-    public function __construct(Filesystem $root = null)
+    public function __construct(Filesystem $root = null, PublicURLProvider $provider = null)
     {
         $this->root   = $root;
         $this->mounts = array();

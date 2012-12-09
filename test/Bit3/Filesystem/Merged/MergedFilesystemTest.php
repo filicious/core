@@ -14,6 +14,7 @@ namespace Bit3\Filesystem\Merged;
 require_once(__DIR__ . '/../../../bootstrap.php');
 
 use Bit3\Filesystem\Local\LocalFilesystem;
+use Bit3\Filesystem\Local\LocalFilesystemConfig;
 use Bit3\Filesystem\Iterator\FilesystemIterator;
 use Bit3\Filesystem\Iterator\RecursiveFilesystemIterator;
 
@@ -49,9 +50,9 @@ class MergedFilesystemTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
         $this->merged = new MergedFilesystem();
-        $this->src = new LocalFilesystem(__DIR__ . '/../../../../src');
-        $this->test = new LocalFilesystem(__DIR__ . '/../../../../test');
-        $this->nest = new LocalFilesystem(__DIR__ . '/../../../../test');
+        $this->src = new LocalFilesystem(LocalFilesystemConfig::create(__DIR__ . '/../../../../src'));
+        $this->test = new LocalFilesystem(LocalFilesystemConfig::create(__DIR__ . '/../../../../test'));
+        $this->nest = new LocalFilesystem(LocalFilesystemConfig::create(__DIR__ . '/../../../../test'));
     }
 
     /**

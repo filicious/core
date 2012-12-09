@@ -26,7 +26,7 @@ use Bit3\Filesystem\Util;
 class FTPFilesystem
 	extends AbstractFilesystem
 {
-	const CONFIG_CLASS = 'FTPFilesystemConfig';
+	const CONFIG_CLASS = 'Bit3\Filesystem\FTP\FTPFilesystemConfig';
 
     /**
      * @var resource
@@ -41,7 +41,7 @@ class FTPFilesystem
     /**
      * @param FTPFilesystemConfig $config
      */
-    public function __construct(FTPFilesystemConfig $config, PublicURLProvider $provider)
+    public function __construct(FTPFilesystemConfig $config, PublicURLProvider $provider = null)
     {
     	parent::__construct($config, $provider);
 

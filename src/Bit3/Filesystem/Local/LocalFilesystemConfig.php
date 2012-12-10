@@ -9,8 +9,9 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Bit3\Filesystem;
+namespace Bit3\Filesystem\Local;
 
+use Bit3\Filesystem\AbstractFilesystemConfig;
 
 /**
  * A filesystem object
@@ -21,7 +22,9 @@ namespace Bit3\Filesystem;
 class LocalFilesystemConfig
 	extends AbstractFilesystemConfig
 {
-	public function __construct() {
+
+	public function __construct($path) {
 		parent::__construct();
+		$this->setBasePath($path);
 	}
 }

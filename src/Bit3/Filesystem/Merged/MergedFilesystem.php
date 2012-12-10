@@ -5,14 +5,16 @@
  *
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @link    http://bit3.de
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
 namespace Bit3\Filesystem\Merged;
 
-use Bit3\Filesystem\Filesystem;
+use Bit3\Filesystem\AbstractFilesystem;
 use Bit3\Filesystem\File;
+use Bit3\Filesystem\Filesystem;
 use Bit3\Filesystem\FilesystemException;
 use Bit3\Filesystem\Util;
 
@@ -21,10 +23,18 @@ use Bit3\Filesystem\Util;
  *
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  */
 class MergedFilesystem
-    implements Filesystem
+    extends AbstractFilesystem
 {
+    /**
+     * @var string The name of the config class used by instances of this
+     * 		filesystem implementation. Override in concrete classes to specify
+     * 		another config class.
+     */
+    const CONFIG_CLASS = 'FilesystemConfig';
+
     /**
      * The root (/) filesystem.
      *
@@ -39,7 +49,7 @@ class MergedFilesystem
     /**
      * @param Filesystem $root
      */
-    public function __construct(Filesystem $root = null)
+    public function __construct(Filesystem $root = null, PublicURLProvider $provider = null)
     {
         $this->root   = $root;
         $this->mounts = array();
@@ -105,6 +115,7 @@ class MergedFilesystem
         }
 
         foreach ($this->map as $pattern => $filesystem) {
+
             if (fnmatch($pattern, $path)) {
                 // remove trailing *
                 $pattern = preg_replace('#/\*$#', '', $pattern);
@@ -143,10 +154,29 @@ class MergedFilesystem
      */
     public function getFile($path)
     {
+        if ($path == '/') {
+            return $this->getRoot();
+        }
+
         /** @var string $pattern */
         /** @var Filesystem $filesystem */
         list($pattern, $filesystem) = $this->searchFilesystem($path);
-
+        if ($pattern == $path)
+        {
+            return new MergedFile(dirname($path), basename($path), $this->mounts[$path]->getRoot(), $this);
+        } else {
+            if ($filesystem == $this)
+            {
+                $allMounts = array_filter($this->mounts(), function ($path) use ($path) {
+                    return substr($path, 0, strlen($path)) == $path;
+                });
+                if (count($allMounts) > 0)
+                {
+                    return new VirtualFile(dirname($path), basename($path), $this);
+                }
+                return NULL;
+            }
+        }
         $path = '/' . substr($path, strlen($pattern));
 
         return $filesystem->getFile($path);
@@ -187,6 +217,7 @@ class MergedFilesystem
     public function glob($pattern, $flags = 0)
     {
         $pattern = Util::normalizePath($pattern);
+        // TODO: this is unimplemented and broken in respect to (at least) nested and overlaying file systems.
 
         /*
         echo 'MergedFilesystem::glob(';

@@ -51,35 +51,18 @@ class LocalFile
         $this->pathname = Util::normalizePath('/' . $pathname);
         $this->realpath = Util::normalizePath($fs->getConfig()->getBasePath() . '/' . $pathname);
     }
-
-    /**
-     * Test whether this pathname is a file.
-     *
-     * @return bool
+    
+    /* (non-PHPdoc)
+     * @see Bit3\Filesystem.File::getType()
      */
-    public function isFile()
-    {
-        return $this->exists() && is_file($this->realpath);
-    }
-
-    /**
-     * Test whether this pathname is a link.
-     *
-     * @return bool
-     */
-    public function isLink()
-    {
-        return $this->exists() && is_link($this->realpath);
-    }
-
-    /**
-     * Test whether this pathname is a directory.
-     *
-     * @return bool
-     */
-    public function isDirectory()
-    {
-        return $this->exists() && is_dir($this->realpath);
+    public function getType() {
+    	$type = 0;
+    	if($this->exists()) {
+    		is_file($this->realpath) && $type |= File::TYPE_FILE;
+    		is_link($this->realpath) && $type |= File::TYPE_LINK;
+    		is_dir($this->realpath) && $type |= File::TYPE_DIRECTORY;
+    	}
+    	return $type;
     }
 
     /**
@@ -316,13 +299,13 @@ class LocalFile
         if ($this->isDirectory()) {
             if ($recursive) {
                 /** @var File $file */
-                foreach ($this->listFiles() as $file) {
+                foreach ($this->ls() as $file) {
                     if (!$file->delete(true, $force)) {
                         return false;
                     }
                 }
             }
-            else if (count($this->listFiles()) > 0) {
+            else if (count($this->ls()) > 0) {
                 return false;
             }
             return rmdir($this->realpath);
@@ -547,7 +530,7 @@ class LocalFile
         return sha1_file($this->realpath, $raw);
     }
 
-    public function listFiles()
+    public function ls()
     {
         list($recursive, $bitmask, $globs, $callables, $globSearchPatterns) = Util::buildFilters($this, func_get_args());
 
@@ -569,7 +552,7 @@ class LocalFile
                 count($globSearchPatterns) &&
                 Util::applyGlobFilters($file, $globSearchPatterns)
             ) {
-                $recuriveFiles = $file->listFiles();
+                $recuriveFiles = $file->ls();
 
                 $files = array_merge(
                     $files,

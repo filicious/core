@@ -14,6 +14,7 @@ namespace Bit3\Filesystem\Merged;
 require_once(__DIR__ . '/../../../bootstrap.php');
 
 use Bit3\Filesystem\Local\LocalFilesystem;
+use Bit3\Filesystem\Local\LocalFilesystemConfig;
 use Bit3\Filesystem\Iterator\FilesystemIterator;
 use Bit3\Filesystem\Iterator\RecursiveFilesystemIterator;
 
@@ -38,17 +39,20 @@ class MergedFilesystemTest extends \PHPUnit_Framework_TestCase
     protected $test;
 
     /**
+     * @var LocalFilesystem
+     */
+    protected $nest;
+
+    /**
      * Sets up the fixture, for example, opens a network connection.
      * This method is called before a test is executed.
      */
     protected function setUp()
     {
         $this->merged = new MergedFilesystem();
-        $this->src = new LocalFilesystem(__DIR__ . '/../../../../src');
-        $this->test = new LocalFilesystem(__DIR__ . '/../../../../test');
-
-        $this->merged->mount($this->src, 'lib/php-filesystem/src');
-        $this->merged->mount($this->test, 'lib/php-filesystem/test');
+        $this->src = new LocalFilesystem(LocalFilesystemConfig::create(__DIR__ . '/../../../../src'));
+        $this->test = new LocalFilesystem(LocalFilesystemConfig::create(__DIR__ . '/../../../../test'));
+        $this->nest = new LocalFilesystem(LocalFilesystemConfig::create(__DIR__ . '/../../../../test'));
     }
 
     /**
@@ -61,38 +65,31 @@ class MergedFilesystemTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers Bit3\Filesystem\Merged\MergedFilesystem::mount
-     * @todo   Implement testMount().
-     * /
+     */
     public function testMount()
     {
-        // Remove the following lines when you implement this test.
-        $this->markTestIncomplete(
-          'This test has not been implemented yet.'
+        $this->merged->mount($this->src, 'lib/php-filesystem/src');
+        $this->merged->mount($this->test, 'lib/php-filesystem/test');
+        $this->merged->mount($this->nest, 'lib/php-filesystem/test/nest');
+        $this->assertEquals(
+            array
+            (
+                0 => '/lib/php-filesystem/src',
+                1 => '/lib/php-filesystem/test',
+                2 => '/lib/php-filesystem/test/nest'
+            ),
+            $this->merged->mounts()
         );
-    }
-
-    /**
-     * @covers Bit3\Filesystem\Merged\MergedFilesystem::umount
-     * @todo   Implement testUmount().
-     * /
-    public function testUmount()
-    {
-        // Remove the following lines when you implement this test.
-        $this->markTestIncomplete(
-          'This test has not been implemented yet.'
-        );
+        return $this->merged;
     }
 
     /**
      * @covers Bit3\Filesystem\Merged\MergedFilesystem::getRoot
-     * @todo   Implement testGetRoot().
-     * /
+     */
     public function testGetRoot()
     {
-        // Remove the following lines when you implement this test.
-        $this->markTestIncomplete(
-          'This test has not been implemented yet.'
-        );
+        $virtualRoot = new VirtualFile('', '/', $this->merged);
+        $this->assertEquals($virtualRoot->getPathname(), $this->merged->getRoot()->getPathname());
     }
 
     /**
@@ -130,6 +127,7 @@ class MergedFilesystemTest extends \PHPUnit_Framework_TestCase
           'This test has not been implemented yet.'
         );
     }
+    */
 
     /**
      * @covers Bit3\Filesystem\Merged\MergedFilesystem::glob
@@ -145,9 +143,53 @@ class MergedFilesystemTest extends \PHPUnit_Framework_TestCase
     }
     */
 
-    public function testTree()
+   /**
+     * @covers bit3\filesystem\merged\MergedFilesystem::getFile
+     * @depends testMount
+     */
+    public function testGetVirtualFile($merged)
     {
-        $root = $this->merged->getRoot();
+        $this->assertEquals(
+            new VirtualFile('/lib', 'php-filesystem', $merged),
+            $merged->getFile('/lib/php-filesystem')
+        );
+    }
+
+    static function recursiveIterate($root, $mode)
+    {
+        //
+        $filesystemIterator = new RecursiveFilesystemIterator($root, $mode);
+        $treeIterator = new \RecursiveTreeIterator($filesystemIterator);
+
+        $arrResult = array();
+        foreach ($treeIterator as $path) {
+            $arrResult[] = $path;
+        }
+        return $arrResult;
+    }
+
+   /**
+     * @covers bit3\filesystem\merged\MergedFilesystem::glob
+     * @depends testMount
+     */
+    public function testNest($merged)
+    {
+        $root = $this->nest->getRoot();
+        $arrTest = self::recursiveIterate($root, FilesystemIterator::CURRENT_AS_BASENAME);
+
+        $root = $merged->getFile('/lib/php-filesystem/test/nest');
+        $arrNest = self::recursiveIterate($root, FilesystemIterator::CURRENT_AS_BASENAME);
+
+        $this->assertEquals($arrTest, $arrNest);
+    }
+
+   /**
+     * @covers bit3\filesystem\merged\MergedFilesystem::glob
+     * @depends testMount
+     */
+    public function testTree($merged)
+    {
+        $root = $merged->getRoot();
 
         $filesystemIterator = new RecursiveFilesystemIterator($root, FilesystemIterator::CURRENT_AS_BASENAME);
         $treeIterator = new \RecursiveTreeIterator($filesystemIterator);
@@ -155,5 +197,23 @@ class MergedFilesystemTest extends \PHPUnit_Framework_TestCase
         foreach ($treeIterator as $path) {
             echo $path . "\n";
         }
+    }
+
+    /**
+     * @covers bit3\filesystem\merged\MergedFilesystem::umount
+     * @depends testMount
+     * Note: keep this last, as otherwise the umount test will be run before the tests depending on mount are run,
+     * causing those to fail.
+     */
+    public function testUmount($merged)
+    {
+        $merged->umount('lib/php-filesystem/test/nest');
+        $merged->umount('lib/php-filesystem/test');
+        $merged->umount('lib/php-filesystem/src');
+
+        $this->assertEquals(
+            $merged->mounts(),
+            array()
+        );
     }
 }

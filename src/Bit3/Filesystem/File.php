@@ -11,6 +11,8 @@
 
 namespace Bit3\Filesystem;
 
+use Bit3\Filesystem\Cache\Cache;
+
 use SplFileInfo;
 use Traversable;
 use IteratorAggregate;
@@ -23,27 +25,22 @@ use ArrayIterator;
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
 interface File
-    extends IteratorAggregate
+    extends \IteratorAggregate, \Countable
 {
     /**
      * File type.
      */
-    const TYPE_FILE = 'file';
+    const TYPE_FILE			= 0x1;
 
     /**
      * Directory type.
      */
-    const TYPE_DIRECTORY = 'directory';
+    const TYPE_DIRECTORY	= 0x2;
 
     /**
      * Link type.
      */
-    const TYPE_LINK = 'link';
-
-    /**
-     * Unknown type.
-     */
-    const TYPE_UNKNOWN = 'unknown';
+    const TYPE_LINK			= 0x4;
 
     /**
      * List everything (including "." and "..")
@@ -116,7 +113,7 @@ interface File
     /**
      * Get the type of this file.
      *
-     * @return "file"|"directory"|"link"|"unknown"
+     * @return int Type bitmask
      */
     public function getType();
 
@@ -423,7 +420,7 @@ interface File
      *
      * @return array<File>
      */
-    public function listFiles();
+    public function ls();
 
     /**
      * Get the real url, e.g. file:/real/path/to/file to the pathname.

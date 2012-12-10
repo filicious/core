@@ -49,41 +49,19 @@ class FTPFile
     {
         return $this->fs;
     }
-
-    /**
-     * Test whether this pathname is a file.
-     *
-     * @return bool
+    
+    /* (non-PHPdoc)
+     * @see Bit3\Filesystem.File::getType()
      */
-    public function isFile()
-    {
-        $stat = $this->fs->ftpStat($this);
-
-        return $stat ? $stat->isFile : false;
-    }
-
-    /**
-     * Test whether this pathname is a link.
-     *
-     * @return bool
-     */
-    public function isLink()
-    {
-        $stat = $this->fs->ftpStat($this);
-
-        return $stat ? $stat->isLink : false;
-    }
-
-    /**
-     * Test whether this pathname is a directory.
-     *
-     * @return bool
-     */
-    public function isDirectory()
-    {
-        $stat = $this->fs->ftpStat($this);
-
-        return $stat ? $stat->isDirectory : false;
+    public function getType() {
+    	$type = 0;
+    	$stat = $this->fs->ftpStat($this);
+    	if($stat) {
+    		$stat->isFile && $type |= File::TYPE_FILE;
+    		$stat->isLink && $type |= File::TYPE_LINK;
+    		$stat->isDirectory && $type |= File::TYPE_DIRECTORY;
+    	}
+    	return $type;
     }
 
     /**
@@ -333,13 +311,13 @@ class FTPFile
         if ($stat->isDirectory) {
             if ($recursive) {
                 /** @var File $file */
-                foreach ($this->listFiles() as $file) {
+                foreach ($this->ls() as $file) {
                     if (!$file->delete(true, $force)) {
                         return false;
                     }
                 }
             }
-            else if (count($this->listFiles()) > 0) {
+            else if (count($this->ls()) > 0) {
                 return false;
             }
             return $this->fs->ftpDelete($this);
@@ -531,25 +509,24 @@ class FTPFile
      */
     public function open($mode = 'rb')
     {
-        $config = $this->fs->getConfig();
+    	$cfg = $this->fs->getConfig();
+        $url = $cfg->toURL(false, true) . $this->pathname;
 
-        $url = $config->getSSL() ? 'ftps://' : 'ftp://';
-        $url .= $config->getUsername();
-        if ($config->getPassword()) {
-            $url .= ':' . $config->getPassword();
-        }
-        $url .= '@' . $config->getHost();
-        $url .= ':' . $config->getPort();
-        $url .= $config->getPath();
-        $url .= $this->pathname;
-
-        $stream_options = array(
-            'ftp'  => array('overwrite' => true),
-            'ftps' => array('overwrite' => true),
-        );
+        $stream_options = array($cfg->getProtocol() => array('overwrite' => true)); 
         $stream_context = stream_context_create($stream_options);
 
-        return fopen($url, $mode, null, $stream_context);
+        $fp = fopen($url, $mode, null, $stream_context);
+        
+        if(!$fp) {
+        	throw new Exception('FTP connection error'); // TODO
+        }
+        
+        stream_set_timeout($fp,
+        	$cfg->getTimeoutSeconds(),
+        	$cfg->getTimeoutMilliseconds()
+        );
+        
+        return $fp;
     }
 
     /**
@@ -583,7 +560,7 @@ class FTPFile
      *
      * @return array<File>
      */
-    public function listFiles()
+    public function ls()
     {
         list($recursive, $bitmask, $globs, $callables, $globSearchPatterns) = Util::buildFilters($this, func_get_args());
 
@@ -605,7 +582,7 @@ class FTPFile
                 count($globSearchPatterns) &&
                 Util::applyGlobFilters($file, $globSearchPatterns)
             ) {
-                $recuriveFiles = $file->listFiles();
+                $recuriveFiles = $file->ls();
 
                 $files = array_merge(
                     $files,
@@ -626,24 +603,7 @@ class FTPFile
      */
     public function getRealURL()
     {
-        $config = $this->fs->getConfig();
-
-        $url = $config->getSSL() ? 'ftps://' : 'ftp://';
-        $url .= $config->getUsername();
-        if ($config->getPassword()) {
-            if ($config->getVisiblePassword()) {
-                $url .= ':' . $config->getPassword();
-            }
-            else {
-                $url .= ':***';
-            }
-        }
-        $url .= '@' . $config->getHost();
-        $url .= ':' . $config->getPort();
-        $url .= $config->getPath();
-        $url .= $this->pathname;
-
-        return $url;
+        return $this->fs->getConfig()->toURL() . $this->pathname;
     }
 
     /**

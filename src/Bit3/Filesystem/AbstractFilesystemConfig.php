@@ -22,48 +22,48 @@ abstract class AbstractFilesystemConfig
 	implements FilesystemConfig
 {
 
+	protected $immutable;
+
 	/* (non-PHPdoc)
 	 * @see Bit3\Filesystem.FilesystemConfig::create()
 	 */
 	public static function create() {
 		$args = func_get_args();
-		$clazz = new ReflectionClass(get_called_class());
+		$clazz = new \ReflectionClass(get_called_class());
 		return $clazz->newInstanceArgs($args);
 	}
-	
+
 	protected function __construct() {
 	}
-	
-	protected $immutable;
-	
+
 	/* (non-PHPdoc)
 	 * @see Bit3\Filesystem.FilesystemConfig::immutable()
 	 */
-	public function immutable() {
+	public function makeImmutable() {
 		$this->immutable = true;
         return $this;
 	}
-	
+
 	public function __clone() {
-		unset($this->immutable);
+		$this->immutable = null;
 	}
-	
+
 	protected function checkImmutable() {
 		if($this->immutable) {
 			throw new Exception('Config is immutable'); // TODO
 		}
         return $this;
 	}
-	
+
 	protected $basePath;
-	
+
 	/* (non-PHPdoc)
 	 * @see Bit3\Filesystem.FilesystemConfig::getBasePath()
 	 */
 	public function getBasePath() {
 		return $this->basePath;
 	}
-	
+
 	/* (non-PHPdoc)
 	 * @see Bit3\Filesystem.FilesystemConfig::setBasePath()
 	 */

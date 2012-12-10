@@ -5,6 +5,7 @@
  *
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @link    http://bit3.de
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
@@ -15,12 +16,14 @@ use Bit3\Filesystem\Filesystem;
 use Bit3\Filesystem\File;
 use Bit3\Filesystem\AbstractFile;
 use Bit3\Filesystem\FilesystemException;
+use Bit3\Filesystem\Util;
 
 /**
  * A virtual file in a merged filesystem.
  *
  * @package php-filesystem
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  */
 class VirtualFile
     extends AbstractFile
@@ -64,29 +67,14 @@ class VirtualFile
         return $this->fs;
     }
 
-    public function isFile()
-    {
-        return false;
-    }
-
-    public function isDirectory()
-    {
-        return true;
-    }
-
-    public function isLink()
-    {
-        return false;
-    }
-
     public function getType()
     {
-        return 'dir';
+        return File::TYPE_DIRECTORY;
     }
 
     public function getPathname()
     {
-        return $this->parentPath . '/' . $this->fileName;
+        return Util::normalizePath($this->parentPath . '/' . $this->fileName);
     }
 
     public function getLinkTarget()
@@ -155,6 +143,19 @@ class VirtualFile
      * @param int $time
      */
     public function setModifyTime($time)
+    {
+        return false;
+    }
+
+    /**
+     * Sets access and modification time of file.
+     *
+     * @param int $time
+     * @param int $atime
+     *
+     * @return bool
+     */
+    public function touch($time = null, $atime = null)
     {
         return false;
     }
@@ -245,7 +246,7 @@ class VirtualFile
      *
      * @return bool
      */
-    public function delete($recursive = false)
+    public function delete($recursive = false, $force = false)
     {
         return false;
     }
@@ -361,7 +362,7 @@ class VirtualFile
      *
      * @return string|null
      */
-    public function hashMD5($raw = false)
+    public function getMD5($raw = false)
     {
         return null;
     }
@@ -374,9 +375,56 @@ class VirtualFile
      *
      * @return string|null
      */
-    public function hashSHA1($raw = false)
+    public function getSHA1($raw = false)
     {
-        return false;
+        return null;
+    }
+
+    /**
+     * List all files.
+     *
+     * @return array<File>
+     */
+    public function ls()
+    {
+        $allMounts = $this->fs->mounts();
+        $filterBase = $this->getPathname();
+        // special case, we are the root element.
+        if ($filterBase != '/')
+        {
+            $filterBase .= '/';
+        }
+        $offset = strlen($filterBase);
+
+        // filter out non matching mount points in parent vfs
+        $allMounts = array_filter($allMounts, function ($path) use ($filterBase) {
+            return substr($path, 0, strlen($filterBase)) == $filterBase;
+        });
+
+        // get unique virtual children list
+        $allRoots = array_unique(array_map(function ($path) use ($filterBase, $offset) {
+            $length = strpos($path, '/', $offset+1) - $offset;
+            if ($length > 0)
+            {
+                return substr($path, $offset, $length);
+            }
+            return substr($path, $offset);
+        }, $allMounts));
+
+        $arrFiles = array();
+
+        foreach($allRoots as $subpath)
+        {
+            $objFile = new VirtualFile($this->getPathname(), $subpath, $this->fs);
+            //  it a mount point? if so, return its root.
+            if (in_array((string)$objFile, $allMounts))
+            {
+                $arrFiles[] = $this->fs->getFile((string)$objFile);
+            } else {
+                $arrFiles[] = $objFile;
+            }
+        }
+        return $arrFiles;
     }
 
     /**
@@ -401,6 +449,6 @@ class VirtualFile
 
     public function __toString()
     {
-        return $this->parentPath . '/' . $this->fileName;
+       return $this->getPathname();
     }
 }

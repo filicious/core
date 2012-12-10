@@ -26,8 +26,8 @@ use Bit3\Filesystem\Util;
 class FTPFilesystem
 	extends AbstractFilesystem
 {
-	const CONFIG_CLASS = 'FTPFilesystemConfig';
-	
+	const CONFIG_CLASS = 'Bit3\Filesystem\FTP\FTPFilesystemConfig';
+
     /**
      * @var resource
      */
@@ -41,32 +41,26 @@ class FTPFilesystem
     /**
      * @param FTPFilesystemConfig $config
      */
-    public function __construct(FTPFilesystemConfig $config, PublicURLProvider $provider)
+    public function __construct(FTPFilesystemConfig $config, PublicURLProvider $provider = null)
     {
     	parent::__construct($config, $provider);
 
     	// TODO OH: since the cache comes from the config, this base key should
-    	// be generated there, too 
-        $this->cacheKey = 'ftpfs:' . ($this->config->getSSL() ? 'ssl:' : '') . $this->config->getUsername() . '@' . $this->config->getHost() . ':' . $this->config->getPort() . ($this->config->getPath() ?: '/');
-		
-        if (!$this->config->getLazyConnect()) {
-            $this->connect();
+    	// be generated there, too
+        $this->cacheKey = 'ftpfs:' . ($this->config->getSSL() ? 'ssl:' : '') . $this->config->getUsername() . '@' . $this->config->getHost() . ':' . $this->config->getPort() . ($this->config->getBasePath() ?: '/');
+
+        if (!$this->config->getLazyConnect())
+        {
+            $this->getConnection();
         }
-    }
-    
-    /* (non-PHPdoc)
-     * @see Bit3\Filesystem\Local.AbstractFilesystem::prepareConfig()
-     * 
-     * TODO OH: this is used to avoid normalization of basepath, which was not
-     * 		done in the FTPFilesystem. If it is desired to normalize the
-     * 		basepath, just remove this method or call the parent method.
-     */
-    protected function prepareConfig() {
     }
 
     public function __destruct()
     {
-        ftp_close($this->connection);
+        if ($this->connection)
+        {
+            ftp_close($this->connection);
+        }
     }
 
     /**
@@ -151,22 +145,24 @@ class FTPFilesystem
 
         ftp_pasv($this->connection, $this->config->getPassiveMode());
 
-        if ($this->config->getPath()) {
-            if (!ftp_chdir($this->connection, $this->config->getPath())) {
-                throw new FTPFilesystemException('Could not change into directory ' . $this->config->getPath() . ' on ' . $this->config->getHost());
+        if ($this->config->getBasePath()) {
+            if (!ftp_chdir($this->connection, $this->config->getBasePath())) {
+                throw new FTPFilesystemException('Could not change into directory ' . $this->config->getBasePath() . ' on ' . $this->config->getHost());
             }
         }
     }
 
     public function getConnection()
     {
+        if (!$this->connection)
+        {
+            $this->connect();
+        }
         return $this->connection;
     }
 
     public function ftpStat(FTPFile $file)
     {
-        $this->connect();
-
         $real = $this->config->getBasePath() . $file->getPathname();
         $cacheKey = $this->cacheKey . ':stat:' . $real;
 
@@ -183,8 +179,6 @@ class FTPFilesystem
 
     public function ftpList(FTPFile $file)
     {
-        $this->connect();
-
         $real = $this->config->getBasePath() . $file->getPathname();
         $cacheKey = $this->cacheKey . ':list:' . $real;
 
@@ -192,12 +186,12 @@ class FTPFilesystem
 
         if ($cached === null) {
             $cached = array();
-            $list = ftp_rawlist($this->connection, '-la ' . $real);
+            $list = ftp_rawlist($this->getConnection(), '-la ' . $real);
 
             $isSingleFile = true;
 
             foreach ($list as $item) {
-                if (preg_match('#^([\-ldrwxsSt]{10})\s+(\d+)\s+([\w\d]+)\s+([\w\d]+)\s+(\d+)\s+(\w{3}\s+\d{2}\s+(?:\d{2}:\d{2}|\d{4}))\s+(.*?)(\s+->\s+(.*))?$#s', $item, $match)) {
+                if (preg_match('#^([\-ldrwxsSt]{10})\s+(\d+)\s+([\w\d]+)\s+([\w\d]+)\s+(\d+)\s+(\w{3}\s+\d{1,2}\s+(?:\d{2}:\d{2}|\d{4}))\s+(.*?)(\s+->\s+(.*))?$#s', $item, $match)) {
                     $stat = (object) array(
                         'perms'       => $match[1],
                         'mode'        => Util::string2bitMode($match[1]),
@@ -247,13 +241,11 @@ class FTPFilesystem
 
     public function ftpChmod(FTPFile $file, $mode)
     {
-        $this->connect();
-
         $stat = $this->ftpStat($file);
 
         if ($stat) {
             $real = $this->config->getBasePath() . $file->getPathname();
-            return ftp_chmod($this->connection, $mode, $real);
+            return ftp_chmod($this->getConnection(), $mode, $real);
         }
 
         return false;
@@ -261,15 +253,13 @@ class FTPFilesystem
 
     public function ftpDelete(FTPFile $file)
     {
-        $this->connect();
-
         $stat = $this->ftpStat($file);
 
         if ($stat) {
             $real = $this->config->getBasePath() . $file->getPathname();
 
             if ($stat->isDirectory) {
-                if (ftp_rmdir($this->connection, $real)) {
+                if (ftp_rmdir($this->getConnection(), $real)) {
                     $this->config->getCache()->store($this->cacheKey . ':stat:' . $real, null);
                     $this->config->getCache()->store($this->cacheKey . ':list:' . $real, null);
                     $this->config->getCache()->store($this->cacheKey . ':list:' . dirname($real), null);
@@ -277,7 +267,7 @@ class FTPFilesystem
                 }
             }
             else {
-                if (ftp_delete($this->connection, $real)) {
+                if (ftp_delete($this->getConnection(), $real)) {
                     $this->config->getCache()->store($this->cacheKey . ':stat:' . $real, null);
                     $this->config->getCache()->store($this->cacheKey . ':list:' . dirname($real), null);
                     return true;
@@ -290,14 +280,12 @@ class FTPFilesystem
 
     public function ftpStreamGet(FTPFile $source, $targetStream)
     {
-        $this->connect();
-
         $stat = $this->ftpStat($source);
 
         if ($stat and !$stat->isDirectory) {
             $real = $this->config->getBasePath() . $source->getPathname();
 
-            return ftp_fget($this->connection, $targetStream, $real, FTP_BINARY);
+            return ftp_fget($this->getConnection(), $targetStream, $real, FTP_BINARY);
         }
 
         return false;
@@ -305,14 +293,12 @@ class FTPFilesystem
 
     public function ftpStreamPut(FTPFile $target, $sourceStream)
     {
-        $this->connect();
-
         $stat = $this->ftpStat($target);
 
         if (!$stat or !$stat->isDirectory) {
             $real = $this->config->getBasePath() . $target->getPathname();
 
-            return ftp_fput($this->connection, $real, $sourceStream, FTP_BINARY);
+            return ftp_fput($this->getConnection(), $real, $sourceStream, FTP_BINARY);
         }
 
         return false;
@@ -320,15 +306,13 @@ class FTPFilesystem
 
     public function ftpGet(FTPFile $source, File $target)
     {
-        $this->connect();
-
         $stat = $this->ftpStat($source);
 
         if ($stat and !$stat->isDirectory) {
             $realSource = $this->config->getBasePath() . $source->getPathname();
             $realTarget = $target->getRealURL();
 
-            return ftp_get($this->connection, $realTarget, $realSource, FTP_BINARY);
+            return ftp_get($this->getConnection(), $realTarget, $realSource, FTP_BINARY);
         }
 
         return false;
@@ -336,15 +320,13 @@ class FTPFilesystem
 
     public function ftpPut(FTPFile $target, File $source)
     {
-        $this->connect();
-
         $stat = $this->ftpStat($target);
 
         if (!$stat or !$stat->isDirectory) {
             $realSource = $source->getRealURL();
             $realTarget = $this->config->getBasePath() . $target->getPathname();
 
-            return ftp_put($this->connection, $realTarget, $realSource, FTP_BINARY);
+            return ftp_put($this->getConnection(), $realTarget, $realSource, FTP_BINARY);
         }
 
         return false;
@@ -352,14 +334,12 @@ class FTPFilesystem
 
     public function ftpMkdir(FTPFile $file)
     {
-        $this->connect();
-
         $stat = $this->ftpStat($file);
 
         if (!$stat) {
             $real = $this->config->getBasePath() . $file->getPathname();
 
-            return ftp_mkdir($this->connection, $real);
+            return ftp_mkdir($this->getConnection(), $real);
         }
 
         return false;
@@ -367,8 +347,6 @@ class FTPFilesystem
 
     public function ftpRename(FTPFile $source, FTPFile $target)
     {
-        $this->connect();
-
         $sourceStat = $this->ftpStat($source);
         $targetStat = $this->ftpStat($target);
 
@@ -376,7 +354,7 @@ class FTPFilesystem
             $realSource = $this->config->getBasePath() . $source->getPathname();
             $realTarget = $this->config->getBasePath() . $target->getPathname();
 
-            return ftp_rename($this->connection, $realSource, $realTarget);
+            return ftp_rename($this->getConnection(), $realSource, $realTarget);
         }
 
         return false;
@@ -384,14 +362,12 @@ class FTPFilesystem
 
     public function ftpRmdir(FTPFile $file)
     {
-        $this->connect();
-
         $stat = $this->ftpStat($file);
 
         if ($stat && $stat->isDirectory) {
             $real = $this->config->getBasePath() . $file->getPathname();
 
-            return ftp_rmdir($this->connection, $real);
+            return ftp_rmdir($this->getConnection(), $real);
         }
 
         return false;

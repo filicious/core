@@ -49,41 +49,19 @@ class FTPFile
     {
         return $this->fs;
     }
-
-    /**
-     * Test whether this pathname is a file.
-     *
-     * @return bool
+    
+    /* (non-PHPdoc)
+     * @see Bit3\Filesystem.File::getType()
      */
-    public function isFile()
-    {
-        $stat = $this->fs->ftpStat($this);
-
-        return $stat ? $stat->isFile : false;
-    }
-
-    /**
-     * Test whether this pathname is a link.
-     *
-     * @return bool
-     */
-    public function isLink()
-    {
-        $stat = $this->fs->ftpStat($this);
-
-        return $stat ? $stat->isLink : false;
-    }
-
-    /**
-     * Test whether this pathname is a directory.
-     *
-     * @return bool
-     */
-    public function isDirectory()
-    {
-        $stat = $this->fs->ftpStat($this);
-
-        return $stat ? $stat->isDirectory : false;
+    public function getType() {
+    	$type = 0;
+    	$stat = $this->fs->ftpStat($this);
+    	if($stat) {
+    		$stat->isFile && $type |= File::TYPE_FILE;
+    		$stat->isLink && $type |= File::TYPE_LINK;
+    		$stat->isDirectory && $type |= File::TYPE_DIRECTORY;
+    	}
+    	return $type;
     }
 
     /**

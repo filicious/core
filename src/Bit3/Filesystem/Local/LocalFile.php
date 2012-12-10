@@ -51,35 +51,18 @@ class LocalFile
         $this->pathname = Util::normalizePath('/' . $pathname);
         $this->realpath = Util::normalizePath($fs->getConfig()->getBasePath() . '/' . $pathname);
     }
-
-    /**
-     * Test whether this pathname is a file.
-     *
-     * @return bool
+    
+    /* (non-PHPdoc)
+     * @see Bit3\Filesystem.File::getType()
      */
-    public function isFile()
-    {
-        return $this->exists() && is_file($this->realpath);
-    }
-
-    /**
-     * Test whether this pathname is a link.
-     *
-     * @return bool
-     */
-    public function isLink()
-    {
-        return $this->exists() && is_link($this->realpath);
-    }
-
-    /**
-     * Test whether this pathname is a directory.
-     *
-     * @return bool
-     */
-    public function isDirectory()
-    {
-        return $this->exists() && is_dir($this->realpath);
+    public function getType() {
+    	$type = 0;
+    	if($this->exists()) {
+    		is_file($this->realpath) && $type |= File::TYPE_FILE;
+    		is_link($this->realpath) && $type |= File::TYPE_LINK;
+    		is_dir($this->realpath) && $type |= File::TYPE_DIRECTORY;
+    	}
+    	return $type;
     }
 
     /**

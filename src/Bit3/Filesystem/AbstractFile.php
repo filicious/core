@@ -45,24 +45,26 @@ abstract class AbstractFile
     {
         return $this->fs;
     }
-
-    /**
-     * Get the type of this file.
-     *
-     * @return "file"|"directory"|"link"|"unknown"
+    
+    /* (non-PHPdoc)
+     * @see Bit3\Filesystem.File::isFile()
      */
-    public function getType()
-    {
-        if ($this->isLink()) {
-            return 'link';
-        }
-        if ($this->isFile()) {
-            return 'file';
-        }
-        if ($this->isDirectory()) {
-            return 'directory';
-        }
-        return 'unknown';
+    public function isFile() {
+    	return (bool) ($this->getType() & File::TYPE_FILE);
+    }
+    
+    /* (non-PHPdoc)
+     * @see Bit3\Filesystem.File::isLink()
+     */
+    public function isLink() {
+    	return (bool) ($this->getType() & File::TYPE_LINK);
+    }
+    
+    /* (non-PHPdoc)
+     * @see Bit3\Filesystem.File::isDirectory()
+     */
+    public function isDirectory() {
+    	return (bool) ($this->getType() & File::TYPE_DIRECTORY);
     }
 
     /**

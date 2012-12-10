@@ -45,24 +45,26 @@ abstract class AbstractFile
     {
         return $this->fs;
     }
-
-    /**
-     * Get the type of this file.
-     *
-     * @return "file"|"directory"|"link"|"unknown"
+    
+    /* (non-PHPdoc)
+     * @see Bit3\Filesystem.File::isFile()
      */
-    public function getType()
-    {
-        if ($this->isLink()) {
-            return 'link';
-        }
-        if ($this->isFile()) {
-            return 'file';
-        }
-        if ($this->isDirectory()) {
-            return 'directory';
-        }
-        return 'unknown';
+    public function isFile() {
+    	return (bool) ($this->getType() & File::TYPE_FILE);
+    }
+    
+    /* (non-PHPdoc)
+     * @see Bit3\Filesystem.File::isLink()
+     */
+    public function isLink() {
+    	return (bool) ($this->getType() & File::TYPE_LINK);
+    }
+    
+    /* (non-PHPdoc)
+     * @see Bit3\Filesystem.File::isDirectory()
+     */
+    public function isDirectory() {
+    	return (bool) ($this->getType() & File::TYPE_DIRECTORY);
     }
 
     /**
@@ -144,7 +146,12 @@ abstract class AbstractFile
     public function getIterator()
     {
     	$args = func_get_args();
-        return new ArrayIterator(call_user_func_array(array($this, 'listFiles'), $args));
+        return new ArrayIterator(call_user_func_array(array($this, 'ls'), $args));
+    }
+    
+    public function count() {
+    	$args = func_get_args();
+    	return count(call_user_func_array(array($this, 'ls'), $args));
     }
 
     public function __toString()

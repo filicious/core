@@ -36,13 +36,18 @@ abstract class AbstractFilesystem
 	public static function create(FilesystemConfig $config, PublicURLProvider $provider = null)
 	{
 		// the instanceof operator has lexer issues...
-		if((get_class($config) == static::CONFIG_CLASS) || is_subclass_of(get_class($config), static::CONFIG_CLASS)) {
-			$args = func_get_args();
-			$clazz = new ReflectionClass(get_called_class());
-			return $clazz->newInstanceArgs($args);
+		if(!is_a($config, static::CONFIG_CLASS)) {
+			throw new FilesystemException(sprintf(
+				'%s requires a config of type %s, given %s',
+				get_called_class(),
+				static::CONFIG_CLASS,
+				get_class($config)
+			));
 		}
-
-		throw new Exception(sprintf('%s is not a subclass of %s', get_class($config), static::CONFIG_CLASS));
+		
+		$args = func_get_args();
+		$clazz = new \ReflectionClass(get_called_class());
+		return $clazz->newInstanceArgs($args);
 	}
 
     /**

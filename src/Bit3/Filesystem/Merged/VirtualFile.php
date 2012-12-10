@@ -67,24 +67,9 @@ class VirtualFile
         return $this->fs;
     }
 
-    public function isFile()
-    {
-        return false;
-    }
-
-    public function isDirectory()
-    {
-        return true;
-    }
-
-    public function isLink()
-    {
-        return false;
-    }
-
     public function getType()
     {
-        return 'dir';
+        return File::TYPE_DIRECTORY;
     }
 
     public function getPathname()
@@ -400,7 +385,7 @@ class VirtualFile
      *
      * @return array<File>
      */
-    public function listFiles()
+    public function ls()
     {
         $allMounts = $this->fs->mounts();
         $filterBase = $this->getPathname();

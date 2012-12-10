@@ -47,22 +47,12 @@ class FTPFilesystem
 
     	// TODO OH: since the cache comes from the config, this base key should
     	// be generated there, too
-        $this->cacheKey = 'ftpfs:' . ($this->config->getSSL() ? 'ssl:' : '') . $this->config->getUsername() . '@' . $this->config->getHost() . ':' . $this->config->getPort() . ($this->config->getPath() ?: '/');
+        $this->cacheKey = 'ftpfs:' . ($this->config->getSSL() ? 'ssl:' : '') . $this->config->getUsername() . '@' . $this->config->getHost() . ':' . $this->config->getPort() . ($this->config->getBasePath() ?: '/');
 
         if (!$this->config->getLazyConnect())
         {
             $this->getConnection();
         }
-    }
-
-    /* (non-PHPdoc)
-     * @see Bit3\Filesystem\Local.AbstractFilesystem::prepareConfig()
-     *
-     * TODO OH: this is used to avoid normalization of basepath, which was not
-     * 		done in the FTPFilesystem. If it is desired to normalize the
-     * 		basepath, just remove this method or call the parent method.
-     */
-    protected function prepareConfig() {
     }
 
     public function __destruct()
@@ -155,9 +145,9 @@ class FTPFilesystem
 
         ftp_pasv($this->connection, $this->config->getPassiveMode());
 
-        if ($this->config->getPath()) {
-            if (!ftp_chdir($this->connection, $this->config->getPath())) {
-                throw new FTPFilesystemException('Could not change into directory ' . $this->config->getPath() . ' on ' . $this->config->getHost());
+        if ($this->config->getBasePath()) {
+            if (!ftp_chdir($this->connection, $this->config->getBasePath())) {
+                throw new FTPFilesystemException('Could not change into directory ' . $this->config->getBasePath() . ' on ' . $this->config->getHost());
             }
         }
     }

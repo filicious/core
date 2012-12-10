@@ -462,13 +462,13 @@ class MergedFile
      *
      * @return array<File>
      */
-    public function listFiles()
+    public function ls()
     {
         $args = func_get_args();
         // fetch nested files and those from child fs.
         return array_merge(
-            call_user_func_array(array('parent', 'listFiles'), $args),
-            call_user_func_array(array($this->file, 'listFiles'), $args)
+            call_user_func_array(array('parent', 'ls'), $args),
+            call_user_func_array(array($this->file, 'ls'), $args)
         );
     }
 

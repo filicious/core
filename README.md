@@ -286,7 +286,7 @@ if ($file->isDirectory()) {
 	$children = $file->listAll();
 
 	// get files only
-	$files = $file->listFiles();
+	$files = $file->ls();
 
 	// get directories only
 	$directories = $file->listDirectories();

@@ -140,11 +140,11 @@ class FTPFilesystemConfig
     }
 
     /**
-     * @param string $timeout
+     * @param numeric $timeout
      */
     public function setTimeout($timeout)
     {
-		$this->checkImmutable()->timeout = (int) $timeout;
+		$this->checkImmutable()->timeout = (float) $timeout;
         return $this;
     }
 
@@ -225,23 +225,6 @@ class FTPFilesystemConfig
     }
 
     /**
-     * @param string $path
-     */
-    public function setPath($path)
-    {
-		$this->checkImmutable()->path = (string) $path;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPath()
-    {
-        return $this->path;
-    }
-
-    /**
      * determines if an ftp connection shall be lazy connecting or not.
      * lazy hereby means, the connection will only established, when the first access to
      * the filesystem has been made, this may be read, write or list access.
@@ -298,4 +281,49 @@ class FTPFilesystemConfig
     {
         return $this->visiblePassword;
     }
+    
+    public function getProtocol() {
+    	return $this->getSSL() ? 'ftps' : 'ftp';
+    }
+    
+    public function getTimeoutSeconds() {
+    	return floor($this->timeout);
+    }
+    
+    public function getTimeoutMilliseconds() {
+    	return floor(($this->timeout - $this->getTimeoutSeconds()) * 1000);
+    }
+    
+    public function toURL($params = false, $pw = false) {
+    	// protocol
+	    $url = $config->getProtocol() . '://';
+	    
+	    // user
+	    $url .= $config->getUsername();
+	    if ($this->getPassword()) {
+	    	if($pw || $this->getVisiblePassword()) {
+	    		$url .= ':' . $config->getPassword();
+	    	} else {
+	    		$url .= ':***';
+	    	}
+	    }
+	    $url .= '@';
+	    
+	    // host
+	    $url .= $this->getHost() . ':' . $this->getPort();
+	    $url .= $this->getBasePath();
+	    
+	    // additional config
+	    if($params) {
+	    	$params = array();
+	    	$params['timeout']	= $this->getTimeout();
+	    	$params['passive']	= $this->getPassiveMode();
+	    	$params['lazy']		= $this->getLazyConnect();
+	    	$params['pwVisible']= $this->getVisiblePassword();
+	    	$url .= '#' . http_build_query($params);
+	    }
+	    
+	    return $url;
+    }
+    
 }

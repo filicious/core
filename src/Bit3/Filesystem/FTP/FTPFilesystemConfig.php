@@ -225,23 +225,6 @@ class FTPFilesystemConfig
     }
 
     /**
-     * @param string $path
-     */
-    public function setPath($path)
-    {
-		$this->checkImmutable()->path = (string) $path;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPath()
-    {
-        return $this->path;
-    }
-
-    /**
      * determines if an ftp connection shall be lazy connecting or not.
      * lazy hereby means, the connection will only established, when the first access to
      * the filesystem has been made, this may be read, write or list access.

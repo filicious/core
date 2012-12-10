@@ -540,7 +540,7 @@ class FTPFile
         }
         $url .= '@' . $config->getHost();
         $url .= ':' . $config->getPort();
-        $url .= $config->getPath();
+        $url .= $config->getBasePath();
         $url .= $this->pathname;
 
         $stream_options = array(
@@ -640,7 +640,7 @@ class FTPFile
         }
         $url .= '@' . $config->getHost();
         $url .= ':' . $config->getPort();
-        $url .= $config->getPath();
+        $url .= $config->getBasePath();
         $url .= $this->pathname;
 
         return $url;

@@ -11,6 +11,8 @@
 
 namespace Bit3\Filesystem;
 
+use Bit3\Filesystem\Cache\Cache;
+
 use SplFileInfo;
 use Traversable;
 use IteratorAggregate;
@@ -23,7 +25,7 @@ use ArrayIterator;
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
 interface File
-    extends IteratorAggregate
+    extends IteratorAggregate, \Countable
 {
     /**
      * File type.

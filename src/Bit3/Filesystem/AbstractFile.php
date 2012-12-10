@@ -146,6 +146,11 @@ abstract class AbstractFile
     	$args = func_get_args();
         return new ArrayIterator(call_user_func_array(array($this, 'ls'), $args));
     }
+    
+    public function count() {
+    	$args = func_get_args();
+    	return count(call_user_func_array(array($this, 'ls'), $args));
+    }
 
     public function __toString()
     {

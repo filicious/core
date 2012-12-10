@@ -301,7 +301,7 @@ class Util
                 if ($arg & File::LIST_RECURSIVE) {
                     $recursive = true;
                 }
-                else if ($bitmask == null) {
+                if ($bitmask == null) {
                     $bitmask = $arg;
                 }
                 else {
@@ -327,7 +327,7 @@ class Util
                 );
             }
             else {
-                if (is_object($recursive)) {
+                if (is_object($arg)) {
                     $type = get_class($arg);
                 }
                 else {
@@ -364,7 +364,7 @@ class Util
                     for ($i=0; $i<$max; $i++) {
                         $path .= ($path ? '/' : '') . $parts[$i];
 
-                        $globSearchPatterns = static::normalizePath('*/' . $parent->getPathname() . '/' . $path);
+                        $globSearchPatterns[] = static::normalizePath('*/' . $parent->getPathname() . '/' . $path);
                     }
                 }
 

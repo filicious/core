@@ -55,16 +55,6 @@ class FTPFilesystem
         }
     }
 
-    /* (non-PHPdoc)
-     * @see Bit3\Filesystem\Local.AbstractFilesystem::prepareConfig()
-     *
-     * TODO OH: this is used to avoid normalization of basepath, which was not
-     * 		done in the FTPFilesystem. If it is desired to normalize the
-     * 		basepath, just remove this method or call the parent method.
-     */
-    protected function prepareConfig() {
-    }
-
     public function __destruct()
     {
         if ($this->connection)

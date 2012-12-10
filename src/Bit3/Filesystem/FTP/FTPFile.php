@@ -531,25 +531,24 @@ class FTPFile
      */
     public function open($mode = 'rb')
     {
-        $config = $this->fs->getConfig();
+    	$cfg = $this->fs->getConfig();
+        $url = $cfg->toURL(false, true) . $this->pathname;
 
-        $url = $config->getSSL() ? 'ftps://' : 'ftp://';
-        $url .= $config->getUsername();
-        if ($config->getPassword()) {
-            $url .= ':' . $config->getPassword();
-        }
-        $url .= '@' . $config->getHost();
-        $url .= ':' . $config->getPort();
-        $url .= $config->getBasePath();
-        $url .= $this->pathname;
-
-        $stream_options = array(
-            'ftp'  => array('overwrite' => true),
-            'ftps' => array('overwrite' => true),
-        );
+        $stream_options = array($cfg->getProtocol() => array('overwrite' => true)); 
         $stream_context = stream_context_create($stream_options);
 
-        return fopen($url, $mode, null, $stream_context);
+        $fp = fopen($url, $mode, null, $stream_context);
+        
+        if(!$fp) {
+        	throw new Exception('FTP connection error'); // TODO
+        }
+        
+        stream_set_timeout($fp,
+        	$cfg->getTimeoutSeconds(),
+        	$cfg->getTimeoutMilliseconds()
+        );
+        
+        return $fp;
     }
 
     /**
@@ -626,24 +625,7 @@ class FTPFile
      */
     public function getRealURL()
     {
-        $config = $this->fs->getConfig();
-
-        $url = $config->getSSL() ? 'ftps://' : 'ftp://';
-        $url .= $config->getUsername();
-        if ($config->getPassword()) {
-            if ($config->getVisiblePassword()) {
-                $url .= ':' . $config->getPassword();
-            }
-            else {
-                $url .= ':***';
-            }
-        }
-        $url .= '@' . $config->getHost();
-        $url .= ':' . $config->getPort();
-        $url .= $config->getBasePath();
-        $url .= $this->pathname;
-
-        return $url;
+        return $this->fs->getConfig()->toURL() . $this->pathname;
     }
 
     /**

@@ -25,7 +25,7 @@ use ArrayIterator;
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
 interface File
-    extends IteratorAggregate, \Countable
+    extends \IteratorAggregate, \Countable
 {
     /**
      * File type.

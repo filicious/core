@@ -316,13 +316,13 @@ class LocalFile
         if ($this->isDirectory()) {
             if ($recursive) {
                 /** @var File $file */
-                foreach ($this->listFiles() as $file) {
+                foreach ($this->ls() as $file) {
                     if (!$file->delete(true, $force)) {
                         return false;
                     }
                 }
             }
-            else if (count($this->listFiles()) > 0) {
+            else if (count($this->ls()) > 0) {
                 return false;
             }
             return rmdir($this->realpath);
@@ -547,7 +547,7 @@ class LocalFile
         return sha1_file($this->realpath, $raw);
     }
 
-    public function listFiles()
+    public function ls()
     {
         list($recursive, $bitmask, $globs, $callables, $globSearchPatterns) = Util::buildFilters($this, func_get_args());
 
@@ -569,7 +569,7 @@ class LocalFile
                 count($globSearchPatterns) &&
                 Util::applyGlobFilters($file, $globSearchPatterns)
             ) {
-                $recuriveFiles = $file->listFiles();
+                $recuriveFiles = $file->ls();
 
                 $files = array_merge(
                     $files,

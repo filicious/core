@@ -423,7 +423,7 @@ interface File
      *
      * @return array<File>
      */
-    public function listFiles();
+    public function ls();
 
     /**
      * Get the real url, e.g. file:/real/path/to/file to the pathname.

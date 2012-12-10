@@ -32,7 +32,7 @@ class RecursiveFilesystemIterator
     public function hasChildren()
     {
         if ($this->valid() && $this->files[$this->keys[$this->index]]->isDirectory()) {
-            return (bool) count($this->files[$this->keys[$this->index]]->listFiles());
+            return (bool) count($this->files[$this->keys[$this->index]]->ls());
         }
         return false;
     }

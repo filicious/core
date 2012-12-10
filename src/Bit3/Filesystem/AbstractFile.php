@@ -144,7 +144,7 @@ abstract class AbstractFile
     public function getIterator()
     {
     	$args = func_get_args();
-        return new ArrayIterator(call_user_func_array(array($this, 'listFiles'), $args));
+        return new ArrayIterator(call_user_func_array(array($this, 'ls'), $args));
     }
 
     public function __toString()

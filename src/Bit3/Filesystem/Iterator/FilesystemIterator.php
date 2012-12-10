@@ -87,7 +87,7 @@ class FilesystemIterator
             throw new FilesystemException('Path ' . $path->getPathname() . ' is not a directory.');
         }
         $this->path  = $path;
-        $this->files = $path->listFiles();
+        $this->files = $path->ls();
         $this->keys  = array_keys($this->files);
         $this->index = -1;
         $this->flags = $flags;

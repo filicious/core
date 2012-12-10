@@ -400,7 +400,7 @@ class VirtualFile
      *
      * @return array<File>
      */
-    public function listFiles()
+    public function ls()
     {
         $allMounts = $this->fs->mounts();
         $filterBase = $this->getPathname();

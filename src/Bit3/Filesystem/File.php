@@ -11,8 +11,6 @@
 
 namespace Bit3\Filesystem;
 
-use Bit3\Filesystem\Cache\Cache;
-
 use SplFileInfo;
 use Traversable;
 use IteratorAggregate;

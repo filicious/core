@@ -1,3 +1,5 @@
 # ide settings
 .idea
 .project
+.settings
+.buildpath

@@ -26,136 +26,112 @@ use Traversable;
 abstract class AbstractFile
 	implements File
 {
-    /**
-     * @var Filesystem
-     */
-    protected $fs;
+	/**
+	 * @var Filesystem
+	 */
+	protected $fs;
 
-    public function __construct(Filesystem $fs)
-    {
-        $this->fs = $fs;
-    }
+	/**
+	 * @var string
+	 */
+	protected $pathname;
 
-    /**
-     * Get the underlaying filesystem for this pathname.
-     *
-     * @return Filesystem
-     */
-    public function getFilesystem()
-    {
-        return $this->fs;
-    }
-    
-    /* (non-PHPdoc)
-     * @see Bit3\Filesystem.File::isFile()
-     */
-    public function isFile() {
-    	return (bool) ($this->getType() & File::TYPE_FILE);
-    }
-    
-    /* (non-PHPdoc)
-     * @see Bit3\Filesystem.File::isLink()
-     */
-    public function isLink() {
-    	return (bool) ($this->getType() & File::TYPE_LINK);
-    }
-    
-    /* (non-PHPdoc)
-     * @see Bit3\Filesystem.File::isDirectory()
-     */
-    public function isDirectory() {
-    	return (bool) ($this->getType() & File::TYPE_DIRECTORY);
-    }
+	public function __construct($pathname, SimpleFilesystem $fs)
+	{
+		$this->pathname = Util::normalizePath('/' . $pathname);
 
-    /**
-     * Get the name of the file or directory.
-     *
-     * @return string
-     */
-    public function getBasename($suffix = '')
-    {
-        return basename($this->getPathname(), $suffix);
-    }
+		$this->fs = $fs;
+	}
 
-    /**
-     * Get the extension of the file.
-     *
-     * @return mixed
-     */
-    public function getExtension()
-    {
-        $basename = $this->getBasename();
-        $pos = strrpos($basename, '.');
+	/**
+	 * Get the underlaying filesystem for this pathname.
+	 *
+	 * @return Filesystem
+	 */
+	public function getFilesystem()
+	{
+		return $this->fs;
+	}
 
-        if ($pos !== false) {
-            return substr($basename, $pos+1);
-        }
+	/**
+	 * Returns the absolute pathname.
+	 *
+	 * @return string
+	 */
+	public function getPathname()
+	{
+		return $this->pathname;
+	}
 
-        return null;
-    }
+	/* (non-PHPdoc)
+	 * @see Bit3\Filesystem.File::isFile()
+	 */
+	public function isFile() {
+		return (bool) ($this->getType() & File::TYPE_FILE);
+	}
 
-    /**
-     * Get mime content type.
-     *
-     * @param int $type
-     *
-     * @return string
-     */
-    public function getMIMEName()
-    {
-        $finfo = FS::getFileInfo();
+	/* (non-PHPdoc)
+	 * @see Bit3\Filesystem.File::isLink()
+	 */
+	public function isLink() {
+		return (bool) ($this->getType() & File::TYPE_LINK);
+	}
 
-        return finfo_file($finfo, $this->getRealUrl(), FILEINFO_NONE);
-    }
+	/* (non-PHPdoc)
+	 * @see Bit3\Filesystem.File::isDirectory()
+	 */
+	public function isDirectory() {
+		return (bool) ($this->getType() & File::TYPE_DIRECTORY);
+	}
 
-    /**
-     * Get mime content type.
-     *
-     * @param int $type
-     *
-     * @return string
-     */
-    public function getMIMEType()
-    {
-        $finfo = FS::getFileInfo();
+	/**
+	 * Get the name of the file or directory.
+	 *
+	 * @return string
+	 */
+	public function getBasename($suffix = '')
+	{
+		return basename($this->getPathname(), $suffix);
+	}
 
-        return finfo_file($finfo, $this->getRealUrl(), FILEINFO_MIME_TYPE);
-    }
+	/**
+	 * Get the extension of the file.
+	 *
+	 * @return mixed
+	 */
+	public function getExtension()
+	{
+		$basename = $this->getBasename();
+		$pos = strrpos($basename, '.');
 
-    /**
-     * Get mime content type.
-     *
-     * @param int $type
-     *
-     * @return string
-     */
-    public function getMIMEEncoding()
-    {
-        $finfo = FS::getFileInfo();
+		if ($pos !== false) {
+			return substr($basename, $pos+1);
+		}
 
-        return finfo_file($finfo, $this->getRealUrl(), FILEINFO_MIME_ENCODING);
-    }
+		return null;
+	}
 
-    /**
-     * (PHP 5 &gt;= 5.0.0)<br/>
-     * Retrieve an external iterator
-     * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
-     * @return Traversable An instance of an object implementing <b>Iterator</b> or
-     * <b>Traversable</b>
-     */
-    public function getIterator()
-    {
-    	$args = func_get_args();
-        return new ArrayIterator(call_user_func_array(array($this, 'ls'), $args));
-    }
-    
-    public function count() {
-    	$args = func_get_args();
-    	return count(call_user_func_array(array($this, 'ls'), $args));
-    }
+	/**
+	 * (PHP 5 &gt;= 5.0.0)<br/>
+	 * Retrieve an external iterator
+	 * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
+	 * @return Traversable An instance of an object implementing <b>Iterator</b> or
+	 * <b>Traversable</b>
+	 */
+	public function getIterator()
+	{
+		$args = func_get_args();
+		return new ArrayIterator(call_user_func_array(array($this, 'ls'), $args));
+	}
 
-    public function __toString()
-    {
-        return $this->pathname;
-    }
+	public function count()
+	{
+		$args = func_get_args();
+		return count(call_user_func_array(array($this, 'ls'), $args));
+	}
+
+	public function __toString()
+	{
+		return $this->getPathname();
+	}
 }

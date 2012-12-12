@@ -11,6 +11,8 @@
 
 namespace Bit3\Filesystem;
 
+use \Exception;
+
 /**
  * Utility class
  *

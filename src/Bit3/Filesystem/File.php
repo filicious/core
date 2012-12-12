@@ -195,7 +195,7 @@ interface File
      *
      * @return bool
      */
-    public function touch($time = null, $atime = null);
+    public function touch($time = null, $atime = null, $doNotCreate = false);
 
     /**
      * Get the size of the file denoted by this pathname.

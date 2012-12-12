@@ -45,6 +45,14 @@ class FtpFilesystemTest extends \PHPUnit_Framework_TestCase
         $this->fs = FTPFilesystem::create($this->config);
     }
 
+    /**
+     * Tears down the fixture, for example, closes a network connection.
+     * This method is called after a test is executed.
+     */
+    protected function tearDown()
+    {
+    }
+
     public function testLazyConnect()
     {
         $class = new \ReflectionClass('Bit3\Filesystem\FTP\FTPFilesystem');
@@ -57,14 +65,6 @@ class FtpFilesystemTest extends \PHPUnit_Framework_TestCase
         $fs = new FTPFilesystem($config);
 
         $this->assertEquals(NULL, $property->getValue($fs));
-    }
-
-    /**
-     * Tears down the fixture, for example, closes a network connection.
-     * This method is called after a test is executed.
-     */
-    protected function tearDown()
-    {
     }
 
     /**

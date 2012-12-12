@@ -22,53 +22,71 @@ abstract class AbstractFilesystemConfig
 	implements FilesystemConfig
 {
 
+	/**
+	 * Flag determining if the config is protected.
+	 * Will get set from filesystem, when it initializes itself.
+	 *
+	 * @var bool
+	 */
 	protected $immutable;
+
+	/**
+	 * Base path to "chroot" or "sandbox" to.
+	 *
+	 * @var string
+	 */
+	protected $basePath;
 
 	/* (non-PHPdoc)
 	 * @see Bit3\Filesystem.FilesystemConfig::create()
 	 */
-	public static function create() {
+	public static function create()
+	{
 		$args = func_get_args();
 		$clazz = new \ReflectionClass(get_called_class());
 		return $clazz->newInstanceArgs($args);
 	}
 
-	protected function __construct() {
+	protected function __construct()
+	{
 	}
 
 	/* (non-PHPdoc)
 	 * @see Bit3\Filesystem.FilesystemConfig::immutable()
 	 */
-	public function makeImmutable() {
+	public function makeImmutable()
+	{
 		$this->immutable = true;
-        return $this;
+		return $this;
 	}
 
-	public function __clone() {
+	public function __clone()
+	{
 		$this->immutable = null;
 	}
 
-	protected function checkImmutable() {
+	protected function checkImmutable()
+	{
 		if($this->immutable) {
 			throw new Exception('Config is immutable'); // TODO
 		}
-        return $this;
+		return $this;
 	}
-
-	protected $basePath;
 
 	/* (non-PHPdoc)
 	 * @see Bit3\Filesystem.FilesystemConfig::getBasePath()
 	 */
-	public function getBasePath() {
+	public function getBasePath()
+	{
 		return $this->basePath;
 	}
 
 	/* (non-PHPdoc)
 	 * @see Bit3\Filesystem.FilesystemConfig::setBasePath()
 	 */
-	public function setBasePath($basePath) {
+	public function setBasePath($basePath)
+	{
 		$this->checkImmutable()->basePath = (string) $basePath;
-        return $this;
+		return $this;
 	}
 }

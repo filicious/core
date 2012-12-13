@@ -483,7 +483,7 @@ class FTPFilesystem
 	 */
 	public function getLinkTargetOf($file)
 	{
-		$stat = $this->fs->ftpStat($this);
+		$stat = $this->ftpStat($this);
 
 		return $stat && $stat->getIsLink() ? $stat->getTarget() : false;
 	}
@@ -853,7 +853,7 @@ class FTPFilesystem
 			$content = $file->getContents();
 			$content = substr($content, 0, $size);
 		}
-		return $this->fs->ftpPut($file, $content);
+		return $this->ftpPut($file, $content);
 	}
 
 	/**

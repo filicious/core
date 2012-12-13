@@ -19,26 +19,26 @@ namespace Bit3\Filesystem\Cache;
  */
 class ArrayCache implements Cache
 {
-    protected $array = array();
+	protected $array = array();
 
-    /**
-     * @param string $key
-     *
-     * @return mixed
-     */
-    public function fetch($key)
-    {
-        return isset($this->array[$key]) ? $this->array[$key] : null;
-    }
+	/**
+	 * @param string $key
+	 *
+	 * @return mixed
+	 */
+	public function fetch($key)
+	{
+		return isset($this->array[$key]) ? $this->array[$key] : null;
+	}
 
-    /**
-     * @param string $key
-     * @param mixed  $value
-     *
-     * @return mixed
-     */
-    public function store($key, $value)
-    {
-        $this->array[$key] = $value;
-    }
+	/**
+	 * @param string $key
+	 * @param mixed  $value
+	 *
+	 * @return mixed
+	 */
+	public function store($key, $value)
+	{
+		$this->array[$key] = $value;
+	}
 }

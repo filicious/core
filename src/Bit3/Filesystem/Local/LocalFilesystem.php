@@ -38,7 +38,11 @@ class LocalFilesystem
 	 */
 	protected function realPath(File $file)
 	{
-		return Util::normalizePath($this->getConfig()->getBasePath() . '/' . $file->getPathname());
+		return Util::normalizePath(
+			$this
+				->getConfig()
+				->getBasePath() . '/' . $file->getPathname()
+		);
 	}
 
 	/**************************************************************************
@@ -112,7 +116,7 @@ class LocalFilesystem
 	public function getTypeOf($file)
 	{
 		$type = 0;
-		if($file->exists()) {
+		if ($file->exists()) {
 			$filePath = $this->realPath($file);
 			is_file($filePath) && $type |= File::TYPE_FILE;
 			is_link($filePath) && $type |= File::TYPE_LINK;
@@ -198,8 +202,7 @@ class LocalFilesystem
 	 */
 	public function touch($file, $time = null, $atime = null, $doNotCreate = false)
 	{
-		if ($doNotCreate && !$file->exists())
-		{
+		if ($doNotCreate && !$file->exists()) {
 			return false;
 		}
 		return touch($this->realPath($file), $time, $atime);
@@ -507,6 +510,7 @@ class LocalFilesystem
 	/**
 	 * Truncate a file to a given length. Returns the new length or
 	 * <em>false</em> on error (e.a. if file is a directory).
+	 *
 	 * @param int $size
 	 *
 	 * @return int|bool
@@ -647,7 +651,7 @@ class LocalFilesystem
 				$path != '..' &&
 				$file->isDirectory() ||
 				count($globSearchPatterns) &&
-				Util::applyGlobFilters($file, $globSearchPatterns)
+					Util::applyGlobFilters($file, $globSearchPatterns)
 			) {
 				$recursiveFiles = $file->ls();
 

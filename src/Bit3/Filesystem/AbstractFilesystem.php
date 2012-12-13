@@ -21,12 +21,12 @@ use \Exception;
  * @author  Oliver Hoff <oliver@hofff.com>
  */
 abstract class AbstractFilesystem
-    implements Filesystem
+	implements Filesystem
 {
 	/**
 	 * @var string The name of the config class used by instances of this
-	 * 		filesystem implementation. Override in concrete classes to specify
-	 * 		another config class.
+	 *         filesystem implementation. Override in concrete classes to specify
+	 *         another config class.
 	 */
 	const CONFIG_CLASS = 'FilesystemConfig';
 
@@ -36,7 +36,7 @@ abstract class AbstractFilesystem
 	public static function create(FilesystemConfig $config, PublicURLProvider $provider = null)
 	{
 		// the instanceof operator has lexer issues...
-		if(!is_a($config, static::CONFIG_CLASS)) {
+		if (!is_a($config, static::CONFIG_CLASS)) {
 			throw new FilesystemException(sprintf(
 				'%s requires a config of type %s, given %s',
 				get_called_class(),
@@ -45,7 +45,7 @@ abstract class AbstractFilesystem
 			));
 		}
 
-		$args = func_get_args();
+		$args  = func_get_args();
 		$clazz = new \ReflectionClass(get_called_class());
 		return $clazz->newInstanceArgs($args);
 	}
@@ -60,7 +60,7 @@ abstract class AbstractFilesystem
 	 */
 	protected function __construct(FilesystemConfig $config, PublicURLProvider $provider = null)
 	{
-		$this->config = clone $config;
+		$this->config   = clone $config;
 		$this->provider = $provider;
 		$this->prepareConfig();
 		$this->config->makeImmutable();

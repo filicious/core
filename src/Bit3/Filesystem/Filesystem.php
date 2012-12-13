@@ -22,6 +22,7 @@ interface Filesystem
 {
 	/**
 	 * @param FilesystemConfig $config
+	 *
 	 * @return Filesystem
 	 * @throws FilesystemException
 	 */
@@ -32,37 +33,37 @@ interface Filesystem
 	 */
 	public function getConfig();
 
-    /**
-     * Get the root (/) file node.
-     *
-     * @return File
-     */
-    public function getRoot();
+	/**
+	 * Get the root (/) file node.
+	 *
+	 * @return File
+	 */
+	public function getRoot();
 
-    /**
-     * Get a file object for the specific file.
-     *
-     * @param string $path
-     *
-     * @return File
-     */
-    public function getFile($path);
+	/**
+	 * Get a file object for the specific file.
+	 *
+	 * @param string $path
+	 *
+	 * @return File
+	 */
+	public function getFile($path);
 
-    /**
-     * Returns available space on filesystem or disk partition.
-     *
-     * @param File $path
-     *
-     * @return int
-     */
-    public function getFreeSpace(File $path = null);
+	/**
+	 * Returns available space on filesystem or disk partition.
+	 *
+	 * @param File $path
+	 *
+	 * @return int
+	 */
+	public function getFreeSpace(File $path = null);
 
-    /**
-     * Returns the total size of a filesystem or disk partition.
-     *
-     * @param File $path
-     *
-     * @return int
-     */
-    public function getTotalSpace(File $path = null);
+	/**
+	 * Returns the total size of a filesystem or disk partition.
+	 *
+	 * @param File $path
+	 *
+	 * @return int
+	 */
+	public function getTotalSpace(File $path = null);
 }

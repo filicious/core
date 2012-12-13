@@ -20,6 +20,6 @@ use Bit3\Filesystem\FilesystemException;
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
 class FTPFilesystemConnectionException
-    extends FTPFilesystemException
+	extends FTPFilesystemException
 {
 }

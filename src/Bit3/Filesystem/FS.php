@@ -21,75 +21,75 @@ use Bit3\Filesystem\Temp\LocalTemporaryFilesystem;
  */
 class FS
 {
-    /**
-     * @var string|null
-     */
-    protected static $systemTemporaryDirectory = null;
+	/**
+	 * @var string|null
+	 */
+	protected static $systemTemporaryDirectory = null;
 
-    /**
-     * Get the default temporary directory.
-     *
-     * @return string
-     */
-    public static function getSystemTemporaryDirectory()
-    {
-        return static::$systemTemporaryDirectory !== null
-            ? static::$systemTemporaryDirectory
-            : sys_get_temp_dir();
-    }
+	/**
+	 * Get the default temporary directory.
+	 *
+	 * @return string
+	 */
+	public static function getSystemTemporaryDirectory()
+	{
+		return static::$systemTemporaryDirectory !== null
+			? static::$systemTemporaryDirectory
+			: sys_get_temp_dir();
+	}
 
-    /**
-     * Set the default temporary directory.
-     * Warning: Changing this pass will only new initialized TemporaryFilesystem's!
-     *
-     * @param string $tempPath
-     */
-    public static function setSystemTemporaryDirectory($tempPath)
-    {
-        static::$systemTemporaryDirectory = (string) $tempPath;
-    }
+	/**
+	 * Set the default temporary directory.
+	 * Warning: Changing this pass will only new initialized TemporaryFilesystem's!
+	 *
+	 * @param string $tempPath
+	 */
+	public static function setSystemTemporaryDirectory($tempPath)
+	{
+		static::$systemTemporaryDirectory = (string) $tempPath;
+	}
 
-    /**
-     * @var TemporaryFilesystem|null
-     */
-    protected static $systemTemporaryFilesystem = null;
+	/**
+	 * @var TemporaryFilesystem|null
+	 */
+	protected static $systemTemporaryFilesystem = null;
 
-    /**
-     * @param \Bit3\Filesystem\Filesystem|null $systemTemporaryFilesystem
-     */
-    public static function setSystemTemporaryFilesystem(TemporaryFilesystem $systemTemporaryFilesystem)
-    {
-        self::$systemTemporaryFilesystem = $systemTemporaryFilesystem;
-    }
+	/**
+	 * @param \Bit3\Filesystem\Filesystem|null $systemTemporaryFilesystem
+	 */
+	public static function setSystemTemporaryFilesystem(TemporaryFilesystem $systemTemporaryFilesystem)
+	{
+		self::$systemTemporaryFilesystem = $systemTemporaryFilesystem;
+	}
 
-    /**
-     * @return TemporaryFilesystem
-     */
-    public static function getSystemTemporaryFilesystem()
-    {
-        if (static::$systemTemporaryFilesystem === null) {
-            static::$systemTemporaryFilesystem = new LocalTemporaryFilesystem(static::getSystemTemporaryDirectory());
-        }
+	/**
+	 * @return TemporaryFilesystem
+	 */
+	public static function getSystemTemporaryFilesystem()
+	{
+		if (static::$systemTemporaryFilesystem === null) {
+			static::$systemTemporaryFilesystem = new LocalTemporaryFilesystem(static::getSystemTemporaryDirectory());
+		}
 
-        return static::$systemTemporaryFilesystem;
-    }
+		return static::$systemTemporaryFilesystem;
+	}
 
-    /**
-     * @var resource
-     */
-    protected static $finfo = null;
+	/**
+	 * @var resource
+	 */
+	protected static $finfo = null;
 
-    /**
-     * Get the FileInfo resource identifier.
-     *
-     * @return resource
-     */
-    public static function getFileInfo()
-    {
-        if (static::$finfo === null) {
-            static::$finfo = finfo_open();
-        }
+	/**
+	 * Get the FileInfo resource identifier.
+	 *
+	 * @return resource
+	 */
+	public static function getFileInfo()
+	{
+		if (static::$finfo === null) {
+			static::$finfo = finfo_open();
+		}
 
-        return static::$finfo;
-    }
+		return static::$finfo;
+	}
 }

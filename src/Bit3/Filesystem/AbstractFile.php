@@ -66,21 +66,24 @@ abstract class AbstractFile
 	/* (non-PHPdoc)
 	 * @see Bit3\Filesystem.File::isFile()
 	 */
-	public function isFile() {
+	public function isFile()
+	{
 		return (bool) ($this->getType() & File::TYPE_FILE);
 	}
 
 	/* (non-PHPdoc)
 	 * @see Bit3\Filesystem.File::isLink()
 	 */
-	public function isLink() {
+	public function isLink()
+	{
 		return (bool) ($this->getType() & File::TYPE_LINK);
 	}
 
 	/* (non-PHPdoc)
 	 * @see Bit3\Filesystem.File::isDirectory()
 	 */
-	public function isDirectory() {
+	public function isDirectory()
+	{
 		return (bool) ($this->getType() & File::TYPE_DIRECTORY);
 	}
 
@@ -102,10 +105,10 @@ abstract class AbstractFile
 	public function getExtension()
 	{
 		$basename = $this->getBasename();
-		$pos = strrpos($basename, '.');
+		$pos      = strrpos($basename, '.');
 
 		if ($pos !== false) {
-			return substr($basename, $pos+1);
+			return substr($basename, $pos + 1);
 		}
 
 		return null;
@@ -114,6 +117,7 @@ abstract class AbstractFile
 	/**
 	 * (PHP 5 &gt;= 5.0.0)<br/>
 	 * Retrieve an external iterator
+	 *
 	 * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
 	 * @return Traversable An instance of an object implementing <b>Iterator</b> or
 	 * <b>Traversable</b>

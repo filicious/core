@@ -42,7 +42,7 @@ abstract class AbstractFilesystemConfig
 	 */
 	public static function create()
 	{
-		$args = func_get_args();
+		$args  = func_get_args();
 		$clazz = new \ReflectionClass(get_called_class());
 		return $clazz->newInstanceArgs($args);
 	}
@@ -67,7 +67,7 @@ abstract class AbstractFilesystemConfig
 
 	protected function checkImmutable()
 	{
-		if($this->immutable) {
+		if ($this->immutable) {
 			throw new Exception('Config is immutable'); // TODO
 		}
 		return $this;

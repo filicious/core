@@ -23,6 +23,7 @@ interface FilesystemConfig
 {
 	/**
 	 * @param FilesystemConfig $config
+	 *
 	 * @return Filesystem
 	 * @throws FilesystemException
 	 */

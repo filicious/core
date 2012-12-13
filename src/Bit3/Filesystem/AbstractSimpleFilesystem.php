@@ -21,12 +21,12 @@ namespace Bit3\Filesystem;
  * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  */
 abstract class AbstractSimpleFilesystem
-implements SimpleFilesystem
+	implements SimpleFilesystem
 {
 	/**
 	 * @var string The name of the config class used by instances of this
-	 * 		filesystem implementation. Override in concrete classes to specify
-	 * 		another config class.
+	 *         filesystem implementation. Override in concrete classes to specify
+	 *         another config class.
 	 */
 	const CONFIG_CLASS = 'Bit3\Filesystem\Local\FilesystemConfig';
 
@@ -46,7 +46,7 @@ implements SimpleFilesystem
 	public static function create(FilesystemConfig $config, PublicURLProvider $provider = null)
 	{
 		// the instanceof operator has lexer issues...
-		if(!is_a($config, static::CONFIG_CLASS)) {
+		if (!is_a($config, static::CONFIG_CLASS)) {
 			throw new FilesystemException(sprintf(
 				'%s requires a config of type %s, given %s',
 				get_called_class(),
@@ -55,7 +55,7 @@ implements SimpleFilesystem
 			));
 		}
 
-		$args = func_get_args();
+		$args  = func_get_args();
 		$clazz = new \ReflectionClass(get_called_class());
 
 		return $clazz->newInstanceArgs($args);
@@ -66,7 +66,7 @@ implements SimpleFilesystem
 	 */
 	public function __construct(FilesystemConfig $config, PublicURLProvider $provider = null)
 	{
-		$this->config = clone $config;
+		$this->config   = clone $config;
 		$this->provider = $provider;
 		$this->prepareConfig();
 		$this->config->makeImmutable();
@@ -309,6 +309,7 @@ implements SimpleFilesystem
 	 * iterator for file.
 	 *
 	 * Retrieve an external iterator
+	 *
 	 * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
 	 *
 	 * @return Traversable An instance of an object implementing <b>Iterator</b> or

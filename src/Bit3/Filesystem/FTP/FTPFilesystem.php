@@ -47,18 +47,17 @@ class FTPFilesystem
 
 		// TODO OH: since the cache comes from the config, this base key should
 		// be generated there, too
-		$this->cacheKey = 'ftpfs:' . ($this->config->getSSL() ? 'ssl:' : '') . $this->config->getUsername() . '@' . $this->config->getHost() . ':' . $this->config->getPort() . ($this->config->getBasePath() ?: '/');
+		$this->cacheKey = 'ftpfs:' . ($this->config->getSSL() ? 'ssl:' : '') . $this->config->getUsername(
+		) . '@' . $this->config->getHost() . ':' . $this->config->getPort() . ($this->config->getBasePath() ? : '/');
 
-		if (!$this->config->getLazyConnect())
-		{
+		if (!$this->config->getLazyConnect()) {
 			$this->getConnection();
 		}
 	}
 
 	public function __destruct()
 	{
-		if ($this->connection)
-		{
+		if ($this->connection) {
 			ftp_close($this->connection);
 		}
 	}
@@ -72,7 +71,11 @@ class FTPFilesystem
 	 */
 	protected function realPath(File $file)
 	{
-		return Util::normalizePath($this->getConfig()->getBasePath() . '/' . $file->getPathname());
+		return Util::normalizePath(
+			$this
+				->getConfig()
+				->getBasePath() . '/' . $file->getPathname()
+		);
 	}
 
 	/**
@@ -88,13 +91,15 @@ class FTPFilesystem
 			$this->connection = ftp_ssl_connect(
 				$this->config->getHost(),
 				$this->config->getPort(),
-				$this->config->getTimeout());
+				$this->config->getTimeout()
+			);
 		}
 		else {
 			$this->connection = ftp_connect(
 				$this->config->getHost(),
 				$this->config->getPort(),
-				$this->config->getTimeout());
+				$this->config->getTimeout()
+			);
 		}
 
 		if ($this->connection === false) {
@@ -102,10 +107,15 @@ class FTPFilesystem
 		}
 
 		if ($this->config->getUsername()) {
-			if (!ftp_login($this->connection,
+			if (!ftp_login(
+				$this->connection,
 				$this->config->getUsername(),
-				$this->config->getPassword())) {
-				throw new FTPFilesystemAuthenticationException('Could not login to ' . $this->config->getHost() . ' with username ' . $this->config->getUsername() . ':' . ($this->config->getPassword() ? '*****' : 'NOPASS'));
+				$this->config->getPassword()
+			)
+			) {
+				throw new FTPFilesystemAuthenticationException('Could not login to ' . $this->config->getHost(
+				) . ' with username ' . $this->config->getUsername() . ':' . ($this->config->getPassword() ? '*****'
+					: 'NOPASS'));
 			}
 		}
 
@@ -113,15 +123,15 @@ class FTPFilesystem
 
 		if ($this->config->getBasePath()) {
 			if (!ftp_chdir($this->connection, $this->config->getBasePath())) {
-				throw new FTPFilesystemException('Could not change into directory ' . $this->config->getBasePath() . ' on ' . $this->config->getHost());
+				throw new FTPFilesystemException('Could not change into directory ' . $this->config->getBasePath(
+				) . ' on ' . $this->config->getHost());
 			}
 		}
 	}
 
 	public function getConnection()
 	{
-		if (!$this->connection)
-		{
+		if (!$this->connection) {
 			$this->connect();
 		}
 		return $this->connection;
@@ -137,8 +147,7 @@ class FTPFilesystem
 	protected function queryCache($key)
 	{
 		$cache = $this->config->getCache();
-		if (!$cache)
-		{
+		if (!$cache) {
 			return null;
 		}
 		return $cache->fetch($key);
@@ -153,8 +162,7 @@ class FTPFilesystem
 	protected function setCache($key, $value)
 	{
 		$cache = $this->config->getCache();
-		if ($cache)
-		{
+		if ($cache) {
 			$cache->store($key, $value);
 		}
 	}
@@ -162,7 +170,7 @@ class FTPFilesystem
 
 	public function ftpStat(File $file)
 	{
-		$real = $this->realPath($file);
+		$real     = $this->realPath($file);
 		$cacheKey = $this->cacheKey . ':stat:' . $real;
 
 		$cached = $this->queryCache($cacheKey);
@@ -170,7 +178,9 @@ class FTPFilesystem
 		if ($cached === null) {
 			$this->ftpList($file);
 
-			$cached = $this->config->getCache()->fetch($cacheKey);
+			$cached = $this->config
+				->getCache()
+				->fetch($cacheKey);
 		}
 
 		return $cached;
@@ -178,19 +188,24 @@ class FTPFilesystem
 
 	public function ftpList(File $file)
 	{
-		$real = $this->realPath($file);
+		$real     = $this->realPath($file);
 		$cacheKey = $this->cacheKey . ':list:' . $real;
 
 		$cached = $this->queryCache($cacheKey);
 
 		if ($cached === null) {
 			$cached = array();
-			$list = ftp_rawlist($this->getConnection(), '-la ' . $real);
+			$list   = ftp_rawlist($this->getConnection(), '-la ' . $real);
 
 			$isSingleFile = true;
 
 			foreach ($list as $item) {
-				if (preg_match('#^([\-ldrwxsSt]{10})\s+(\d+)\s+([\w\d]+)\s+([\w\d]+)\s+(\d+)\s+(\w{3}\s+\d{1,2}\s+(?:\d{2}:\d{2}|\d{4}))\s+(.*?)(\s+->\s+(.*))?$#s', $item, $match)) {
+				if (preg_match(
+					'#^([\-ldrwxsSt]{10})\s+(\d+)\s+([\w\d]+)\s+([\w\d]+)\s+(\d+)\s+(\w{3}\s+\d{1,2}\s+(?:\d{2}:\d{2}|\d{4}))\s+(.*?)(\s+->\s+(.*))?$#s',
+					$item,
+					$match
+				)
+				) {
 					$stat = (object) array(
 						'perms'       => $match[1],
 						'mode'        => Util::string2bitMode($match[1]),
@@ -207,7 +222,7 @@ class FTPFilesystem
 					);
 
 					if ($stat->name == '.') {
-						$isSingleFile = false;
+						$isSingleFile      = false;
 						$directoryCacheKey = $this->cacheKey . ':stat:' . $real;
 						$this->setCache($directoryCacheKey, $stat);
 					}
@@ -259,16 +274,26 @@ class FTPFilesystem
 
 			if ($stat->isDirectory) {
 				if (ftp_rmdir($this->getConnection(), $real)) {
-					$this->config->getCache()->store($this->cacheKey . ':stat:' . $real, null);
-					$this->config->getCache()->store($this->cacheKey . ':list:' . $real, null);
-					$this->config->getCache()->store($this->cacheKey . ':list:' . dirname($real), null);
+					$this->config
+						->getCache()
+						->store($this->cacheKey . ':stat:' . $real, null);
+					$this->config
+						->getCache()
+						->store($this->cacheKey . ':list:' . $real, null);
+					$this->config
+						->getCache()
+						->store($this->cacheKey . ':list:' . dirname($real), null);
 					return true;
 				}
 			}
 			else {
 				if (ftp_delete($this->getConnection(), $real)) {
-					$this->config->getCache()->store($this->cacheKey . ':stat:' . $real, null);
-					$this->config->getCache()->store($this->cacheKey . ':list:' . dirname($real), null);
+					$this->config
+						->getCache()
+						->store($this->cacheKey . ':stat:' . $real, null);
+					$this->config
+						->getCache()
+						->store($this->cacheKey . ':list:' . dirname($real), null);
 					return true;
 				}
 			}
@@ -436,7 +461,7 @@ class FTPFilesystem
 	{
 		$type = 0;
 		$stat = $this->ftpStat($file);
-		if($stat) {
+		if ($stat) {
 			$stat->isFile && $type |= File::TYPE_FILE;
 			$stat->isLink && $type |= File::TYPE_LINK;
 			$stat->isDirectory && $type |= File::TYPE_DIRECTORY;
@@ -705,8 +730,7 @@ class FTPFilesystem
 		}
 		else if ($parents) {
 			$parent = $file->getParent();
-			if (!$parent->createDirectory(true))
-			{
+			if (!$parent->createDirectory(true)) {
 				return false;
 			}
 		}
@@ -751,7 +775,7 @@ class FTPFilesystem
 
 		if ($stat) {
 			// TODO: get rid of system temporary call here.
-			$tempFS = FS::getSystemTemporaryFilesystem();
+			$tempFS   = FS::getSystemTemporaryFilesystem();
 			$tempFile = $tempFS->createTempFile('ftp_');
 
 			if ($this->ftpGet($file, $tempFile)) {
@@ -777,7 +801,7 @@ class FTPFilesystem
 			return false;
 		}
 
-		$tempFS = FS::getSystemTemporaryFilesystem();
+		$tempFS   = FS::getSystemTemporaryFilesystem();
 		$tempFile = $tempFS->createTempFile('ftp_');
 		$tempFile->setContents($content);
 
@@ -800,6 +824,7 @@ class FTPFilesystem
 	/**
 	 * Truncate a file to a given length. Returns the new length or
 	 * <em>false</em> on error (e.a. if file is a directory).
+	 *
 	 * @param int $size
 	 *
 	 * @return int|bool
@@ -841,11 +866,12 @@ class FTPFilesystem
 
 		$fp = fopen($url, $mode, null, $stream_context);
 
-		if(!$fp) {
+		if (!$fp) {
 			throw new Exception('FTP connection error'); // TODO
 		}
 
-		stream_set_timeout($fp,
+		stream_set_timeout(
+			$fp,
 			$cfg->getTimeoutSeconds(),
 			$cfg->getTimeoutMilliseconds()
 		);
@@ -883,7 +909,7 @@ class FTPFilesystem
 				basename($stat->name) != '..' &&
 				$stat->isDirectory ||
 				count($globSearchPatterns) &&
-				Util::applyGlobFilters($file, $globSearchPatterns)
+					Util::applyGlobFilters($file, $globSearchPatterns)
 			) {
 				$recursiveFiles = $file->ls();
 
@@ -906,6 +932,8 @@ class FTPFilesystem
 	 */
 	public function getRealURLOf($file)
 	{
-		return $this->getConfig()->toURL() . $this->pathname;
+		return $this
+			->getConfig()
+			->toURL() . $this->pathname;
 	}
 }

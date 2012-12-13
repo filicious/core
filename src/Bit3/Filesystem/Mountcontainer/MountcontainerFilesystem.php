@@ -30,8 +30,8 @@ class MountcontainerFilesystem
 {
 	/**
 	 * @var string The name of the config class used by instances of this
-	 * 		filesystem implementation. Override in concrete classes to specify
-	 * 		another config class.
+	 *         filesystem implementation. Override in concrete classes to specify
+	 *         another config class.
 	 */
 	const CONFIG_CLASS = 'Bit3\Filesystem\Mountcontainer\MountcontainerFilesystemConfig';
 
@@ -56,7 +56,7 @@ class MountcontainerFilesystem
 		}
 
 		if (!$absolute) {
-				if (substr($path, -1) != '/') {
+			if (substr($path, -1) != '/') {
 				$path .= '/';
 			}
 
@@ -76,8 +76,7 @@ class MountcontainerFilesystem
 	{
 		$path = $this->normalizeMountPath($path, true);
 
-		if (array_key_exists($path, $this->map))
-		{
+		if (array_key_exists($path, $this->map)) {
 			throw FilesystemException('There is already a filesystem mounted at: ' . $path);
 		}
 
@@ -99,10 +98,12 @@ class MountcontainerFilesystem
 
 	public function mounts()
 	{
-		return array_filter(array_keys($this->mounts),
-		function ($pattern) {
-			return substr($pattern, 0, -1);
-		});
+		return array_filter(
+			array_keys($this->mounts),
+			function ($pattern) {
+				return substr($pattern, 0, -1);
+			}
+		);
 	}
 
 	protected function searchFilesystem($path)
@@ -154,22 +155,23 @@ class MountcontainerFilesystem
 		/** @var string $pattern */
 		/** @var Filesystem $filesystem */
 		list($pattern, $filesystem) = $this->searchFilesystem($path);
-		if ($pattern == $path)
-		{
+		if ($pattern == $path) {
 			return new MountcontainerFile($path, $this->mounts[$path]->getRoot(), $this);
-			} else {
-				if ($filesystem == $this)
-				{
-					$allMounts = array_filter($this->mounts(), function ($path) use ($path) {
+		}
+		else {
+			if ($filesystem == $this) {
+				$allMounts = array_filter(
+					$this->mounts(),
+					function ($path) use ($path) {
 						return substr($path, 0, strlen($path)) == $path;
-					});
-					if (count($allMounts) > 0)
-					{
-						return new MountcontainerFile($path, null, $this);
 					}
-					return NULL;
+				);
+				if (count($allMounts) > 0) {
+					return new MountcontainerFile($path, null, $this);
 				}
+				return null;
 			}
+		}
 		return new MountcontainerFile($path, $filesystem->getFile('/' . substr($path, strlen($pattern))), $this);
 	}
 
@@ -203,11 +205,13 @@ class MountcontainerFilesystem
 
 	public function getTypeOf($file)
 	{
-		if (!$file->getSubFile())
-		{
+		if (!$file->getSubFile()) {
 			return File::TYPE_DIRECTORY;
-		} else {
-			return $file->getSubFile()->getType();
+		}
+		else {
+			return $file
+				->getSubFile()
+				->getType();
 		}
 	}
 
@@ -218,7 +222,9 @@ class MountcontainerFilesystem
 	 */
 	public function getLinkTargetOf($file)
 	{
-		return $file->isLink() ? $file->getSubFile()->getLinkTarget() : null;
+		return $file->isLink() ? $file
+			->getSubFile()
+			->getLinkTarget() : null;
 	}
 
 	/**
@@ -228,9 +234,10 @@ class MountcontainerFilesystem
 	 */
 	public function getAccessTimeOf($file)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->getAccessTime();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->getAccessTime();
 		}
 		return false;
 	}
@@ -242,9 +249,10 @@ class MountcontainerFilesystem
 	 */
 	public function setAccessTimeOf($file, $time)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->setAccessTime($time);
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->setAccessTime($time);
 		}
 		return false;
 	}
@@ -256,9 +264,10 @@ class MountcontainerFilesystem
 	 */
 	public function getCreationTimeOf($file)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->getCreationTime();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->getCreationTime();
 		}
 		return false;
 	}
@@ -270,9 +279,10 @@ class MountcontainerFilesystem
 	 */
 	public function getModifyTimeOf($file)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->getModifyTime();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->getModifyTime();
 		}
 		return false;
 	}
@@ -284,9 +294,10 @@ class MountcontainerFilesystem
 	 */
 	public function setModifyTimeOf($file, $time)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->setModifyTime($time);
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->setModifyTime($time);
 		}
 		return false;
 	}
@@ -302,9 +313,10 @@ class MountcontainerFilesystem
 	 */
 	public function touch($file, $time = null, $atime = null, $doNotCreate = false)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->touch($time, $atime, $doNotCreate);
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->touch($time, $atime, $doNotCreate);
 		}
 		return false;
 	}
@@ -317,9 +329,10 @@ class MountcontainerFilesystem
 	 */
 	public function getSizeOf($file)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->getSize();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->getSize();
 		}
 		return 0;
 	}
@@ -331,9 +344,10 @@ class MountcontainerFilesystem
 	 */
 	public function getOwnerOf($file)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->getOwner();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->getOwner();
 		}
 		return -1;
 	}
@@ -347,9 +361,10 @@ class MountcontainerFilesystem
 	 */
 	public function setOwnerOf($file, $user)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->setOwner($user);
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->setOwner($user);
 		}
 		return false;
 	}
@@ -361,9 +376,10 @@ class MountcontainerFilesystem
 	 */
 	public function getGroupOf($file)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->getGroup();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->getGroup();
 		}
 		return -1;
 	}
@@ -377,9 +393,10 @@ class MountcontainerFilesystem
 	 */
 	public function setGroupOf($file, $group)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->setGroup($group);
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->setGroup($group);
 		}
 		return false;
 	}
@@ -391,9 +408,10 @@ class MountcontainerFilesystem
 	 */
 	public function getModeOf($file)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->getMode();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->getMode();
 		}
 		return 0555;
 	}
@@ -407,9 +425,10 @@ class MountcontainerFilesystem
 	 */
 	public function setModeOf($file, $mode)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->setMode();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->setMode();
 		}
 		return false;
 	}
@@ -422,9 +441,10 @@ class MountcontainerFilesystem
 	 */
 	public function isThisReadable($file)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->isReadable();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->isReadable();
 		}
 		return true;
 	}
@@ -436,9 +456,10 @@ class MountcontainerFilesystem
 	 */
 	public function isThisWritable($file)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->isWritable();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->isWritable();
 		}
 		return false;
 	}
@@ -450,9 +471,10 @@ class MountcontainerFilesystem
 	 */
 	public function isThisExecutable($file)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->isExecutable();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->isExecutable();
 		}
 		return true;
 	}
@@ -464,9 +486,10 @@ class MountcontainerFilesystem
 	 */
 	public function exists($file)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->exists();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->exists();
 		}
 		return true;
 	}
@@ -482,9 +505,10 @@ class MountcontainerFilesystem
 	 */
 	public function delete($file, $recursive = false, $force = false)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->delete($recursive, $force);
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->delete($recursive, $force);
 		}
 		return false;
 	}
@@ -499,9 +523,10 @@ class MountcontainerFilesystem
 	 */
 	public function copyTo($file, File $destination, $parents = false)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->copy($destination, $parents);
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->copy($destination, $parents);
 		}
 		return false;
 	}
@@ -515,9 +540,10 @@ class MountcontainerFilesystem
 	 */
 	public function moveTo($file, File $destination)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->copy($destination);
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->copy($destination);
 		}
 		return false;
 	}
@@ -529,9 +555,10 @@ class MountcontainerFilesystem
 	 */
 	public function createDirectory($file, $parents = false)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->createDirectory();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->createDirectory();
 		}
 		return true;
 	}
@@ -543,9 +570,10 @@ class MountcontainerFilesystem
 	 */
 	public function createFile($file, $parents = false)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->createFile();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->createFile();
 		}
 		return false;
 	}
@@ -558,9 +586,10 @@ class MountcontainerFilesystem
 	 */
 	public function getContentsOf($file)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->getContents();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->getContents();
 		}
 		return false;
 	}
@@ -574,9 +603,10 @@ class MountcontainerFilesystem
 	 */
 	public function setContentsOf($file, $content)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->setContents($content);
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->setContents($content);
 		}
 		return false;
 	}
@@ -590,9 +620,10 @@ class MountcontainerFilesystem
 	 */
 	public function appendContentsTo($file, $content)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->appendContents($content);
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->appendContents($content);
 		}
 		return false;
 	}
@@ -600,15 +631,17 @@ class MountcontainerFilesystem
 	/**
 	 * Truncate a file to a given length. Returns the new length or
 	 * <em>false</em> on error (e.a. if file is a directory).
+	 *
 	 * @param int $size
 	 *
 	 * @return int|bool
 	 */
 	public function truncate($file, $size = 0)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->truncate($size);
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->truncate($size);
 		}
 		return false;
 	}
@@ -622,9 +655,10 @@ class MountcontainerFilesystem
 	 */
 	public function open($file, $mode = 'rb')
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->open($mode);
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->open($mode);
 		}
 		return false;
 	}
@@ -639,9 +673,10 @@ class MountcontainerFilesystem
 	 */
 	public function getMIMENameOf($file)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->getMIMEName();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->getMIMEName();
 		}
 		return false;
 	}
@@ -655,9 +690,10 @@ class MountcontainerFilesystem
 	 */
 	public function getMIMETypeOf($file)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->getMIMEType();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->getMIMEType();
 		}
 		return false;
 	}
@@ -671,9 +707,10 @@ class MountcontainerFilesystem
 	 */
 	public function getMIMEEncodingOf($file)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->getMIMEEncoding();
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->getMIMEEncoding();
 		}
 		return false;
 	}
@@ -688,9 +725,10 @@ class MountcontainerFilesystem
 	 */
 	public function getMD5Of($file, $raw = false)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->getMD5($raw);
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->getMD5($raw);
 		}
 		return false;
 	}
@@ -705,9 +743,10 @@ class MountcontainerFilesystem
 	 */
 	public function getSHA1Of($file, $raw = false)
 	{
-		if ($file->getSubFile())
-		{
-			return $file->getSubFile()->getSHA1($raw);
+		if ($file->getSubFile()) {
+			return $file
+				->getSubFile()
+				->getSHA1($raw);
 		}
 		return false;
 	}
@@ -717,59 +756,63 @@ class MountcontainerFilesystem
 	 *
 	 * @param VirtualFile|MergedFile $file
 	 *
-	 * @param mixed filter options.
+	 * @param                        mixed filter options.
 	 *
 	 * @return array<File>
 	 */
-	public function lsFile(/*$file, ... */)
+	public function lsFile( /*$file, ... */)
 	{
 		$args = func_get_args();
 		$file = array_shift($args);
 		list($recursive, $bitmask, $globs, $callables, $globSearchPatterns) = Util::buildFilters($file, $args);
 
-		$allMounts = $this->mounts();
+		$allMounts  = $this->mounts();
 		$filterBase = $file->getPathname();
 		// special case, we are the root element.
-		if ($filterBase != '/')
-		{
+		if ($filterBase != '/') {
 			$filterBase .= '/';
 		}
 		$offset = strlen($filterBase);
 
 		// filter out non matching mount points in parent vfs
-		$allMounts = array_filter($allMounts, function ($path) use ($filterBase) {
-			return substr($path, 0, strlen($filterBase)) == $filterBase;
-		});
+		$allMounts = array_filter(
+			$allMounts,
+			function ($path) use ($filterBase) {
+				return substr($path, 0, strlen($filterBase)) == $filterBase;
+			}
+		);
 
 		// get unique virtual children list
-		$allRoots = array_unique(array_map(function ($path) use ($filterBase, $offset) {
+		$allRoots = array_unique(
+			array_map(
+				function ($path) use ($filterBase, $offset) {
 
-			$length = strpos($path, '/', $offset+1) - $offset;
+					$length = strpos($path, '/', $offset + 1) - $offset;
 
-			if ($length > 0)
-			{
-				return substr($path, $offset, $length);
-			}
+					if ($length > 0) {
+						return substr($path, $offset, $length);
+					}
 
-			return substr($path, $offset);
+					return substr($path, $offset);
 
-		}, $allMounts));
+				},
+				$allMounts
+			)
+		);
 
 		$arrFiles = array();
-		if ($file->getSubfile())
-		{
+		if ($file->getSubfile()) {
 			$arrFiles = call_user_func_array(array($file->getSubfile(), 'ls'), $args);
 		}
 
-		foreach($allRoots as $subpath)
-		{
-			$subfile = $file->getPathname() . '/' .  $subpath;
+		foreach ($allRoots as $subpath) {
+			$subfile = $file->getPathname() . '/' . $subpath;
 
 			//  is it a mount point? if so, return its root.
-			if (in_array($subfile, $allMounts))
-			{
+			if (in_array($subfile, $allMounts)) {
 				$arrFiles[] = $this->getFile($subfile);
-			} else {
+			}
+			else {
 				$arrFiles[] = new MountcontainerFile($subfile, null, $this);
 			}
 		}

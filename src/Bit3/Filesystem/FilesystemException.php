@@ -18,6 +18,6 @@ namespace Bit3\Filesystem;
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
 class FilesystemException
-    extends \Exception
+	extends \Exception
 {
 }

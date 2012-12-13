@@ -265,6 +265,7 @@ interface SimpleFilesystem
 	/**
 	 * Truncate a file to a given length. Returns the new length or
 	 * <em>false</em> on error (e.a. if file is a directory).
+	 *
 	 * @param int $size
 	 *
 	 * @return int|bool
@@ -363,6 +364,7 @@ interface SimpleFilesystem
 	 * iterator for file.
 	 *
 	 * Retrieve an external iterator
+	 *
 	 * @link http://php.net/manual/en/iteratoraggregate.getiterator.php
 	 *
 	 * @return Traversable An instance of an object implementing <b>Iterator</b> or

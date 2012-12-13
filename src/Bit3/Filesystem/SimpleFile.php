@@ -51,22 +51,30 @@ class SimpleFile
 
 	public function isFile()
 	{
-		return $this->getFilesystem()->isThisFile($this);
+		return $this
+			->getFilesystem()
+			->isThisFile($this);
 	}
 
 	public function isLink()
 	{
-		return $this->getFilesystem()->isThisLink($this);
+		return $this
+			->getFilesystem()
+			->isThisLink($this);
 	}
 
 	public function isDirectory()
 	{
-		return $this->getFilesystem()->isThisDirectory($this);
+		return $this
+			->getFilesystem()
+			->isThisDirectory($this);
 	}
 
 	public function getType()
 	{
-		return $this->getFilesystem()->getTypeOf($this);
+		return $this
+			->getFilesystem()
+			->getTypeOf($this);
 	}
 
 	/**
@@ -81,7 +89,9 @@ class SimpleFile
 
 	public function getLinkTarget()
 	{
-		return $this->getFilesystem()->getLinkTargetOf($this);
+		return $this
+			->getFilesystem()
+			->getLinkTargetOf($this);
 	}
 
 	public function getBasename($suffix = null)
@@ -92,10 +102,10 @@ class SimpleFile
 	public function getExtension()
 	{
 		$basename = $this->getBasename();
-		$pos = strrpos($basename, '.');
+		$pos      = strrpos($basename, '.');
 
 		if ($pos !== false) {
-			return substr($basename, $pos+1);
+			return substr($basename, $pos + 1);
 		}
 
 		return null;
@@ -103,167 +113,233 @@ class SimpleFile
 
 	public function getParent()
 	{
-		return $this->getFilesystem()->getParentOf($this);
+		return $this
+			->getFilesystem()
+			->getParentOf($this);
 	}
 
 	public function getAccessTime()
 	{
-		return $this->getFilesystem()->getAccessTimeOf($this);
+		return $this
+			->getFilesystem()
+			->getAccessTimeOf($this);
 	}
 
 	public function setAccessTime($time)
 	{
-		return $this->getFilesystem()->setAccessTimeOf($this, $time);
+		return $this
+			->getFilesystem()
+			->setAccessTimeOf($this, $time);
 	}
 
 	public function getCreationTime()
 	{
-		 return $this->getFilesystem()->getCreationTimeOf($this);
+		return $this
+			->getFilesystem()
+			->getCreationTimeOf($this);
 	}
 
 	public function getModifyTime()
 	{
-		return $this->getFilesystem()->getModifyTimeOf($this);
+		return $this
+			->getFilesystem()
+			->getModifyTimeOf($this);
 	}
 
 	public function setModifyTime($time)
 	{
-		return $this->getFilesystem()->setModifyTimeOf($this, $time);
+		return $this
+			->getFilesystem()
+			->setModifyTimeOf($this, $time);
 	}
 
 	public function touch($time = null, $atime = null, $doNotCreate = false)
 	{
-		return $this->getFilesystem()->touch($this, $time, $atime, $doNotCreate);
+		return $this
+			->getFilesystem()
+			->touch($this, $time, $atime, $doNotCreate);
 	}
 
 	public function getSize()
 	{
-		return $this->getFilesystem()->getSizeOf($this);
+		return $this
+			->getFilesystem()
+			->getSizeOf($this);
 	}
 
 	public function getOwner()
 	{
-		return $this->getFilesystem()->getOwnerOf($this);
+		return $this
+			->getFilesystem()
+			->getOwnerOf($this);
 	}
 
 	public function setOwner($user)
 	{
-		return $this->getFilesystem()->setOwnerOf($this, $user);
+		return $this
+			->getFilesystem()
+			->setOwnerOf($this, $user);
 	}
 
 	public function getGroup()
 	{
-		return $this->getFilesystem()->getGroupOf($this);
+		return $this
+			->getFilesystem()
+			->getGroupOf($this);
 	}
 
 	public function setGroup($group)
 	{
-		return $this->getFilesystem()->setGroupOf($this, $group);
+		return $this
+			->getFilesystem()
+			->setGroupOf($this, $group);
 	}
 
 	public function getMode()
 	{
-		return $this->getFilesystem()->getModeOf($this);
+		return $this
+			->getFilesystem()
+			->getModeOf($this);
 	}
 
 	public function setMode($mode)
 	{
-		return $this->getFilesystem()->setModeOf($this, $mode);
+		return $this
+			->getFilesystem()
+			->setModeOf($this, $mode);
 	}
 
 	public function isReadable()
 	{
-		return $this->getFilesystem()->isThisReadable($this);
+		return $this
+			->getFilesystem()
+			->isThisReadable($this);
 	}
 
 	public function isWritable()
 	{
-		return $this->getFilesystem()->isThisWritable($this);
+		return $this
+			->getFilesystem()
+			->isThisWritable($this);
 	}
 
 	public function isExecutable()
 	{
-		return $this->getFilesystem()->isThisExecutable($this);
+		return $this
+			->getFilesystem()
+			->isThisExecutable($this);
 	}
 
 	public function exists()
 	{
-		return $this->getFilesystem()->exists($this);
+		return $this
+			->getFilesystem()
+			->exists($this);
 	}
 
 	public function delete($recursive = false, $force = false)
 	{
-		return $this->getFilesystem()->delete($this, $recursive, $force);
+		return $this
+			->getFilesystem()
+			->delete($this, $recursive, $force);
 	}
 
 	public function copyTo(File $destination, $parents = false)
 	{
-		return $this->getFilesystem()->copyTo($this, $destination, $parents);
+		return $this
+			->getFilesystem()
+			->copyTo($this, $destination, $parents);
 	}
 
 	public function moveTo(File $destination)
 	{
-		return $this->getFilesystem()->moveTo($this, $destination);
+		return $this
+			->getFilesystem()
+			->moveTo($this, $destination);
 	}
 
 	public function createDirectory($parents = false)
 	{
-		return $this->getFilesystem()->createDirectory($this, $parents);
+		return $this
+			->getFilesystem()
+			->createDirectory($this, $parents);
 	}
 
 	public function createFile($parents = false)
 	{
-		return $this->getFilesystem()->createFile($this, $parents);
+		return $this
+			->getFilesystem()
+			->createFile($this, $parents);
 	}
 
 	public function getContents()
 	{
-		return $this->getFilesystem()->getContentsOf($this);
+		return $this
+			->getFilesystem()
+			->getContentsOf($this);
 	}
 
 	public function setContents($content)
 	{
-		return $this->getFilesystem()->setContentsOf($this, $content);
+		return $this
+			->getFilesystem()
+			->setContentsOf($this, $content);
 	}
 
 	public function appendContents($content)
 	{
-		return $this->getFilesystem()->appendContentsTo($this, $content);
+		return $this
+			->getFilesystem()
+			->appendContentsTo($this, $content);
 	}
 
 	public function truncate($size = 0)
 	{
-		return $this->getFilesystem()->truncate($this, $size);
+		return $this
+			->getFilesystem()
+			->truncate($this, $size);
 	}
 
 	public function open($mode = 'rb')
 	{
-		return $this->getFilesystem()->open($this, $mode);
+		return $this
+			->getFilesystem()
+			->open($this, $mode);
 	}
 
 	public function getMIMEName()
 	{
-		return $this->getFilesystem()->getMIMENameOf($this);
+		return $this
+			->getFilesystem()
+			->getMIMENameOf($this);
 	}
 
 	public function getMIMEType()
 	{
-		return $this->getFilesystem()->getMIMETypeOf($this);
+		return $this
+			->getFilesystem()
+			->getMIMETypeOf($this);
 	}
 
 	public function getMIMEEncoding()
 	{
-		return $this->getFilesystem()->getMIMEEncodingOf($this);
+		return $this
+			->getFilesystem()
+			->getMIMEEncodingOf($this);
 	}
 
 	public function getMD5($raw = false)
 	{
-		return $this->getFilesystem()->getMD5Of($this, $raw);
+		return $this
+			->getFilesystem()
+			->getMD5Of($this, $raw);
 	}
 
 	public function getSHA1($raw = false)
 	{
-		return $this->getFilesystem()->getSHA1Of($this, $raw);
+		return $this
+			->getFilesystem()
+			->getSHA1Of($this, $raw);
 	}
 
 	public function ls()
@@ -276,12 +352,16 @@ class SimpleFile
 
 	public function getRealURL()
 	{
-		return $this->getFilesystem()->getRealURLOf($this);
+		return $this
+			->getFilesystem()
+			->getRealURLOf($this);
 	}
 
 	public function getPublicURL()
 	{
-		return $this->getFilesystem()->getPublicURLOf($this);
+		return $this
+			->getFilesystem()
+			->getPublicURLOf($this);
 	}
 
 	public function count()

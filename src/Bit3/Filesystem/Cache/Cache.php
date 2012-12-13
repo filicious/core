@@ -19,18 +19,18 @@ namespace Bit3\Filesystem\Cache;
  */
 interface Cache
 {
-    /**
-     * @param string $key
-     *
-     * @return mixed
-     */
-    public function fetch($key);
+	/**
+	 * @param string $key
+	 *
+	 * @return mixed
+	 */
+	public function fetch($key);
 
-    /**
-     * @param string $key
-     * @param mixed  $value
-     *
-     * @return mixed
-     */
-    public function store($key, $value);
+	/**
+	 * @param string $key
+	 * @param mixed  $value
+	 *
+	 * @return mixed
+	 */
+	public function store($key, $value);
 }

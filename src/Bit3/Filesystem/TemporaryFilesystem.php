@@ -21,21 +21,21 @@ namespace Bit3\Filesystem;
  */
 interface TemporaryFilesystem extends Filesystem
 {
-    /**
-     * Create a temporary file and return the file object.
-     *
-     * @param string $prefix
-     *
-     * @return File
-     */
-    public function createTempFile($prefix);
+	/**
+	 * Create a temporary file and return the file object.
+	 *
+	 * @param string $prefix
+	 *
+	 * @return File
+	 */
+	public function createTempFile($prefix);
 
-    /**
-     * Create a temporary directory and return the file object.
-     *
-     * @param string $prefix
-     *
-     * @return File
-     */
-    public function createTempDirectory($prefix);
+	/**
+	 * Create a temporary directory and return the file object.
+	 *
+	 * @param string $prefix
+	 *
+	 * @return File
+	 */
+	public function createTempDirectory($prefix);
 }

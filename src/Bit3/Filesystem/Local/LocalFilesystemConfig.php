@@ -23,7 +23,8 @@ class LocalFilesystemConfig
 	extends AbstractFilesystemConfig
 {
 
-	public function __construct($path) {
+	public function __construct($path)
+	{
 		parent::__construct();
 		$this->setBasePath($path);
 	}

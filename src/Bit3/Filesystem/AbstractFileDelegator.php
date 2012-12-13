@@ -53,244 +53,244 @@ abstract class AbstractFileDelegator
 
 	public function __call($method, $args)
 	{
-		return call_user_func_array(array($this->delegate, $method), $args);
+		return call_user_func_array(array($this->getDelegate(), $method), $args);
 	}
 
 	public function getFilesystem()
 	{
-		return $this->fs ?: $this->delegate->getFilesystem();
+		return $this->fs ?: $this->getDelegate()->getFilesystem();
 	}
 
 	public function isFile()
 	{
-		return $this->delegate->isFile();
+		return $this->getDelegate()->isFile();
 	}
 
 	public function isLink()
 	{
-		return $this->delegate->isLink();
+		return $this->getDelegate()->isLink();
 	}
 
 	public function isDirectory()
 	{
-		return $this->delegate->isDirectory();
+		return $this->getDelegate()->isDirectory();
 	}
 
 	public function getType()
 	{
-		return $this->delegate->getType();
+		return $this->getDelegate()->getType();
 	}
 
 	public function getPathname()
 	{
-		return $this->delegate->getPathname();
+		return $this->getDelegate()->getPathname();
 	}
 
 	public function getLinkTarget()
 	{
-		return $this->delegate->getLinkTarget();
+		return $this->getDelegate()->getLinkTarget();
 	}
 
 	public function getBasename($suffix = null)
 	{
-		return $this->delegate->getBasename($suffix);
+		return $this->getDelegate()->getBasename($suffix);
 	}
 
 	public function getExtension()
 	{
-		return $this->delegate->getExtension();
+		return $this->getDelegate()->getExtension();
 	}
 
 	public function getParent()
 	{
-		return $this->delegate->getParent();
+		return $this->getDelegate()->getParent();
 	}
 
 	public function getAccessTime()
 	{
-		return $this->delegate->getAccessTime();
+		return $this->getDelegate()->getAccessTime();
 	}
 
 	public function setAccessTime($time)
 	{
-		return $this->delegate->setAccessTime($time);
+		return $this->getDelegate()->setAccessTime($time);
 	}
 
 	public function getCreationTime()
 	{
-		return $this->delegate->getCreationTime();
+		return $this->getDelegate()->getCreationTime();
 	}
 
 	public function getModifyTime()
 	{
-		return $this->delegate->getModifyTime();
+		return $this->getDelegate()->getModifyTime();
 	}
 
 	public function setModifyTime($time)
 	{
-		return $this->delegate->setModifyTime($time);
+		return $this->getDelegate()->setModifyTime($time);
 	}
 
 	public function touch($time = null, $atime = null)
 	{
-		return $this->delegate->touch($time, $atime);
+		return $this->getDelegate()->touch($time, $atime);
 	}
 
 	public function getSize()
 	{
-		return $this->delegate->getSize();
+		return $this->getDelegate()->getSize();
 	}
 
 	public function getOwner()
 	{
-		return $this->delegate->getOwner();
+		return $this->getDelegate()->getOwner();
 	}
 
 	public function setOwner($user)
 	{
-		return $this->delegate->setOwner($user);
+		return $this->getDelegate()->setOwner($user);
 	}
 
 	public function getGroup()
 	{
-		return $this->delegate->getGroup();
+		return $this->getDelegate()->getGroup();
 	}
 
 	public function setGroup($group)
 	{
-		return $this->delegate->setGroup($group);
+		return $this->getDelegate()->setGroup($group);
 	}
 
 	public function getMode()
 	{
-		return $this->delegate->getMode();
+		return $this->getDelegate()->getMode();
 	}
 
 	public function setMode($mode)
 	{
-		return $this->delegate->setMode($mode);
+		return $this->getDelegate()->setMode($mode);
 	}
 
 	public function isReadable()
 	{
-		return $this->delegate->isReadable();
+		return $this->getDelegate()->isReadable();
 	}
 
 	public function isWritable()
 	{
-		return $this->delegate->isWritable();
+		return $this->getDelegate()->isWritable();
 	}
 
 	public function isExecutable()
 	{
-		return $this->delegate->isExecutable();
+		return $this->getDelegate()->isExecutable();
 	}
 
 	public function exists()
 	{
-		return $this->delegate->exists();
+		return $this->getDelegate()->exists();
 	}
 
 	public function delete($recursive = false, $force = false)
 	{
-		return $this->delegate->delete($recursive, $force);
+		return $this->getDelegate()->delete($recursive, $force);
 	}
 
 	public function copyTo(File $destination, $parents = false)
 	{
-		return $this->delegate->copyTo($destination, $parents);
+		return $this->getDelegate()->copyTo($destination, $parents);
 	}
 
 	public function moveTo(File $destination)
 	{
-		return $this->delegate->moveTo($destination);
+		return $this->getDelegate()->moveTo($destination);
 	}
 
 	public function createDirectory($parents = false)
 	{
-		return $this->delegate->createDirectory($parents);
+		return $this->getDelegate()->createDirectory($parents);
 	}
 
 	public function createFile($parents = false)
 	{
-		return $this->delegate->createFile($parents);
+		return $this->getDelegate()->createFile($parents);
 	}
 
 	public function getContents()
 	{
-		return $this->delegate->getContents();
+		return $this->getDelegate()->getContents();
 	}
 
 	public function setContents($content)
 	{
-		return $this->delegate->setContents($content);
+		return $this->getDelegate()->setContents($content);
 	}
 
 	public function appendContents($content)
 	{
-		return $this->delegate->appendContents($content);
+		return $this->getDelegate()->appendContents($content);
 	}
 
 	public function truncate($size = 0)
 	{
-		return $this->delegate->truncate($size);
+		return $this->getDelegate()->truncate($size);
 	}
 
 	public function open($mode = 'rb')
 	{
-		return $this->delegate->open($mode);
+		return $this->getDelegate()->open($mode);
 	}
 
 	public function getMIMEName()
 	{
-		return $this->delegate->getMIMEName();
+		return $this->getDelegate()->getMIMEName();
 	}
 
 	public function getMIMEType()
 	{
-		return $this->delegate->getMIMEType();
+		return $this->getDelegate()->getMIMEType();
 	}
 
 	public function getMIMEEncoding()
 	{
-		return $this->delegate->getMIMEEncoding();
+		return $this->getDelegate()->getMIMEEncoding();
 	}
 
 	public function getMD5($raw = false)
 	{
-		return $this->delegate->getMD5($raw);
+		return $this->getDelegate()->getMD5($raw);
 	}
 
 	public function getSHA1($raw = false)
 	{
-		return $this->delegate->getSHA1($raw);
+		return $this->getDelegate()->getSHA1($raw);
 	}
 
 	public function ls()
 	{
 		$args = func_get_args();
-		return call_user_func_array(array($this->delegate, __METHOD__), $args);
+		return call_user_func_array(array($this->getDelegate(), __METHOD__), $args);
 	}
 
 	public function getRealURL()
 	{
-		return $this->delegate->getRealURL();
+		return $this->getDelegate()->getRealURL();
 	}
 
 	public function getPublicURL()
 	{
-		return $this->delegate->getPublicURL();
+		return $this->getDelegate()->getPublicURL();
 	}
 
 	public function count()
 	{
 		$args = func_get_args();
-		return call_user_func_array(array($this->delegate, __METHOD__), $args);
+		return call_user_func_array(array($this->getDelegate(), __METHOD__), $args);
 	}
 
 	public function getIterator()
 	{
 		$args = func_get_args();
-		return call_user_func_array(array($this->delegate, __METHOD__), $args);
+		return call_user_func_array(array($this->getDelegate(), __METHOD__), $args);
 	}
 }

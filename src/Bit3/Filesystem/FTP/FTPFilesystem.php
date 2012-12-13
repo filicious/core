@@ -161,6 +161,7 @@ class FTPFilesystem
 	 */
 	protected function setCache($key, $value)
 	{
+		/** @var \Bit3\Filesystem\Cache\Cache $cache */
 		$cache = $this->config->getCache();
 		if ($cache) {
 			$cache->store($key, $value);
@@ -168,6 +169,11 @@ class FTPFilesystem
 	}
 
 
+	/**
+	 * @param \Bit3\Filesystem\File $file
+	 *
+	 * @return FTPFileStat
+	 */
 	public function ftpStat(File $file)
 	{
 		$real     = $this->realPath($file);

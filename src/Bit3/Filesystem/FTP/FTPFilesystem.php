@@ -432,10 +432,10 @@ class FTPFilesystem
 	 *
 	 * @return int Type bitmask
 	 */
-	public function getTypeOf($objFile)
+	public function getTypeOf($file)
 	{
 		$type = 0;
-		$stat = $this->ftpStat($objFile);
+		$stat = $this->ftpStat($file);
 		if($stat) {
 			$stat->isFile && $type |= File::TYPE_FILE;
 			$stat->isLink && $type |= File::TYPE_LINK;
@@ -449,7 +449,7 @@ class FTPFilesystem
 	 *
 	 * @return string
 	 */
-	public function getLinkTargetOf($objFile)
+	public function getLinkTargetOf($file)
 	{
 		$stat = $this->fs->ftpStat($this);
 
@@ -461,9 +461,9 @@ class FTPFilesystem
 	 *
 	 * @return int
 	 */
-	public function getAccessTimeOf($objFile)
+	public function getAccessTimeOf($file)
 	{
-		return $this->getModifyTimeOf($objFile);
+		return $this->getModifyTimeOf($file);
 	}
 
 	/**
@@ -471,7 +471,7 @@ class FTPFilesystem
 	 *
 	 * @param int $time
 	 */
-	public function setAccessTimeOf($objFile, $time)
+	public function setAccessTimeOf($file, $time)
 	{
 		return false;
 	}
@@ -481,9 +481,9 @@ class FTPFilesystem
 	 *
 	 * @return int
 	 */
-	public function getCreationTimeOf($objFile)
+	public function getCreationTimeOf($file)
 	{
-		return $this->getModifyTimeOf($objFile);
+		return $this->getModifyTimeOf($file);
 	}
 
 	/**
@@ -491,9 +491,9 @@ class FTPFilesystem
 	 *
 	 * @return int
 	 */
-	public function getModifyTimeOf($objFile)
+	public function getModifyTimeOf($file)
 	{
-		$stat = $this->ftpStat($objFile);
+		$stat = $this->ftpStat($file);
 
 		return $stat ? $stat->modified : false;
 	}
@@ -503,7 +503,7 @@ class FTPFilesystem
 	 *
 	 * @param int $time
 	 */
-	public function setModifyTimeOf($objFile, $time)
+	public function setModifyTimeOf($file, $time)
 	{
 		return false;
 	}
@@ -511,13 +511,13 @@ class FTPFilesystem
 	/**
 	 * Sets access and modification time of file.
 	 *
-	 * @param File $objFile the file to modify
+	 * @param File $file the file to modify
 	 * @param int  $time
 	 * @param int  $atime
 	 *
 	 * @return bool
 	 */
-	public function touch($objFile, $time = null, $atime = null, $doNotCreate = false)
+	public function touch($file, $time = null, $atime = null, $doNotCreate = false)
 	{
 		return false;
 	}
@@ -527,9 +527,9 @@ class FTPFilesystem
 	 *
 	 * @return int
 	 */
-	public function getSizeOf($objFile)
+	public function getSizeOf($file)
 	{
-		$stat = $this->ftpStat($objFile);
+		$stat = $this->ftpStat($file);
 
 		return $stat ? $stat->size : false;
 	}
@@ -539,9 +539,9 @@ class FTPFilesystem
 	 *
 	 * @return string|int
 	 */
-	public function getOwnerOf($objFile)
+	public function getOwnerOf($file)
 	{
-		$stat = $this->ftpStat($objFile);
+		$stat = $this->ftpStat($file);
 
 		return $stat ? $stat->user : false;
 	}
@@ -553,7 +553,7 @@ class FTPFilesystem
 	 *
 	 * @return bool
 	 */
-	public function setOwnerOf($objFile, $user)
+	public function setOwnerOf($file, $user)
 	{
 		return false;
 	}
@@ -563,9 +563,9 @@ class FTPFilesystem
 	 *
 	 * @return string|int
 	 */
-	public function getGroupOf($objFile)
+	public function getGroupOf($file)
 	{
-		$stat = $this->ftpStat($objFile);
+		$stat = $this->ftpStat($file);
 
 		return $stat ? $stat->group : false;
 	}
@@ -577,7 +577,7 @@ class FTPFilesystem
 	 *
 	 * @return bool
 	 */
-	public function setGroupOf($objFile, $group)
+	public function setGroupOf($file, $group)
 	{
 		return false;
 	}
@@ -587,9 +587,9 @@ class FTPFilesystem
 	 *
 	 * @return int
 	 */
-	public function getModeOf($objFile)
+	public function getModeOf($file)
 	{
-		$stat = $this->ftpStat($objFile);
+		$stat = $this->ftpStat($file);
 
 		return $stat ? $stat->mode : false;
 	}
@@ -601,9 +601,9 @@ class FTPFilesystem
 	 *
 	 * @return bool
 	 */
-	public function setModeOf($objFile, $mode)
+	public function setModeOf($file, $mode)
 	{
-		return $this->ftpChmod($objFile, $mode);
+		return $this->ftpChmod($file, $mode);
 	}
 
 	/**
@@ -611,9 +611,9 @@ class FTPFilesystem
 	 *
 	 * @return bool
 	 */
-	public function exists($objFile)
+	public function exists($file)
 	{
-		$stat = $this->ftpStat($objFile);
+		$stat = $this->ftpStat($file);
 
 		return $stat ? true : false;
 	}
@@ -621,39 +621,39 @@ class FTPFilesystem
 	/**
 	 * Delete a file or directory.
 	 *
-	 * @param File $objFile the file
+	 * @param File $file the file
 	 *
 	 * @param bool $recursive
 	 *
 	 * @return bool
 	 */
-	public function delete($objFile, $recursive = false, $force = false)
+	public function delete($file, $recursive = false, $force = false)
 	{
 		// TODO: invalidate cache after delete?
-		if ($objFile->isDirectory()) {
+		if ($file->isDirectory()) {
 			if ($recursive) {
 				/** @var File $file */
-				foreach ($objFile->ls() as $file) {
-					if (!$objFile->delete(true, $force)) {
+				foreach ($file->ls() as $file) {
+					if (!$file->delete(true, $force)) {
 						return false;
 					}
 				}
 			}
-			else if ($objFile->count() > 0) {
+			else if ($file->count() > 0) {
 				return false;
 			}
-			return $this->ftpDelete($objFile);
+			return $this->ftpDelete($file);
 		}
 		else {
-			if (!$objFile->isWritable()) {
+			if (!$file->isWritable()) {
 				if ($force) {
-					$objFile->setMode(0666);
+					$file->setMode(0666);
 				}
 				else {
 					return false;
 				}
 			}
-			return $this->ftpDelete($objFile);
+			return $this->ftpDelete($file);
 		}
 	}
 
@@ -665,13 +665,13 @@ class FTPFilesystem
 	 *
 	 * @return bool
 	 */
-	public function copyTo($objFile, File $destination, $parents = false)
+	public function copyTo($file, File $destination, $parents = false)
 	{
-		if ($objFile->isDirectory()) {
+		if ($file->isDirectory()) {
 			// TODO: recursive directory copy.
 		}
-		else if ($objFile->isFile()) {
-			Util::streamCopy($objFile, $destination);
+		else if ($file->isFile()) {
+			Util::streamCopy($file, $destination);
 		}
 	}
 
@@ -682,14 +682,14 @@ class FTPFilesystem
 	 *
 	 * @return bool
 	 */
-	public function moveTo($objFile, File $destination)
+	public function moveTo($file, File $destination)
 	{
 		if ($destination->getFilesystem() == $this) {
 			// TODO: invalidate cache?
-			return $this->ftpRename($objFile, $destination);
+			return $this->ftpRename($file, $destination);
 		}
 		else {
-			return Util::streamCopy($objFile, $destination) && $objFile->delete();
+			return Util::streamCopy($file, $destination) && $file->delete();
 		}
 	}
 
@@ -698,19 +698,19 @@ class FTPFilesystem
 	 *
 	 * @return bool
 	 */
-	public function createDirectory($objFile, $parents = false)
+	public function createDirectory($file, $parents = false)
 	{
-		if ($objFile->exists()) {
-			return $objFile->isDirectory();
+		if ($file->exists()) {
+			return $file->isDirectory();
 		}
 		else if ($parents) {
-			$parent = $objFile->getParent();
+			$parent = $file->getParent();
 			if (!$parent->createDirectory(true))
 			{
 				return false;
 			}
 		}
-		return $this->ftpMkdir($objFile);
+		return $this->ftpMkdir($file);
 	}
 
 	/**
@@ -718,9 +718,9 @@ class FTPFilesystem
 	 *
 	 * @return bool
 	 */
-	public function createFile($objFile, $parents = false)
+	public function createFile($file, $parents = false)
 	{
-		$parent = $objFile->getParent();
+		$parent = $file->getParent();
 		if ($parents) {
 			if (!($parent && $parent->createDirectory(true))) {
 				return false;
@@ -736,7 +736,7 @@ class FTPFilesystem
 		// otherwise something unexpected may happen
 		fwrite($stream, '');
 
-		return $this->ftpStreamPut($objFile, $stream);
+		return $this->ftpStreamPut($file, $stream);
 	}
 
 	/**
@@ -745,16 +745,16 @@ class FTPFilesystem
 	 *
 	 * @return string|null|bool
 	 */
-	public function getContentsOf($objFile)
+	public function getContentsOf($file)
 	{
-		$stat = $this->ftpStat($objFile);
+		$stat = $this->ftpStat($file);
 
 		if ($stat) {
 			// TODO: get rid of system temporary call here.
 			$tempFS = FS::getSystemTemporaryFilesystem();
 			$tempFile = $tempFS->createTempFile('ftp_');
 
-			if ($this->ftpGet($objFile, $tempFile)) {
+			if ($this->ftpGet($file, $tempFile)) {
 				return $tempFile->getContents();
 			}
 
@@ -771,9 +771,9 @@ class FTPFilesystem
 	 *
 	 * @return bool
 	 */
-	public function setContentsOf($objFile, $content)
+	public function setContentsOf($file, $content)
 	{
-		if ($objFile->exists() && !$objFile->isFile()) {
+		if ($file->exists() && !$file->isFile()) {
 			return false;
 		}
 
@@ -791,10 +791,10 @@ class FTPFilesystem
 	 *
 	 * @return bool
 	 */
-	public function appendContentsTo($objFile, $content)
+	public function appendContentsTo($file, $content)
 	{
-		$previous = $objFile->getContents();
-		return $this->ftpPut($objFile, $previous . $content);
+		$previous = $file->getContents();
+		return $this->ftpPut($file, $previous . $content);
 	}
 
 	/**
@@ -804,12 +804,12 @@ class FTPFilesystem
 	 *
 	 * @return int|bool
 	 */
-	public function truncate($objFile, $size = 0)
+	public function truncate($file, $size = 0)
 	{
-		if (!$objFile->exists()) {
+		if (!$file->exists()) {
 			return null;
 		}
-		if (!$objFile->isFile()) {
+		if (!$file->isFile()) {
 			return false;
 		}
 
@@ -818,10 +818,10 @@ class FTPFilesystem
 		// TODO: implement expanding
 
 		if ($size > 0) {
-			$content = $objFile->getContents();
+			$content = $file->getContents();
 			$content = substr($content, 0, $size);
 		}
-		return $this->fs->ftpPut($objFile, $content);
+		return $this->fs->ftpPut($file, $content);
 	}
 
 	/**
@@ -831,10 +831,10 @@ class FTPFilesystem
 	 *
 	 * @return resource|null
 	 */
-	public function open($objFile, $mode = 'rb')
+	public function open($file, $mode = 'rb')
 	{
 		$cfg = $this->getConfig();
-		$url = $cfg->toURL(false, true) . $objFile->getPathname();
+		$url = $cfg->toURL(false, true) . $file->getPathname();
 
 		$stream_options = array($cfg->getProtocol() => array('overwrite' => true));
 		$stream_context = stream_context_create($stream_options);
@@ -863,15 +863,15 @@ class FTPFilesystem
 	public function lsFile()
 	{
 		$args = func_get_args();
-		$objFile = array_shift($args);
+		$file = array_shift($args);
 
-		list($recursive, $bitmask, $globs, $callables, $globSearchPatterns) = Util::buildFilters($objFile, $args);
+		list($recursive, $bitmask, $globs, $callables, $globSearchPatterns) = Util::buildFilters($file, $args);
 
-		$pathname = $objFile->getPathname();
+		$pathname = $file->getPathname();
 
 		$files = array();
 
-		$currentFiles = $this->ftpList($objFile);
+		$currentFiles = $this->ftpList($file);
 
 		foreach ($currentFiles as $stat) {
 			$file = new SimpleFile($pathname . '/' . $stat->name, $this);
@@ -904,7 +904,7 @@ class FTPFilesystem
 	 *
 	 * @return string
 	 */
-	public function getRealURLOf($objFile)
+	public function getRealURLOf($file)
 	{
 		return $this->getConfig()->toURL() . $this->pathname;
 	}

@@ -108,13 +108,13 @@ implements SimpleFilesystem
 	/**
 	 * Sets access and modification time of file.
 	 *
-	 * @param File $objFile the file to modify
+	 * @param File $file the file to modify
 	 * @param int  $time
 	 * @param int  $atime
 	 *
 	 * @return bool
 	 */
-	public function touch($objFile, $time = null, $atime = null, $doNotCreate = false)
+	public function touch($file, $time = null, $atime = null, $doNotCreate = false)
 	{
 		if (!$this->exists() && $doNotCreate && (!$this->createFile())) {
 			return false;
@@ -134,9 +134,9 @@ implements SimpleFilesystem
 	 *
 	 * @return bool
 	 */
-	public function isThisFile($objFile)
+	public function isThisFile($file)
 	{
-		return (bool) ($objFile->getType() & File::TYPE_FILE);
+		return (bool) ($file->getType() & File::TYPE_FILE);
 	}
 
 	/**
@@ -144,9 +144,9 @@ implements SimpleFilesystem
 	 *
 	 * @return bool
 	 */
-	public function isThisLink($objFile)
+	public function isThisLink($file)
 	{
-		return (bool) ($objFile->getType() & File::TYPE_LINK);
+		return (bool) ($file->getType() & File::TYPE_LINK);
 	}
 
 	/**
@@ -154,9 +154,9 @@ implements SimpleFilesystem
 	 *
 	 * @return bool
 	 */
-	public function isThisDirectory($objFile)
+	public function isThisDirectory($file)
 	{
-		return (bool) ($objFile->getType() & File::TYPE_DIRECTORY);
+		return (bool) ($file->getType() & File::TYPE_DIRECTORY);
 	}
 
 	/**
@@ -164,9 +164,9 @@ implements SimpleFilesystem
 	 *
 	 * @return File|null
 	 */
-	public function getParentOf($objFile)
+	public function getParentOf($file)
 	{
-		return $objFile->getPathname() == '/' ? null : $this->getFile(dirname($objFile->getPathname()));
+		return $file->getPathname() == '/' ? null : $this->getFile(dirname($file->getPathname()));
 	}
 
 	/**
@@ -174,9 +174,9 @@ implements SimpleFilesystem
 	 *
 	 * @return bool
 	 */
-	public function isThisReadable($objFile)
+	public function isThisReadable($file)
 	{
-		return ($mode = $objFile->getMode()) ? $mode & 0444 : false;
+		return ($mode = $file->getMode()) ? $mode & 0444 : false;
 	}
 
 	/**
@@ -184,9 +184,9 @@ implements SimpleFilesystem
 	 *
 	 * @return bool
 	 */
-	public function isThisWritable($objFile)
+	public function isThisWritable($file)
 	{
-		return ($mode = $objFile->getMode()) ? $mode & 0222 : false;
+		return ($mode = $file->getMode()) ? $mode & 0222 : false;
 	}
 
 	/**
@@ -194,9 +194,9 @@ implements SimpleFilesystem
 	 *
 	 * @return bool
 	 */
-	public function isThisExecutable($objFile)
+	public function isThisExecutable($file)
 	{
-		return ($mode = $objFile->getMode()) ? $mode & 0111 : false;
+		return ($mode = $file->getMode()) ? $mode & 0111 : false;
 	}
 
 	/**
@@ -206,13 +206,13 @@ implements SimpleFilesystem
 	 *
 	 * @return string
 	 */
-	public function getMIMENameOf($objFile)
+	public function getMIMENameOf($file)
 	{
-		if (!($objFile->exists() && $objFile->isFile())) {
+		if (!($file->exists() && $file->isFile())) {
 			return null;
 		}
 
-		return finfo_buffer(FS::getFileInfo(), $objFile->getContents(), FILEINFO_NONE);
+		return finfo_buffer(FS::getFileInfo(), $file->getContents(), FILEINFO_NONE);
 	}
 
 	/**
@@ -222,13 +222,13 @@ implements SimpleFilesystem
 	 *
 	 * @return string
 	 */
-	public function getMIMETypeOf($objFile)
+	public function getMIMETypeOf($file)
 	{
-		if (!($objFile->exists() && $objFile->isFile())) {
+		if (!($file->exists() && $file->isFile())) {
 			return null;
 		}
 
-		return finfo_buffer(FS::getFileInfo(), $objFile->getContents(), FILEINFO_MIME_TYPE);
+		return finfo_buffer(FS::getFileInfo(), $file->getContents(), FILEINFO_MIME_TYPE);
 	}
 
 	/**
@@ -238,13 +238,13 @@ implements SimpleFilesystem
 	 *
 	 * @return string
 	 */
-	public function getMIMEEncodingOf($objFile)
+	public function getMIMEEncodingOf($file)
 	{
-		if (!($objFile->exists() && $objFile->isFile())) {
+		if (!($file->exists() && $file->isFile())) {
 			return null;
 		}
 
-		return finfo_buffer(FS::getFileInfo(), $objFile->getContents(), FILEINFO_MIME_ENCODING);
+		return finfo_buffer(FS::getFileInfo(), $file->getContents(), FILEINFO_MIME_ENCODING);
 	}
 
 	/**
@@ -255,13 +255,13 @@ implements SimpleFilesystem
 	 *
 	 * @return string|null
 	 */
-	public function getMD5Of($objFile, $raw = false)
+	public function getMD5Of($file, $raw = false)
 	{
-		if (!($objFile->exists() && $objFile->isFile())) {
+		if (!($file->exists() && $file->isFile())) {
 			return null;
 		}
 
-		return md5($objFile->getContents());
+		return md5($file->getContents());
 	}
 
 	/**
@@ -272,13 +272,13 @@ implements SimpleFilesystem
 	 *
 	 * @return string|null
 	 */
-	public function getSHA1Of($objFile, $raw = false)
+	public function getSHA1Of($file, $raw = false)
 	{
-		if (!($objFile->exists() && $objFile->isFile())) {
+		if (!($file->exists() && $file->isFile())) {
 			return null;
 		}
 
-		return sha1($objFile->getContents());
+		return sha1($file->getContents());
 	}
 
 	/**
@@ -286,11 +286,11 @@ implements SimpleFilesystem
 	 *
 	 * @return string
 	 */
-	public function getPublicURLOf($objFile)
+	public function getPublicURLOf($file)
 	{
 		$publicURLProvider = $this->getPublicURLProvider();
 
-		return $publicURLProvider ? $publicURLProvider->getPublicURL($objFile) : false;
+		return $publicURLProvider ? $publicURLProvider->getPublicURL($file) : false;
 	}
 
 	/**
@@ -301,8 +301,8 @@ implements SimpleFilesystem
 	public function countFile()
 	{
 		$args = func_get_args();
-		$objFile = array_shift($args);
-		return count(call_user_func_array(array($objFile, 'ls'), $args));
+		$file = array_shift($args);
+		return count(call_user_func_array(array($file, 'ls'), $args));
 	}
 
 	/**
@@ -317,7 +317,7 @@ implements SimpleFilesystem
 	public function getIteratorOf()
 	{
 		$args = func_get_args();
-		$objFile = array_shift($args);
-		return new ArrayIterator(call_user_func_array(array($objFile, 'ls'), $args));
+		$file = array_shift($args);
+		return new ArrayIterator(call_user_func_array(array($file, 'ls'), $args));
 	}
 }

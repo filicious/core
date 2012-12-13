@@ -109,11 +109,11 @@ class LocalFilesystem
 	 *
 	 * @return int Type bitmask
 	 */
-	public function getTypeOf($objFile)
+	public function getTypeOf($file)
 	{
 		$type = 0;
-		if($objFile->exists()) {
-			$filePath = $this->realPath($objFile);
+		if($file->exists()) {
+			$filePath = $this->realPath($file);
 			is_file($filePath) && $type |= File::TYPE_FILE;
 			is_link($filePath) && $type |= File::TYPE_LINK;
 			is_dir($filePath) && $type |= File::TYPE_DIRECTORY;
@@ -126,9 +126,9 @@ class LocalFilesystem
 	 *
 	 * @return string
 	 */
-	public function getLinkTargetOf($objFile)
+	public function getLinkTargetOf($file)
 	{
-		return $objFile->isLink() && readlink($this->realPath($objFile));
+		return $file->isLink() && readlink($this->realPath($file));
 	}
 
 	/**
@@ -136,9 +136,9 @@ class LocalFilesystem
 	 *
 	 * @return int
 	 */
-	public function getAccessTimeOf($objFile)
+	public function getAccessTimeOf($file)
 	{
-		return $objFile->exists() ? fileatime($this->realPath($objFile)) : false;
+		return $file->exists() ? fileatime($this->realPath($file)) : false;
 	}
 
 	/**
@@ -146,10 +146,10 @@ class LocalFilesystem
 	 *
 	 * @param int $time
 	 */
-	public function setAccessTimeOf($objFile, $time)
+	public function setAccessTimeOf($file, $time)
 	{
-		if ($objFile->exists()) {
-			return touch($this->realPath($objFile), $this->getModifyTime(), time());
+		if ($file->exists()) {
+			return touch($this->realPath($file), $this->getModifyTime(), time());
 		}
 		return false;
 	}
@@ -159,9 +159,9 @@ class LocalFilesystem
 	 *
 	 * @return int
 	 */
-	public function getCreationTimeOf($objFile)
+	public function getCreationTimeOf($file)
 	{
-		return $objFile->exists() ? filectime($this->realPath($objFile)) : false;
+		return $file->exists() ? filectime($this->realPath($file)) : false;
 	}
 
 	/**
@@ -169,9 +169,9 @@ class LocalFilesystem
 	 *
 	 * @return int
 	 */
-	public function getModifyTimeOf($objFile)
+	public function getModifyTimeOf($file)
 	{
-		return $objFile->exists() ? filemtime($this->realPath($objFile)) : false;
+		return $file->exists() ? filemtime($this->realPath($file)) : false;
 	}
 
 	/**
@@ -179,10 +179,10 @@ class LocalFilesystem
 	 *
 	 * @param int $time
 	 */
-	public function setModifyTimeOf($objFile, $time)
+	public function setModifyTimeOf($file, $time)
 	{
-		if ($objFile->exists()) {
-			return touch($this->realPath($objFile), time(), $objFile->getAccessTime());
+		if ($file->exists()) {
+			return touch($this->realPath($file), time(), $file->getAccessTime());
 		}
 		return false;
 	}
@@ -190,19 +190,19 @@ class LocalFilesystem
 	/**
 	 * Sets access and modification time of file.
 	 *
-	 * @param File $objFile the file to modify
+	 * @param File $file the file to modify
 	 * @param int  $time
 	 * @param int  $atime
 	 *
 	 * @return bool
 	 */
-	public function touch($objFile, $time = null, $atime = null, $doNotCreate = false)
+	public function touch($file, $time = null, $atime = null, $doNotCreate = false)
 	{
-		if ($doNotCreate && !$objFile->exists())
+		if ($doNotCreate && !$file->exists())
 		{
 			return false;
 		}
-		return touch($this->realPath($objFile), $time, $atime);
+		return touch($this->realPath($file), $time, $atime);
 	}
 
 	/**
@@ -210,9 +210,9 @@ class LocalFilesystem
 	 *
 	 * @return int
 	 */
-	public function getSizeOf($objFile)
+	public function getSizeOf($file)
 	{
-		return $objFile->exists() ? filesize($this->realPath($objFile)) : false;
+		return $file->exists() ? filesize($this->realPath($file)) : false;
 	}
 
 	/**
@@ -220,9 +220,9 @@ class LocalFilesystem
 	 *
 	 * @return string|int
 	 */
-	public function getOwnerOf($objFile)
+	public function getOwnerOf($file)
 	{
-		return $objFile->exists() ? fileowner($this->realPath($objFile)) : false;
+		return $file->exists() ? fileowner($this->realPath($file)) : false;
 	}
 
 	/**
@@ -232,9 +232,9 @@ class LocalFilesystem
 	 *
 	 * @return bool
 	 */
-	public function setOwnerOf($objFile, $user)
+	public function setOwnerOf($file, $user)
 	{
-		return $objFile->exists() ? chown($this->realPath($objFile), $user) : false;
+		return $file->exists() ? chown($this->realPath($file), $user) : false;
 	}
 
 	/**
@@ -242,9 +242,9 @@ class LocalFilesystem
 	 *
 	 * @return string|int
 	 */
-	public function getGroupOf($objFile)
+	public function getGroupOf($file)
 	{
-		return $objFile->exists() ? filegroup($this->realPath($objFile)) : false;
+		return $file->exists() ? filegroup($this->realPath($file)) : false;
 	}
 
 	/**
@@ -254,9 +254,9 @@ class LocalFilesystem
 	 *
 	 * @return bool
 	 */
-	public function setGroupOf($objFile, $group)
+	public function setGroupOf($file, $group)
 	{
-		return $objFile->exists() ? chgrp($this->realPath($objFile), $group) : false;
+		return $file->exists() ? chgrp($this->realPath($file), $group) : false;
 	}
 
 	/**
@@ -264,9 +264,9 @@ class LocalFilesystem
 	 *
 	 * @return int
 	 */
-	public function getModeOf($objFile)
+	public function getModeOf($file)
 	{
-		return $objFile->exists() ? fileperms($this->realPath($objFile)) : false;
+		return $file->exists() ? fileperms($this->realPath($file)) : false;
 	}
 
 	/**
@@ -276,9 +276,9 @@ class LocalFilesystem
 	 *
 	 * @return bool
 	 */
-	public function setModeOf($objFile, $mode)
+	public function setModeOf($file, $mode)
 	{
-		return $objFile->exists() ? chmod($this->realPath($objFile), $mode) : false;
+		return $file->exists() ? chmod($this->realPath($file), $mode) : false;
 	}
 
 	/**
@@ -286,9 +286,9 @@ class LocalFilesystem
 	 *
 	 * @return bool
 	 */
-	public function isThisReadable($objFile)
+	public function isThisReadable($file)
 	{
-		return $objFile->exists() && is_readable($this->realPath($objFile));
+		return $file->exists() && is_readable($this->realPath($file));
 	}
 
 	/**
@@ -296,14 +296,14 @@ class LocalFilesystem
 	 *
 	 * @return bool
 	 */
-	public function isThisWritable($objFile)
+	public function isThisWritable($file)
 	{
 		// either exist -> direct lookup
-		if ($objFile->exists()) {
-			return is_writable($this->realPath($objFile));
+		if ($file->exists()) {
+			return is_writable($this->realPath($file));
 		}
 		// or non existant -> check if we can create it.
-		$parent = $objFile->getParent();
+		$parent = $file->getParent();
 		if ($parent) {
 			return $parent->isWritable();
 		}
@@ -315,9 +315,9 @@ class LocalFilesystem
 	 *
 	 * @return bool
 	 */
-	public function isThisExecutable($objFile)
+	public function isThisExecutable($file)
 	{
-		return $objFile->exists() && is_executable($this->realPath($objFile));
+		return $file->exists() && is_executable($this->realPath($file));
 	}
 
 	/**
@@ -325,46 +325,46 @@ class LocalFilesystem
 	 *
 	 * @return bool
 	 */
-	public function exists($objFile)
+	public function exists($file)
 	{
-		return file_exists($this->realPath($objFile));
+		return file_exists($this->realPath($file));
 	}
 
 	/**
 	 * Delete a file or directory.
 	 *
-	 * @param File $objFile the file
+	 * @param File $file the file
 	 *
 	 * @param bool $recursive
 	 *
 	 * @return bool
 	 */
-	public function delete($objFile, $recursive = false, $force = false)
+	public function delete($file, $recursive = false, $force = false)
 	{
-		if ($objFile->isDirectory()) {
+		if ($file->isDirectory()) {
 			if ($recursive) {
 				/** @var File $file */
-				foreach ($objFile->ls() as $file) {
-					if (!$objFile->delete(true, $force)) {
+				foreach ($file->ls() as $file) {
+					if (!$file->delete(true, $force)) {
 						return false;
 					}
 				}
 			}
-			else if ($objFile->count() > 0) {
+			else if ($file->count() > 0) {
 				return false;
 			}
-			return rmdir($this->realPath($objFile));
+			return rmdir($this->realPath($file));
 		}
 		else {
-			if (!$objFile->isWritable()) {
+			if (!$file->isWritable()) {
 				if ($force) {
-					$objFile->setMode(0666);
+					$file->setMode(0666);
 				}
 				else {
 					return false;
 				}
 			}
-			return unlink($this->realPath($objFile));
+			return unlink($this->realPath($file));
 		}
 	}
 
@@ -376,17 +376,17 @@ class LocalFilesystem
 	 *
 	 * @return bool
 	 */
-	public function copyTo($objFile, File $destination, $parents = false)
+	public function copyTo($file, File $destination, $parents = false)
 	{
-		if ($objFile->isDirectory()) {
+		if ($file->isDirectory()) {
 			// TODO: recursive directory copy.
 		}
-		else if ($objFile->isFile()) {
+		else if ($file->isFile()) {
 			if ($destination instanceof LocalFile) {
-				return copy($this->realPath($objFile), $this->realPath($destination));
+				return copy($this->realPath($file), $this->realPath($destination));
 			}
 			else {
-				return Util::streamCopy($objFile, $destination);
+				return Util::streamCopy($file, $destination);
 			}
 		}
 	}
@@ -398,13 +398,13 @@ class LocalFilesystem
 	 *
 	 * @return bool
 	 */
-	public function moveTo($objFile, File $destination)
+	public function moveTo($file, File $destination)
 	{
 		if ($destination instanceof LocalFile) {
-			return rename($this->realPath($objFile), $this->realPath($destination));
+			return rename($this->realPath($file), $this->realPath($destination));
 		}
 		else {
-			return Util::streamCopy($objFile, $destination) && $objFile->delete();
+			return Util::streamCopy($file, $destination) && $file->delete();
 		}
 	}
 
@@ -413,17 +413,17 @@ class LocalFilesystem
 	 *
 	 * @return bool
 	 */
-	public function createDirectory($objFile, $parents = false)
+	public function createDirectory($file, $parents = false)
 	{
-		if ($objFile->exists()) {
-			return $objFile->isDirectory();
+		if ($file->exists()) {
+			return $file->isDirectory();
 		}
 		else if ($parents) {
 			// TODO: apply umask.
-			return mkdir($this->realPath($objFile), 0777, true);
+			return mkdir($this->realPath($file), 0777, true);
 		}
 		else {
-			return mkdir($this->realPath($objFile));
+			return mkdir($this->realPath($file));
 		}
 	}
 
@@ -432,9 +432,9 @@ class LocalFilesystem
 	 *
 	 * @return bool
 	 */
-	public function createFile($objFile, $parents = false)
+	public function createFile($file, $parents = false)
 	{
-		$parent = $objFile->getParent();
+		$parent = $file->getParent();
 		if ($parents) {
 			if (!($parent && $parent->createDirectory(true))) {
 				return false;
@@ -444,7 +444,7 @@ class LocalFilesystem
 			return false;
 		}
 
-		return touch($this->realPath($objFile));
+		return touch($this->realPath($file));
 	}
 
 	/**
@@ -453,15 +453,15 @@ class LocalFilesystem
 	 *
 	 * @return string|null|bool
 	 */
-	public function getContentsOf($objFile)
+	public function getContentsOf($file)
 	{
-		if (!$objFile->exists()) {
+		if (!$file->exists()) {
 			return null;
 		}
-		if (!$objFile->isFile()) {
+		if (!$file->isFile()) {
 			return false;
 		}
-		return file_get_contents($this->realPath($objFile));
+		return file_get_contents($this->realPath($file));
 	}
 
 	/**
@@ -471,12 +471,12 @@ class LocalFilesystem
 	 *
 	 * @return bool
 	 */
-	public function setContentsOf($objFile, $content)
+	public function setContentsOf($file, $content)
 	{
-		if ($objFile->exists() && !$objFile->isFile()) {
+		if ($file->exists() && !$file->isFile()) {
 			return false;
 		}
-		return false !== file_put_contents($this->realPath($objFile), $content);
+		return false !== file_put_contents($this->realPath($file), $content);
 	}
 
 	/**
@@ -486,15 +486,15 @@ class LocalFilesystem
 	 *
 	 * @return bool
 	 */
-	public function appendContentsTo($objFile, $content)
+	public function appendContentsTo($file, $content)
 	{
-		if (!$objFile->exists()) {
+		if (!$file->exists()) {
 			return null;
 		}
-		if (!$objFile->isFile()) {
+		if (!$file->isFile()) {
 			return false;
 		}
-		if (false !== ($f = fopen($this->realPath($objFile), 'ab'))) {
+		if (false !== ($f = fopen($this->realPath($file), 'ab'))) {
 			if (false !== fwrite($f, $content)) {
 				fclose($f);
 				return true;
@@ -511,18 +511,18 @@ class LocalFilesystem
 	 *
 	 * @return int|bool
 	 */
-	public function truncate($objFile, $size = 0)
+	public function truncate($file, $size = 0)
 	{
-		if (!$objFile->exists()) {
+		if (!$file->exists()) {
 			return null;
 		}
-		if (!$objFile->isFile()) {
+		if (!$file->isFile()) {
 			return false;
 		}
-		if (false !== ($f = fopen($this->realPath($objFile), 'ab'))) {
+		if (false !== ($f = fopen($this->realPath($file), 'ab'))) {
 			if (false !== ftruncate($f, $size)) {
 				fclose($f);
-				return $objFile->getSize();
+				return $file->getSize();
 			}
 			fclose($f);
 		}
@@ -536,9 +536,9 @@ class LocalFilesystem
 	 *
 	 * @return resource|null
 	 */
-	public function open($objFile, $mode = 'rb')
+	public function open($file, $mode = 'rb')
 	{
-		return fopen($this->realPath($objFile), $mode);
+		return fopen($this->realPath($file), $mode);
 	}
 
 	/**
@@ -548,9 +548,9 @@ class LocalFilesystem
 	 *
 	 * @return string
 	 */
-	public function getMIMENameOf($objFile)
+	public function getMIMENameOf($file)
 	{
-		return finfo_file(FS::getFileInfo(), $this->realPath($objFile), FILEINFO_NONE);
+		return finfo_file(FS::getFileInfo(), $this->realPath($file), FILEINFO_NONE);
 	}
 
 	/**
@@ -560,9 +560,9 @@ class LocalFilesystem
 	 *
 	 * @return string
 	 */
-	public function getMIMETypeOf($objFile)
+	public function getMIMETypeOf($file)
 	{
-		return finfo_file(FS::getFileInfo(), $this->realPath($objFile), FILEINFO_MIME_TYPE);
+		return finfo_file(FS::getFileInfo(), $this->realPath($file), FILEINFO_MIME_TYPE);
 	}
 
 	/**
@@ -572,9 +572,9 @@ class LocalFilesystem
 	 *
 	 * @return string
 	 */
-	public function getMIMEEncodingOf($objFile)
+	public function getMIMEEncodingOf($file)
 	{
-		return finfo_file(FS::getFileInfo(), $this->realPath($objFile), FILEINFO_MIME_ENCODING);
+		return finfo_file(FS::getFileInfo(), $this->realPath($file), FILEINFO_MIME_ENCODING);
 	}
 
 	/**
@@ -585,16 +585,16 @@ class LocalFilesystem
 	 *
 	 * @return string|null
 	 */
-	public function getMD5Of($objFile, $raw = false)
+	public function getMD5Of($file, $raw = false)
 	{
-		if (!$objFile->exists()) {
+		if (!$file->exists()) {
 			return null;
 		}
-		if (!$objFile->isFile()) {
+		if (!$file->isFile()) {
 			return false;
 		}
 
-		return md5_file($this->realPath($objFile), $raw);
+		return md5_file($this->realPath($file), $raw);
 	}
 
 	/**
@@ -605,16 +605,16 @@ class LocalFilesystem
 	 *
 	 * @return string|null
 	 */
-	public function getSHA1Of($objFile, $raw = false)
+	public function getSHA1Of($file, $raw = false)
 	{
-		if (!$objFile->exists()) {
+		if (!$file->exists()) {
 			return null;
 		}
-		if (!$objFile->isFile()) {
+		if (!$file->isFile()) {
 			return false;
 		}
 
-		return sha1_file($this->realPath($objFile), $raw);
+		return sha1_file($this->realPath($file), $raw);
 	}
 
 	/**
@@ -627,15 +627,15 @@ class LocalFilesystem
 	public function lsFile()
 	{
 		$args = func_get_args();
-		$objFile = array_shift($args);
+		$file = array_shift($args);
 
-		list($recursive, $bitmask, $globs, $callables, $globSearchPatterns) = Util::buildFilters($objFile, $args);
+		list($recursive, $bitmask, $globs, $callables, $globSearchPatterns) = Util::buildFilters($file, $args);
 
-		$pathname = $objFile->getPathname();
+		$pathname = $file->getPathname();
 
 		$files = array();
 
-		$currentFiles = scandir($this->realPath($objFile));
+		$currentFiles = scandir($this->realPath($file));
 
 		foreach ($currentFiles as $path) {
 			$file = new SimpleFile($pathname . '/' . $path, $this);
@@ -668,8 +668,8 @@ class LocalFilesystem
 	 *
 	 * @return string
 	 */
-	public function getRealURLOf($objFile)
+	public function getRealURLOf($file)
 	{
-		return 'file:' . $this->realPath($objFile);
+		return 'file:' . $this->realPath($file);
 	}
 }

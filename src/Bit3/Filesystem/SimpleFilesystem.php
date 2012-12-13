@@ -28,102 +28,102 @@ interface SimpleFilesystem
 	 *
 	 * @return int Type bitmask
 	 */
-	public function getTypeOf($objFile);
+	public function getTypeOf($file);
 
 	/**
 	 * Test whether this pathname is a file.
 	 *
 	 * @return bool
 	 */
-	public function isThisFile($objFile);
+	public function isThisFile($file);
 
 	/**
 	 * Test whether this pathname is a link.
 	 *
 	 * @return bool
 	 */
-	public function isThisLink($objFile);
+	public function isThisLink($file);
 
 	/**
 	 * Test whether this pathname is a directory.
 	 *
 	 * @return bool
 	 */
-	public function isThisDirectory($objFile);
+	public function isThisDirectory($file);
 
 	/**
 	 * Get the link target of the link.
 	 *
 	 * @return string
 	 */
-	public function getLinkTargetOf($objFile);
+	public function getLinkTargetOf($file);
 
 	/**
 	 * Returns the the path of this pathname's parent, or <em>null</em> if this pathname does not name a parent directory.
 	 *
 	 * @return File|null
 	 */
-	public function getParentOf($objFile);
+	public function getParentOf($file);
 
 	/**
 	 * Return the time that the file denoted by this pathname was las modified.
 	 *
 	 * @return int
 	 */
-	public function getAccessTimeOf($objFile);
+	public function getAccessTimeOf($file);
 
 	/**
 	 * Sets the last-modified time of the file or directory named by this pathname.
 	 *
 	 * @param int $time
 	 */
-	public function setAccessTimeOf($objFile, $time);
+	public function setAccessTimeOf($file, $time);
 
 	/**
 	 * Return the time that the file denoted by this pathname was las modified.
 	 *
 	 * @return int
 	 */
-	public function getCreationTimeOf($objFile);
+	public function getCreationTimeOf($file);
 
 	/**
 	 * Return the time that the file denoted by this pathname was las modified.
 	 *
 	 * @return int
 	 */
-	public function getModifyTimeOf($objFile);
+	public function getModifyTimeOf($file);
 
 	/**
 	 * Sets the last-modified time of the file or directory named by this pathname.
 	 *
 	 * @param int $time
 	 */
-	public function setModifyTimeOf($objFile, $time);
+	public function setModifyTimeOf($file, $time);
 
 	/**
 	 * Sets access and modification time of file.
 	 *
-	 * @param File $objFile the file to modify
+	 * @param File $file the file to modify
 	 * @param int  $time
 	 * @param int  $atime
 	 *
 	 * @return bool
 	 */
-	public function touch($objFile, $time = null, $atime = null, $doNotCreate = false);
+	public function touch($file, $time = null, $atime = null, $doNotCreate = false);
 
 	/**
 	 * Get the size of the file denoted by this pathname.
 	 *
 	 * @return int
 	 */
-	public function getSizeOf($objFile);
+	public function getSizeOf($file);
 
 	/**
 	 * Get the owner of the file denoted by this pathname.
 	 *
 	 * @return string|int
 	 */
-	public function getOwnerOf($objFile);
+	public function getOwnerOf($file);
 
 	/**
 	 * Set the owner of the file denoted by this pathname.
@@ -132,14 +132,14 @@ interface SimpleFilesystem
 	 *
 	 * @return bool
 	 */
-	public function setOwnerOf($objFile, $user);
+	public function setOwnerOf($file, $user);
 
 	/**
 	 * Get the group of the file denoted by this pathname.
 	 *
 	 * @return string|int
 	 */
-	public function getGroupOf($objFile);
+	public function getGroupOf($file);
 
 	/**
 	 * Change the group of the file denoted by this pathname.
@@ -148,14 +148,14 @@ interface SimpleFilesystem
 	 *
 	 * @return bool
 	 */
-	public function setGroupOf($objFile, $group);
+	public function setGroupOf($file, $group);
 
 	/**
 	 * Get the mode of the file denoted by this pathname.
 	 *
 	 * @return int
 	 */
-	public function getModeOf($objFile);
+	public function getModeOf($file);
 
 	/**
 	 * Set the mode of the file denoted by this pathname.
@@ -164,35 +164,35 @@ interface SimpleFilesystem
 	 *
 	 * @return bool
 	 */
-	public function setModeOf($objFile, $mode);
+	public function setModeOf($file, $mode);
 
 	/**
 	 * Test whether this pathname is readable.
 	 *
 	 * @return bool
 	 */
-	public function isThisReadable($objFile);
+	public function isThisReadable($file);
 
 	/**
 	 * Test whether this pathname is writeable.
 	 *
 	 * @return bool
 	 */
-	public function isThisWritable($objFile);
+	public function isThisWritable($file);
 
 	/**
 	 * Test whether this pathname is executeable.
 	 *
 	 * @return bool
 	 */
-	public function isThisExecutable($objFile);
+	public function isThisExecutable($file);
 
 	/**
 	 * Checks whether a file or directory exists.
 	 *
 	 * @return bool
 	 */
-	public function exists($objFile);
+	public function exists($file);
 
 	/**
 	 * Delete a file or directory.
@@ -201,7 +201,7 @@ interface SimpleFilesystem
 	 *
 	 * @return bool
 	 */
-	public function delete($objFile, $recursive = false, $force = false);
+	public function delete($file, $recursive = false, $force = false);
 
 	/**
 	 * Copies file
@@ -211,7 +211,7 @@ interface SimpleFilesystem
 	 *
 	 * @return bool
 	 */
-	public function copyTo($objFile, File $destination, $parents = false);
+	public function copyTo($file, File $destination, $parents = false);
 
 	/**
 	 * Renames a file or directory
@@ -220,21 +220,21 @@ interface SimpleFilesystem
 	 *
 	 * @return bool
 	 */
-	public function moveTo($objFile, File $destination);
+	public function moveTo($file, File $destination);
 
 	/**
 	 * Makes directory
 	 *
 	 * @return bool
 	 */
-	public function createDirectory($objFile, $parents = false);
+	public function createDirectory($file, $parents = false);
 
 	/**
 	 * Create new empty file.
 	 *
 	 * @return bool
 	 */
-	public function createFile($objFile, $parents = false);
+	public function createFile($file, $parents = false);
 
 	/**
 	 * Get contents of the file. Returns <em>null</em> if file does not exists
@@ -242,7 +242,7 @@ interface SimpleFilesystem
 	 *
 	 * @return string|null|bool
 	 */
-	public function getContentsOf($objFile);
+	public function getContentsOf($file);
 
 	/**
 	 * Write contents to a file. Returns <em>false</em> on error (e.a. if file is a directory).
@@ -251,7 +251,7 @@ interface SimpleFilesystem
 	 *
 	 * @return bool
 	 */
-	public function setContentsOf($objFile, $content);
+	public function setContentsOf($file, $content);
 
 	/**
 	 * Write contents to a file. Returns <em>false</em> on error (e.a. if file is a directory).
@@ -260,7 +260,7 @@ interface SimpleFilesystem
 	 *
 	 * @return bool
 	 */
-	public function appendContentsTo($objFile, $content);
+	public function appendContentsTo($file, $content);
 
 	/**
 	 * Truncate a file to a given length. Returns the new length or
@@ -269,7 +269,7 @@ interface SimpleFilesystem
 	 *
 	 * @return int|bool
 	 */
-	public function truncate($objFile, $size = 0);
+	public function truncate($file, $size = 0);
 
 	/**
 	 * Gets an stream for the file. May return <em>null</em> if streaming is not supported.
@@ -278,7 +278,7 @@ interface SimpleFilesystem
 	 *
 	 * @return resource|null
 	 */
-	public function open($objFile, $mode = 'rb');
+	public function open($file, $mode = 'rb');
 
 	/**
 	 * Get mime content type.
@@ -287,7 +287,7 @@ interface SimpleFilesystem
 	 *
 	 * @return string
 	 */
-	public function getMIMENameOf($objFile);
+	public function getMIMENameOf($file);
 
 	/**
 	 * Get mime content type.
@@ -296,7 +296,7 @@ interface SimpleFilesystem
 	 *
 	 * @return string
 	 */
-	public function getMIMETypeOf($objFile);
+	public function getMIMETypeOf($file);
 
 	/**
 	 * Get mime content type.
@@ -305,7 +305,7 @@ interface SimpleFilesystem
 	 *
 	 * @return string
 	 */
-	public function getMIMEEncodingOf($objFile);
+	public function getMIMEEncodingOf($file);
 
 	/**
 	 * Calculate the md5 hash of this file.
@@ -315,7 +315,7 @@ interface SimpleFilesystem
 	 *
 	 * @return string|null
 	 */
-	public function getMD5Of($objFile, $raw = false);
+	public function getMD5Of($file, $raw = false);
 
 	/**
 	 * Calculate the sha1 hash of this file.
@@ -325,7 +325,7 @@ interface SimpleFilesystem
 	 *
 	 * @return string|null
 	 */
-	public function getSHA1Of($objFile, $raw = false);
+	public function getSHA1Of($file, $raw = false);
 
 	/**
 	 * List files.
@@ -341,14 +341,14 @@ interface SimpleFilesystem
 	 *
 	 * @return string
 	 */
-	public function getRealURLOf($objFile);
+	public function getRealURLOf($file);
 
 	/**
 	 * Get a public url, e.g. http://www.example.com/path/to/public/file to the file.
 	 *
 	 * @return string
 	 */
-	public function getPublicURLOf($objFile);
+	public function getPublicURLOf($file);
 
 	/**
 	 * Get a public url, e.g. http://www.example.com/path/to/public/file to the file.

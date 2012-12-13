@@ -194,60 +194,67 @@ class FTPFilesystem
 		$cached = $this->queryCache($cacheKey);
 
 		if ($cached === null) {
-			$cached = array();
-			$list   = ftp_rawlist($this->getConnection(), '-la ' . $real);
+			$list   = ftp_rawlist($this->getConnection(), '-lna ' . $real);
 
-			$isSingleFile = true;
+			if ($list !== false) {
+				$cached = array();
+				$isSingleFile = true;
 
-			foreach ($list as $item) {
-				if (preg_match(
-					'#^([\-ldrwxsSt]{10})\s+(\d+)\s+([\w\d]+)\s+([\w\d]+)\s+(\d+)\s+(\w{3}\s+\d{1,2}\s+(?:\d{2}:\d{2}|\d{4}))\s+(.*?)(\s+->\s+(.*))?$#s',
-					$item,
-					$match
-				)
-				) {
-					$stat = (object) array(
-						'perms'       => $match[1],
-						'mode'        => Util::string2bitMode($match[1]),
-						'type'        => (int) $match[2],
-						'isDirectory' => $match[1][0] == 'd',
-						'isFile'      => $match[1][0] != 'd',
-						'isLink'      => $match[1][0] == 'l',
-						'user'        => (int) $match[3],
-						'group'       => (int) $match[4],
-						'size'        => (int) $match[5],
-						'modified'    => strtotime($match[6]),
-						'name'        => $match[7],
-						'target'      => isset($match[9]) ? $match[9] : null
-					);
+				foreach ($list as $item) {
+					if (preg_match(
+						'#^([\-ldrwxsSt]{10})\s+(\d+)\s+([\w\d]+)\s+([\w\d]+)\s+(\d+)\s+(\w{3}\s+\d{1,2}\s+(?:\d{2}:\d{2}|\d{4}))\s+(.*?)(\s+->\s+(.*))?$#s',
+						$item,
+						$match
+					)) {
+						$stat = new FTPFileStat();
+						$stat->setPerms($match[1]);
+						$stat->setMode(Util::string2bitMode($match[1]));
+						$stat->setType((int) $match[2]);
+						$stat->setUser((int) $match[3]);
+						$stat->setGroup((int) $match[4]);
+						$stat->setSize((int) $match[5]);
+						$stat->setModified(strtotime($match[6]));
+						$stat->setName($match[7]);
+						$stat->setTarget(isset($match[9]) ? $match[9] : null);
 
-					if ($stat->name == '.') {
-						$isSingleFile      = false;
-						$directoryCacheKey = $this->cacheKey . ':stat:' . $real;
-						$this->setCache($directoryCacheKey, $stat);
-					}
-					else if ($stat->name == '..') {
-						if (dirname($real) != $real) {
-							$directoryCacheKey = $this->cacheKey . ':stat:' . dirname($real);
+						if ($match[1][0] == 'l') {
+							$stat->setIsFile(null);
+							$stat->setIsDirectory(null);
+							$stat->setIsLink(true);
+						}
+						else {
+							$stat->setIsDirectory($match[1][0] == 'd');
+							$stat->setIsFile($match[1][0] == '-');
+						}
+
+						if ($stat->getName() == '.') {
+							$isSingleFile      = false;
+							$directoryCacheKey = $this->cacheKey . ':stat:' . $real;
 							$this->setCache($directoryCacheKey, $stat);
+						}
+						else if ($stat->getName() == '..') {
+							if (dirname($real) != $real) {
+								$directoryCacheKey = $this->cacheKey . ':stat:' . dirname($real);
+								$this->setCache($directoryCacheKey, $stat);
+							}
+						}
+						else {
+							$fileCacheKey = $this->cacheKey . ':stat:' . $real . ($isSingleFile ? '' : '/' . $match[7]);
+							$this->setCache($fileCacheKey, $stat);
+							$cached[] = $stat;
 						}
 					}
 					else {
-						$fileCacheKey = $this->cacheKey . ':stat:' . $real . ($isSingleFile ? '' : '/' . $match[7]);
-						$this->setCache($fileCacheKey, $stat);
-						$cached[] = $stat;
+						throw new FTPFilesystemException('Implementation error: Could not parse list item ' . $item);
 					}
 				}
-				else {
-					throw new FTPFilesystemException('Implementation error: Could not parse list item ' . $item);
+
+				if ($isSingleFile) {
+					$cached = false;
 				}
-			}
 
-			if ($isSingleFile) {
-				$cached = false;
+				$this->setCache($cacheKey, $cached);
 			}
-
-			$this->setCache($cacheKey, $cached);
 		}
 
 		return $cached;
@@ -272,7 +279,7 @@ class FTPFilesystem
 		if ($stat) {
 			$real = $this->realPath($file);
 
-			if ($stat->isDirectory) {
+			if ($stat->getIsDirectory()) {
 				if (ftp_rmdir($this->getConnection(), $real)) {
 					$this->config
 						->getCache()
@@ -306,7 +313,7 @@ class FTPFilesystem
 	{
 		$stat = $this->ftpStat($source);
 
-		if ($stat and !$stat->isDirectory) {
+		if ($stat and !$stat->getIsDirectory()) {
 			$real = $this->realPath($source);
 
 			return ftp_fget($this->getConnection(), $targetStream, $real, FTP_BINARY);
@@ -319,7 +326,7 @@ class FTPFilesystem
 	{
 		$stat = $this->ftpStat($target);
 
-		if (!$stat or !$stat->isDirectory) {
+		if (!$stat or !$stat->getIsDirectory()) {
 			$real = $this->realPath($target);
 
 			return ftp_fput($this->getConnection(), $real, $sourceStream, FTP_BINARY);
@@ -332,7 +339,7 @@ class FTPFilesystem
 	{
 		$stat = $this->ftpStat($source);
 
-		if ($stat and !$stat->isDirectory) {
+		if ($stat and !$stat->getIsDirectory()) {
 			$realSource = $this->realPath($source);
 			// TODO: watch out, is not neccessary a local file.
 			$realTarget = $target->getRealURL();
@@ -347,7 +354,7 @@ class FTPFilesystem
 	{
 		$stat = $this->ftpStat($target);
 
-		if (!$stat or !$stat->isDirectory) {
+		if (!$stat or !$stat->getIsDirectory()) {
 			$realSource = $source->getRealURL();
 			$realTarget = realPath($target);
 
@@ -389,7 +396,7 @@ class FTPFilesystem
 	{
 		$stat = $this->ftpStat($file);
 
-		if ($stat && $stat->isDirectory) {
+		if ($stat && $stat->getIsDirectory()) {
 			$real = $this->realPath($file);
 
 			return ftp_rmdir($this->getConnection(), $real);
@@ -462,9 +469,9 @@ class FTPFilesystem
 		$type = 0;
 		$stat = $this->ftpStat($file);
 		if ($stat) {
-			$stat->isFile && $type |= File::TYPE_FILE;
-			$stat->isLink && $type |= File::TYPE_LINK;
-			$stat->isDirectory && $type |= File::TYPE_DIRECTORY;
+			$stat->getIsFile() && $type |= File::TYPE_FILE;
+			$stat->getIsLink() && $type |= File::TYPE_LINK;
+			$stat->getIsDirectory() && $type |= File::TYPE_DIRECTORY;
 		}
 		return $type;
 	}
@@ -478,7 +485,7 @@ class FTPFilesystem
 	{
 		$stat = $this->fs->ftpStat($this);
 
-		return $stat && $stat->isLink ? $stat->target : false;
+		return $stat && $stat->getIsLink() ? $stat->getTarget() : false;
 	}
 
 	/**
@@ -520,7 +527,7 @@ class FTPFilesystem
 	{
 		$stat = $this->ftpStat($file);
 
-		return $stat ? $stat->modified : false;
+		return $stat ? $stat->getModified() : false;
 	}
 
 	/**
@@ -556,7 +563,7 @@ class FTPFilesystem
 	{
 		$stat = $this->ftpStat($file);
 
-		return $stat ? $stat->size : false;
+		return $stat ? $stat->getSize() : false;
 	}
 
 	/**
@@ -568,7 +575,7 @@ class FTPFilesystem
 	{
 		$stat = $this->ftpStat($file);
 
-		return $stat ? $stat->user : false;
+		return $stat ? $stat->getUser() : false;
 	}
 
 	/**
@@ -592,7 +599,7 @@ class FTPFilesystem
 	{
 		$stat = $this->ftpStat($file);
 
-		return $stat ? $stat->group : false;
+		return $stat ? $stat->getGroup() : false;
 	}
 
 	/**
@@ -616,7 +623,7 @@ class FTPFilesystem
 	{
 		$stat = $this->ftpStat($file);
 
-		return $stat ? $stat->mode : false;
+		return $stat ? $stat->getMode() : false;
 	}
 
 	/**
@@ -899,15 +906,16 @@ class FTPFilesystem
 
 		$currentFiles = $this->ftpList($file);
 
+		/** @var FTPFileStat $stat */
 		foreach ($currentFiles as $stat) {
-			$file = new SimpleFile($pathname . '/' . $stat->name, $this);
+			$file = new SimpleFile($pathname . '/' . $stat->getName(), $this);
 
 			$files[] = $file;
 
 			if ($recursive &&
-				basename($stat->name) != '.' &&
-				basename($stat->name) != '..' &&
-				$stat->isDirectory ||
+				basename($stat->getName()) != '.' &&
+				basename($stat->getName()) != '..' &&
+				$stat->getIsDirectory() ||
 				count($globSearchPatterns) &&
 					Util::applyGlobFilters($file, $globSearchPatterns)
 			) {

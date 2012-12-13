@@ -44,57 +44,60 @@ abstract class AbstractFilesystem
 				get_class($config)
 			));
 		}
-		
+
 		$args = func_get_args();
 		$clazz = new \ReflectionClass(get_called_class());
 		return $clazz->newInstanceArgs($args);
 	}
 
-    /**
-     * @var FilesystemConfig
-     */
-    protected $config;
+	/**
+	 * @var FilesystemConfig
+	 */
+	protected $config;
 
-    /**
-     * @param FilesystemConfig $config
-     */
-    protected function __construct(FilesystemConfig $config, PublicURLProvider $provider = null)
-    {
-    	$this->config = clone $config;
-    	$this->provider = $provider;
-    	$this->prepareConfig();
-    	$this->config->makeImmutable();
-    }
+	/**
+	 * @param FilesystemConfig $config
+	 */
+	protected function __construct(FilesystemConfig $config, PublicURLProvider $provider = null)
+	{
+		$this->config = clone $config;
+		$this->provider = $provider;
+		$this->prepareConfig();
+		$this->config->makeImmutable();
+	}
 
-    /* (non-PHPdoc)
-     * @see Bit3\Filesystem.Filesystem::getConfig()
-     */
-    public function getConfig()
-    {
-        return $this->config;
-    }
+	/* (non-PHPdoc)
+	 * @see Bit3\Filesystem.Filesystem::getConfig()
+	 */
+	public function getConfig()
+	{
+		return $this->config;
+	}
 
-    /**
-     * Gets called before at construction time before the config is made
-     * immutable. Override in concrete classes to extend or alter behavior.
-     */
-    protected function prepareConfig() {
-    	$this->config->setBasePath(Util::normalizePath('/' . $this->config->getBasePath()) . '/');
-    }
+	/**
+	 * Gets called before at construction time before the config is made
+	 * immutable. Override in concrete classes to extend or alter behavior.
+	 */
+	protected function prepareConfig()
+	{
+		$this->config->setBasePath(Util::normalizePath('/' . $this->config->getBasePath()) . '/');
+	}
 
 	protected $provider;
 
 	/* (non-PHPdoc)
 	 * @see Bit3\Filesystem.FilesystemConfig::getPublicURLProvider()
 	 */
-	public function getPublicURLProvider() {
+	public function getPublicURLProvider()
+	{
 		return $this->provider;
 	}
 
 	/* (non-PHPdoc)
 	 * @see Bit3\Filesystem.FilesystemConfig::setPublicURLProvider()
 	 */
-	public function setPublicURLProvider(PublicURLProvider $provider = null) {
+	public function setPublicURLProvider(PublicURLProvider $provider = null)
+	{
 		$this->provider = $provider;
 	}
 }

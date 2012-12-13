@@ -27,15 +27,23 @@ abstract class AbstractFileDelegator
 	 * @var File The file object method calls are delegated to.
 	 */
 	private $delegate;
+	
+	private $fs;
 
-	public function __construct(File $delegate)
+	public function __construct(File $delegate, Filesystem $fs = null)
 	{
 		$this->setDelegate($delegate);
+		$this->setFilesystem($fs);
 	}
 
 	protected function setDelegate(File $delegate)
 	{
 		$this->delegate = $delegate;
+	}
+	
+	protected function setFilesystem(Filesystem $fs = null)
+	{
+		$this->fs = $fs;
 	}
 
 	public function getDelegate()
@@ -50,7 +58,7 @@ abstract class AbstractFileDelegator
 
 	public function getFilesystem()
 	{
-		return $this->delegate->getFilesystem();
+		return $this->fs ?: $this->delegate->getFilesystem();
 	}
 
 	public function isFile()

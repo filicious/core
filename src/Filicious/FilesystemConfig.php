@@ -3,9 +3,11 @@
 /**
  * High level object oriented filesystem abstraction.
  *
- * @package php-filesystem
+ * @package filicious-core
  * @author  Tristan Lins <tristan.lins@bit3.de>
- * @link    http://bit3.de
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
+ * @link    http://filicious.org
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
@@ -15,7 +17,7 @@ namespace Filicious;
 /**
  * A filesystem configuration
  *
- * @package php-filesystem
+ * @package filicious-core
  * @author  Oliver Hoff <oliver@hofff.com>
  */
 interface FilesystemConfig

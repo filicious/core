@@ -1,18 +1,30 @@
 {
-	"name":"bit3/filesystem",
-	"description":"High level object oriented filesystem abstraction.",
-	"homepage":"http://bit3.de",
+	"name":"Filicious/FiliciousCore",
+	"description":"Filicious is a high level object oriented filesystem abstraction for PHP.",
+	"homepage":"http://filicious.org",
 	"authors":[
 		{
 			"name":"Tristan Lins",
 			"email":"tristan.lins@bit3.de",
 			"homepage":"http://bit3.de",
 			"role":"Developer"
+		},
+		{
+			"name":"Christian Schiffler",
+			"email":"c.schiffler@cyberspectrum.de",
+			"homepage":"http://www.cyberspectrum.de",
+			"role":"Developer"
+		},
+		{
+			"name":"Oliver Hoff",
+			"email":"oliver@hofff.com",
+			"homepage":"http://www.hofff.com",
+			"role":"Developer"
 		}
 	],
 	"autoload":{
 		"psr-0":{
-			"bit3\\filesystem":"src/"
+			"Filicious":"src/"
 		}
 	},
 	"minimum-stability":"dev"

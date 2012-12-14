@@ -3,9 +3,11 @@
 /**
  * High level object oriented filesystem abstraction.
  *
- * @package php-filesystem
+ * @package filicious-ftp
  * @author  Tristan Lins <tristan.lins@bit3.de>
- * @link    http://bit3.de
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
+ * @link    http://filicious.org
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
@@ -18,7 +20,7 @@ use Filicious\AbstractFilesystemConfig;
 /**
  * File from a mounted filesystem structure.
  *
- * @package php-filesystem
+ * @package filicious-ftp
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
 class FTPFilesystemConfig

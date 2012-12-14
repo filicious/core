@@ -27,7 +27,28 @@ class FilesystemConfig
 	/**
 	 * @var string Configuration parameter for Filesystem implementation to be used
 	 */
-	const IMPLEMENTATION = 'impl';
+	const IMPLEMENTATION	= 'impl';
+	
+	/**
+	 * @var string Configuration parameter for base path to use
+	 */
+	const BASEPATH			= 'base';
+	
+	/**
+	 * @var string Configuration parameter for default mode to use when creating
+	 * 		new files
+	 */
+	const DEFAULTMODE		= 'mode';
+		
+	/**
+	 * @var string Configuration parameter for username to use
+	 */
+	const USERNAME			= 'user';
+	
+	/**
+	 * @var string Configuration parameter for password to use
+	 */
+	const PASSWORD			= 'pass';
 	
 	/**
 	 * Create a new filesystem config.
@@ -58,25 +79,51 @@ class FilesystemConfig
 	/**
 	 * Create a new filesytem config.
 	 * 
-	 * @param \Traversable $config Initial parameters to use
+	 * @param \Traversable $data Initial parameters to use
 	 * @param Filesystem $fs The filesystem this config will be bound to
 	 */
 	protected function __construct(\Traversable $data = null, Filesystem $fs = null) {
-		$this->merge($data);
-		if($fs) {
+		if(!$fs) {
+			$this->merge($data);
+		}
+		elseif($fs->getConfig()) {
+			throw new Exception(); //ConfigurationException(); // TODO
+		}
+		else {
+			$this->merge($data);
 			$this->set(static::IMPLEMENTATION, get_class($fs));
 			$this->fs = $fs;
 		}
 	}
 	
 	/**
+	 * You should use <em>FilesystemConfig::fork()</em>.
+	 * 
+	 * @return void
+	 */
+	private final function __clone() {
+	}
+	
+	/**
+	 * Return serialized string representation of this configuration.
+	 * 
+	 * @return string Serialized representation
+	 */
+	public function __toString() {
+		return $this->serialize();
+	}
+	
+	/**
 	 * Add all configuration parameter from given traversable.
 	 *
-	 * @param \Traversable $config The parameters to merge
+	 * @param \Traversable $data The parameters to merge
 	 * @return FilesystemConfig This config object
-	 * @throws InvalidStateException
+	 * @throws InvalidStateException When the bound filesystem denies the update
+	 * 		of the given parameter
+	 * @throws ConfigurationException When the bound filesystem decides that the
+	 * 		parameter value set is not a valid setting
 	 */
-	public function merge(\Traversable $data) {
+	public function merge(\Traversable $data = null) {
 		if($data !== null) foreach($data as $param => $value) {
 			$this->set($param, $value);
 		}
@@ -86,12 +133,12 @@ class FilesystemConfig
 	/**
 	 * Fork this configuration and merge in the given parameters.
 	 *
-	 * @param \Traversable $config The config to merge in
+	 * @param \Traversable $data The config to merge in
 	 * @param Filesystem The filesystem this config is bound to
 	 * @return FilesystemConfig The forked config instance
 	 */
-	public function fork(\Traversable $config = null) {
-		return static::create($this)->merge($config);
+	public function fork(\Traversable $data = null) {
+		return static::create($this)->merge($data);
 	}
 	
 	/**
@@ -137,7 +184,7 @@ class FilesystemConfig
 	 * @throws ConfigurationException When the bound filesystem decides that the
 	 * 		parameter value set is not a valid setting
 	 */
-	public function set($param, $value) {
+	public function set($param, $value = null) {
 		if(!$this->isBound()) {
 			$this->data[$param] = $value;
 		}
@@ -213,6 +260,46 @@ class FilesystemConfig
 	 */
 	public function unserialize($str) {
 		$this->data = unserialize($str);
+	}
+	
+	public function setImplementation($impl) {
+		return $this->set(static::IMPLEMENTATION, $impl);
+	}
+	
+	public function getImplementation($default = null) {
+		return $this->get(static::IMPLEMENTATION, $default);
+	}
+	
+	public function setBasePath($path) {
+		return $this->set(static::BASEPATH, $path);
+	}
+	
+	public function getBasePath($default = null) {
+		return $this->get(static::BASEPATH, $default);
+	}
+	
+	public function setDefaultMode($mode) {
+		return $this->set(static::DEFAULTMODE, $path);
+	}
+	
+	public function getDefaultMode($default = null) {
+		return $this->get(static::DEFAULTMODE, $default);
+	}
+	
+	public function setUsername($user) {
+		return $this->set(static::USERNAME, $user);
+	}
+	
+	public function getUsername($default = null) {
+		return $this->get(static::USERNAME, $default);
+	}
+	
+	public function setPassword($pass) {
+		return $this->set(static::PASSWORD, $pass);
+	}
+	
+	public function getPassword($default = null) {
+		return $this->get(static::PASSWORD, $default);
 	}
 	
 }

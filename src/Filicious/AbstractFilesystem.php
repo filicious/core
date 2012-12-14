@@ -87,7 +87,7 @@ abstract class AbstractFilesystem
 	 */
 	protected function prepareConfig()
 	{
-		$this->config->setBasePath(Util::normalizePath('/' . $this->config->getBasePath()) . '/');
+		$this->config->setBasePath(Util::normalizePath($this->config->getBasePath()) . '/');
 	}
 
 	/* (non-PHPdoc)

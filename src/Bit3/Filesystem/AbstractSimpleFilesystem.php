@@ -10,7 +10,7 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Bit3\Filesystem;
+namespace Filicious;
 
 /**
  * A simple file system object.
@@ -28,7 +28,7 @@ abstract class AbstractSimpleFilesystem
 	 *         filesystem implementation. Override in concrete classes to specify
 	 *         another config class.
 	 */
-	const CONFIG_CLASS = 'Bit3\Filesystem\Local\FilesystemConfig';
+	const CONFIG_CLASS = 'Filicious\Local\FilesystemConfig';
 
 	/**
 	 * @var FilesystemConfig
@@ -41,7 +41,7 @@ abstract class AbstractSimpleFilesystem
 	protected $provider;
 
 	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.Filesystem::create()
+	 * @see Filicious.Filesystem::create()
 	*/
 	public static function create(FilesystemConfig $config, PublicURLProvider $provider = null)
 	{
@@ -73,7 +73,7 @@ abstract class AbstractSimpleFilesystem
 	}
 
 	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.Filesystem::getConfig()
+	 * @see Filicious.Filesystem::getConfig()
 	 */
 	public function getConfig()
 	{
@@ -90,7 +90,7 @@ abstract class AbstractSimpleFilesystem
 	}
 
 	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.FilesystemConfig::getPublicURLProvider()
+	 * @see Filicious.FilesystemConfig::getPublicURLProvider()
 	 */
 	public function getPublicURLProvider()
 	{
@@ -98,7 +98,7 @@ abstract class AbstractSimpleFilesystem
 	}
 
 	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.FilesystemConfig::setPublicURLProvider()
+	 * @see Filicious.FilesystemConfig::setPublicURLProvider()
 	 */
 	public function setPublicURLProvider(PublicURLProvider $provider = null)
 	{

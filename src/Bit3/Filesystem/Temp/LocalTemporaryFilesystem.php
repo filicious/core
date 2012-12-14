@@ -9,12 +9,12 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Bit3\Filesystem\Temp;
+namespace Filicious\Temp;
 
-use Bit3\Filesystem\File;
-use Bit3\Filesystem\TemporaryFilesystem;
-use Bit3\Filesystem\Local\LocalFilesystem;
-use Bit3\Filesystem\Local\LocalFile;
+use Filicious\File;
+use Filicious\TemporaryFilesystem;
+use Filicious\Local\LocalFilesystem;
+use Filicious\Local\LocalFile;
 
 /**
  * Temporary filesystem adapter.

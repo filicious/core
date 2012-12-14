@@ -9,11 +9,11 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Bit3\Filesystem;
+namespace Filicious;
 
 use ArrayIterator;
-use Bit3\Filesystem\Filesystem;
-use Bit3\Filesystem\File;
+use Filicious\Filesystem;
+use Filicious\File;
 use Exception;
 use Traversable;
 
@@ -64,7 +64,7 @@ abstract class AbstractFile
 	}
 
 	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.File::isFile()
+	 * @see Filicious.File::isFile()
 	 */
 	public function isFile()
 	{
@@ -72,7 +72,7 @@ abstract class AbstractFile
 	}
 
 	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.File::isLink()
+	 * @see Filicious.File::isLink()
 	 */
 	public function isLink()
 	{
@@ -80,7 +80,7 @@ abstract class AbstractFile
 	}
 
 	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.File::isDirectory()
+	 * @see Filicious.File::isDirectory()
 	 */
 	public function isDirectory()
 	{

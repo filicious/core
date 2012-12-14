@@ -9,9 +9,9 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Bit3\Filesystem\FTP;
+namespace Filicious\FTP;
 
-use Bit3\Filesystem\FilesystemException;
+use Filicious\FilesystemException;
 
 /**
  * Class FTPFilesystemException

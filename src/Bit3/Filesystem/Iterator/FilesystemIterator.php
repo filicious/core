@@ -9,10 +9,10 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Bit3\Filesystem\Iterator;
+namespace Filicious\Iterator;
 
-use Bit3\Filesystem\File;
-use Bit3\Filesystem\FilesystemException;
+use Filicious\File;
+use Filicious\FilesystemException;
 use Traversable;
 use Iterator;
 use SeekableIterator;

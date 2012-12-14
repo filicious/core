@@ -9,9 +9,9 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Bit3\Filesystem;
+namespace Filicious;
 
-use Bit3\Filesystem\SimpleFilesystem;
+use Filicious\SimpleFilesystem;
 
 /**
  * A file object

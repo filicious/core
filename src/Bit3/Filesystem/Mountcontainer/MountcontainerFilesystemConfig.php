@@ -9,9 +9,9 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Bit3\Filesystem\Mountcontainer;
+namespace Filicious\Mountcontainer;
 
-use Bit3\Filesystem\AbstractFilesystemConfig;
+use Filicious\AbstractFilesystemConfig;
 
 /**
  * A filesystem object

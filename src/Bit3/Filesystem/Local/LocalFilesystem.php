@@ -9,14 +9,14 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Bit3\Filesystem\Local;
+namespace Filicious\Local;
 
-use Bit3\Filesystem\AbstractSimpleFilesystem;
-use Bit3\Filesystem\File;
-use Bit3\Filesystem\SimpleFile;
-use Bit3\Filesystem\SimpleFilesystem;
-use Bit3\Filesystem\PublicURLProvider;
-use Bit3\Filesystem\Util;
+use Filicious\AbstractSimpleFilesystem;
+use Filicious\File;
+use Filicious\SimpleFile;
+use Filicious\SimpleFilesystem;
+use Filicious\PublicURLProvider;
+use Filicious\Util;
 
 /**
  * Local filesystem adapter.
@@ -27,7 +27,7 @@ use Bit3\Filesystem\Util;
 class LocalFilesystem
 	extends AbstractSimpleFilesystem
 {
-	const CONFIG_CLASS = 'Bit3\Filesystem\Local\LocalFilesystemConfig';
+	const CONFIG_CLASS = 'Filicious\Local\LocalFilesystemConfig';
 
 	/**
 	 * Prepend a file path with the baseroot and normalize it.

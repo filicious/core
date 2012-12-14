@@ -9,7 +9,7 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Bit3\Filesystem;
+namespace Filicious;
 
 
 /**
@@ -38,7 +38,7 @@ abstract class AbstractFilesystemConfig
 	protected $basePath;
 
 	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.FilesystemConfig::create()
+	 * @see Filicious.FilesystemConfig::create()
 	 */
 	public static function create()
 	{
@@ -52,7 +52,7 @@ abstract class AbstractFilesystemConfig
 	}
 
 	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.FilesystemConfig::immutable()
+	 * @see Filicious.FilesystemConfig::immutable()
 	 */
 	public function makeImmutable()
 	{
@@ -74,7 +74,7 @@ abstract class AbstractFilesystemConfig
 	}
 
 	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.FilesystemConfig::getBasePath()
+	 * @see Filicious.FilesystemConfig::getBasePath()
 	 */
 	public function getBasePath()
 	{
@@ -82,7 +82,7 @@ abstract class AbstractFilesystemConfig
 	}
 
 	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.FilesystemConfig::setBasePath()
+	 * @see Filicious.FilesystemConfig::setBasePath()
 	 */
 	public function setBasePath($basePath)
 	{

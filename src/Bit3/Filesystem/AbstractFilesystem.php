@@ -9,7 +9,7 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Bit3\Filesystem;
+namespace Filicious;
 
 use \ReflectionClass;
 use \Exception;
@@ -31,7 +31,7 @@ abstract class AbstractFilesystem
 	const CONFIG_CLASS = 'FilesystemConfig';
 
 	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.Filesystem::create()
+	 * @see Filicious.Filesystem::create()
 	*/
 	public static function create(FilesystemConfig $config, PublicURLProvider $provider = null)
 	{
@@ -67,7 +67,7 @@ abstract class AbstractFilesystem
 	}
 
 	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.Filesystem::getConfig()
+	 * @see Filicious.Filesystem::getConfig()
 	 */
 	public function getConfig()
 	{
@@ -86,7 +86,7 @@ abstract class AbstractFilesystem
 	protected $provider;
 
 	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.FilesystemConfig::getPublicURLProvider()
+	 * @see Filicious.FilesystemConfig::getPublicURLProvider()
 	 */
 	public function getPublicURLProvider()
 	{
@@ -94,7 +94,7 @@ abstract class AbstractFilesystem
 	}
 
 	/* (non-PHPdoc)
-	 * @see Bit3\Filesystem.FilesystemConfig::setPublicURLProvider()
+	 * @see Filicious.FilesystemConfig::setPublicURLProvider()
 	 */
 	public function setPublicURLProvider(PublicURLProvider $provider = null)
 	{

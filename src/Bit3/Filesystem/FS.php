@@ -9,9 +9,9 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Bit3\Filesystem;
+namespace Filicious;
 
-use Bit3\Filesystem\Temp\LocalTemporaryFilesystem;
+use Filicious\Temp\LocalTemporaryFilesystem;
 
 /**
  * Class FS
@@ -55,7 +55,7 @@ class FS
 	protected static $systemTemporaryFilesystem = null;
 
 	/**
-	 * @param \Bit3\Filesystem\Filesystem|null $systemTemporaryFilesystem
+	 * @param \Filicious\Filesystem|null $systemTemporaryFilesystem
 	 */
 	public static function setSystemTemporaryFilesystem(TemporaryFilesystem $systemTemporaryFilesystem)
 	{

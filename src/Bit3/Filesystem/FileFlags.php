@@ -10,7 +10,7 @@
  * @license   http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Bit3\Filesystem;
+namespace Filicious;
 
 /**
  * Static class to handle file flags

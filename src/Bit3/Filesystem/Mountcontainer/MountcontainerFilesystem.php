@@ -10,13 +10,13 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Bit3\Filesystem\Mountcontainer;
+namespace Filicious\Mountcontainer;
 
-use Bit3\Filesystem\File;
-use Bit3\Filesystem\Filesystem;
-use Bit3\Filesystem\AbstractSimpleFilesystem;
-use Bit3\Filesystem\FilesystemException;
-use Bit3\Filesystem\Util;
+use Filicious\File;
+use Filicious\Filesystem;
+use Filicious\AbstractSimpleFilesystem;
+use Filicious\FilesystemException;
+use Filicious\Util;
 
 /**
  * Virtual filesystem structure.
@@ -33,7 +33,7 @@ class MountcontainerFilesystem
 	 *         filesystem implementation. Override in concrete classes to specify
 	 *         another config class.
 	 */
-	const CONFIG_CLASS = 'Bit3\Filesystem\Mountcontainer\MountcontainerFilesystemConfig';
+	const CONFIG_CLASS = 'Filicious\Mountcontainer\MountcontainerFilesystemConfig';
 
 	protected $mounts;
 

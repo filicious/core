@@ -9,13 +9,13 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Bit3\Filesystem\FTP;
+namespace Filicious\FTP;
 
-use Bit3\Filesystem\AbstractSimpleFilesystem;
-use Bit3\Filesystem\SimpleFile;
-use Bit3\Filesystem\File;
-use Bit3\Filesystem\PublicURLProvider;
-use Bit3\Filesystem\Util;
+use Filicious\AbstractSimpleFilesystem;
+use Filicious\SimpleFile;
+use Filicious\File;
+use Filicious\PublicURLProvider;
+use Filicious\Util;
 
 /**
  * File from a mounted filesystem structure.
@@ -26,7 +26,7 @@ use Bit3\Filesystem\Util;
 class FTPFilesystem
 	extends AbstractSimpleFilesystem
 {
-	const CONFIG_CLASS = 'Bit3\Filesystem\FTP\FTPFilesystemConfig';
+	const CONFIG_CLASS = 'Filicious\FTP\FTPFilesystemConfig';
 
 	/**
 	 * @var resource
@@ -161,7 +161,7 @@ class FTPFilesystem
 	 */
 	protected function setCache($key, $value)
 	{
-		/** @var \Bit3\Filesystem\Cache\Cache $cache */
+		/** @var \Filicious\Cache\Cache $cache */
 		$cache = $this->config->getCache();
 		if ($cache) {
 			$cache->store($key, $value);
@@ -170,7 +170,7 @@ class FTPFilesystem
 
 
 	/**
-	 * @param \Bit3\Filesystem\File $file
+	 * @param \Filicious\File $file
 	 *
 	 * @return FTPFileStat
 	 */

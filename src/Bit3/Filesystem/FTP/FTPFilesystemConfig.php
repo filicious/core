@@ -9,11 +9,11 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Bit3\Filesystem\FTP;
+namespace Filicious\FTP;
 
-use Bit3\Filesystem\Cache\Cache;
-use Bit3\Filesystem\Cache\ArrayCache;
-use Bit3\Filesystem\AbstractFilesystemConfig;
+use Filicious\Cache\Cache;
+use Filicious\Cache\ArrayCache;
+use Filicious\AbstractFilesystemConfig;
 
 /**
  * File from a mounted filesystem structure.
@@ -246,7 +246,7 @@ class FTPFilesystemConfig
 	}
 
 	/**
-	 * @param \Bit3\Filesystem\Cache\Cache $cache
+	 * @param \Filicious\Cache\Cache $cache
 	 */
 	public function setCache(Cache $cache)
 	{
@@ -255,7 +255,7 @@ class FTPFilesystemConfig
 	}
 
 	/**
-	 * @return \Bit3\Filesystem\Cache\Cache
+	 * @return \Filicious\Cache\Cache
 	 */
 	public function getCache()
 	{

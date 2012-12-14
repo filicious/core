@@ -16,8 +16,8 @@ namespace Filicious;
 /**
  * Static class to handle file flags
  *
- * @package    php-filesystem
- * @author     Oliver Hoff <oliver@hofff.com>
+ * @package filicious-core
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 final class FileFlags
 {

@@ -17,8 +17,8 @@ namespace Filicious;
  * Abstract base class for File implementation that are delegating a part of
  * their method calls to an underlying File object.
  *
- * @package    php-filesystem
- * @author     Oliver Hoff <oliver@hofff.com>
+ * @package filicious-core
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 abstract class AbstractFileDelegator
 	implements File

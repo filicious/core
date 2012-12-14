@@ -31,7 +31,7 @@ abstract class AbstractFilesystem
 	 *         another config class.
 	 */
 	const CONFIG_CLASS = 'FilesystemConfig';
-
+	
 	/* (non-PHPdoc)
 	 * @see Filicious.Filesystem::create()
 	*/
@@ -56,7 +56,12 @@ abstract class AbstractFilesystem
 	 * @var FilesystemConfig
 	 */
 	protected $config;
-
+	
+	/**
+	 * @var PublicURLProvider
+	 */
+	protected $provider;
+	
 	/**
 	 * @param FilesystemConfig $config
 	 */
@@ -84,8 +89,6 @@ abstract class AbstractFilesystem
 	{
 		$this->config->setBasePath(Util::normalizePath('/' . $this->config->getBasePath()) . '/');
 	}
-
-	protected $provider;
 
 	/* (non-PHPdoc)
 	 * @see Filicious.FilesystemConfig::getPublicURLProvider()

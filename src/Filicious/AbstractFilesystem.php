@@ -45,7 +45,7 @@ abstract class AbstractFilesystem
 		$this->config = $config = $config->fork();
 		$this->provider = $provider;
 		$this->prepareConfig();
-		unset($this->config); // because config binding asserts fs->getConfig is null
+		$this->config = null; // because config binding asserts fs->getConfig is null
 		$this->config = $config->bind($this);
 	}
 

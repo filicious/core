@@ -25,32 +25,6 @@ use \Exception;
 abstract class AbstractFilesystem
 	implements Filesystem
 {
-	/**
-	 * @var string The name of the config class used by instances of this
-	 *         filesystem implementation. Override in concrete classes to specify
-	 *         another config class.
-	 */
-	const CONFIG_CLASS = 'FilesystemConfig';
-	
-	/* (non-PHPdoc)
-	 * @see Filicious.Filesystem::create()
-	*/
-	public static function create(FilesystemConfig $config, PublicURLProvider $provider = null)
-	{
-		// the instanceof operator has lexer issues...
-		if (!is_a($config, static::CONFIG_CLASS)) {
-			throw new FilesystemException(sprintf(
-				'%s requires a config of type %s, given %s',
-				get_called_class(),
-				static::CONFIG_CLASS,
-				get_class($config)
-			));
-		}
-
-		$args  = func_get_args();
-		$clazz = new \ReflectionClass(get_called_class());
-		return $clazz->newInstanceArgs($args);
-	}
 
 	/**
 	 * @var FilesystemConfig
@@ -67,10 +41,11 @@ abstract class AbstractFilesystem
 	 */
 	protected function __construct(FilesystemConfig $config, PublicURLProvider $provider = null)
 	{
-		$this->config   = clone $config;
+		$this->config = $config = $config->fork();
 		$this->provider = $provider;
 		$this->prepareConfig();
-		$this->config->makeImmutable();
+		unset($this->config); // because config binding asserts fs->getConfig is null
+		$this->config = $config->bind($this);
 	}
 
 	/* (non-PHPdoc)
@@ -80,6 +55,11 @@ abstract class AbstractFilesystem
 	{
 		return $this->config;
 	}
+	
+	public function notify(array &$data, $param, $value)
+	{
+		throw new Exception();//InvalidStateException(); // TODO
+	}
 
 	/**
 	 * Gets called before at construction time before the config is made
@@ -87,7 +67,7 @@ abstract class AbstractFilesystem
 	 */
 	protected function prepareConfig()
 	{
-		$this->config->setBasePath(Util::normalizePath($this->config->getBasePath()) . '/');
+		$this->config->setBasePath(Util::normalizePath($this->config->getBasePath()));
 	}
 
 	/* (non-PHPdoc)
@@ -105,4 +85,5 @@ abstract class AbstractFilesystem
 	{
 		$this->provider = $provider;
 	}
+	
 }

@@ -29,7 +29,6 @@ use Filicious\Util;
 class LocalFilesystem
 	extends AbstractSimpleFilesystem
 {
-	const CONFIG_CLASS = 'Filicious\Local\LocalFilesystemConfig';
 
 	/**
 	 * Prepend a file path with the baseroot and normalize it.

@@ -8,4 +8,7 @@ notifications:
         - tristan.lins@bit3.de
         - c.schiffler@cyberspectrum.de
         - oliver@hofff.com
-    irc: "irc.freenode.org#contao.dev"
+    irc:
+        channels: "irc.freenode.org#contao.dev"
+        use_notice: true
+        skip_join: true

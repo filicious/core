@@ -26,12 +26,12 @@ interface Filesystem
 	 * Create a new empty config with the filesystem implementation parameter is
 	 * set to the called class name.
 	 * 
-	 * @param \Traversable $data The data to merge in in the new config
+	 * @param \Traversable|array $data The data to merge in in the new config
 	 * @return FilesystemConfig The newly create config
 	 * @throws \LogicException When this method is called from
 	 * 		a non-instantiable class
 	 */
-	public static function newConfig(\Traversable $data = null);
+	public static function newConfig($data = null);
 
 	/**
 	 * Get the config used by this filesystem.

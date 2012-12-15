@@ -138,7 +138,7 @@ class FilesystemConfig
 	 * @return FilesystemConfig The forked config instance
 	 */
 	public function fork(\Traversable $data = null) {
-		return static::create($this)->merge($data);
+		return static::newConfig($this)->merge($data);
 	}
 	
 	/**
@@ -149,7 +149,7 @@ class FilesystemConfig
 	 * @return FilesystemConfig The new bound config instance
 	 */
 	public function bind(Filesystem $fs) {
-		return static::create($this, $fs);
+		return static::newConfig($this, $fs);
 	}
 	
 	/**

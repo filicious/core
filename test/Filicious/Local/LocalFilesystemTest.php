@@ -87,11 +87,13 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
         // create file <path>/zap/file.txt
         file_put_contents($this->path . '/zap/file.txt', 'Hello World!');
 
-        // create link <path>/foo/zap.lnk -> ../zap/file.txt
-        symlink('../zap/file.txt', $this->path . '/foo/file.lnk');
+	    if (function_exists('symlink')) {
+	        // create link <path>/foo/zap.lnk -> ../zap/file.txt
+	        symlink('../zap/file.txt', $this->path . '/foo/file.lnk');
 
-        // create link <path>/zap/bar.lnk -> ../foo/bar/
-        symlink('../foo/bar/', $this->path . '/zap/bar.lnk');
+	        // create link <path>/zap/bar.lnk -> ../foo/bar/
+	        symlink('../foo/bar/', $this->path . '/zap/bar.lnk');
+	    }
 
         // create the filesystem object
         $this->config = LocalFilesystemConfig::create($this->path);
@@ -175,19 +177,21 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals($expected, $actual);
         }
 
-        // test links without leading '/'
-        foreach ($this->links as $pathname => $type) {
-            $expected = 'file:' . $this->path . '/' . $pathname;
-            $actual = $this->fs->getFile($pathname)->getRealURL();
-            $this->assertEquals($expected, $actual);
-        }
+	    if (function_exists('symlink')) {
+	        // test links without leading '/'
+	        foreach ($this->links as $pathname => $type) {
+	            $expected = 'file:' . $this->path . '/' . $pathname;
+	            $actual = $this->fs->getFile($pathname)->getRealURL();
+	            $this->assertEquals($expected, $actual);
+	        }
 
-        // test links with leading '/'
-        foreach ($this->links as $pathname => $type) {
-            $expected = 'file:' . $this->path . '/' . $pathname;
-            $actual = $this->fs->getFile('/' . $pathname)->getRealURL();
-            $this->assertEquals($expected, $actual);
-        }
+	        // test links with leading '/'
+	        foreach ($this->links as $pathname => $type) {
+	            $expected = 'file:' . $this->path . '/' . $pathname;
+	            $actual = $this->fs->getFile('/' . $pathname)->getRealURL();
+	            $this->assertEquals($expected, $actual);
+	        }
+	    }
 
         // test non existing files without leading '/'
         foreach ($this->notExists as $pathname) {
@@ -221,17 +225,19 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertFalse($file->isLink());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            $this->assertTrue($file->isLink());
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            $this->assertTrue($file->isLink());
+	        }
 
-        // test non existing files
-        foreach ($this->notExists as $pathname) {
-            $file = $this->fs->getFile($pathname);
-            $this->assertFalse($file->isLink());
-        }
+	        // test non existing files
+	        foreach ($this->notExists as $pathname) {
+	            $file = $this->fs->getFile($pathname);
+	            $this->assertFalse($file->isLink());
+	        }
+	    }
     }
 
     /**
@@ -251,18 +257,20 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertFalse($file->isFile());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            switch ($type) {
-                case 'file':
-                    $this->assertTrue($file->isFile());
-                    break;
-                case 'dir':
-                    $this->assertFalse($file->isFile());
-                    break;
-            }
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            switch ($type) {
+	                case 'file':
+	                    $this->assertTrue($file->isFile());
+	                    break;
+	                case 'dir':
+	                    $this->assertFalse($file->isFile());
+	                    break;
+	            }
+	        }
+	    }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
@@ -288,18 +296,20 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertTrue($file->isDirectory());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            switch ($type) {
-                case 'file':
-                    $this->assertFalse($file->isDirectory());
-                    break;
-                case 'dir':
-                    $this->assertTrue($file->isDirectory());
-                    break;
-            }
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            switch ($type) {
+	                case 'file':
+	                    $this->assertFalse($file->isDirectory());
+	                    break;
+	                case 'dir':
+	                    $this->assertTrue($file->isDirectory());
+	                    break;
+	            }
+	        }
+	    }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
@@ -325,11 +335,13 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertTrue($file->exists());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            $this->assertTrue($file->exists());
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            $this->assertTrue($file->exists());
+	        }
+	    }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
@@ -355,11 +367,13 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals('/' . $pathname, $file->getPathname());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            $this->assertEquals('/' . $pathname, $file->getPathname());
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            $this->assertEquals('/' . $pathname, $file->getPathname());
+	        }
+	    }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
@@ -385,11 +399,13 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals(basename($pathname), $file->getBasename());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            $this->assertEquals(basename($pathname), $file->getBasename());
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            $this->assertEquals(basename($pathname), $file->getBasename());
+	        }
+	    }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
@@ -415,11 +431,13 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals(preg_match('#^.*\.(\w+)$#', $pathname, $match) ? $match[1] : null, $file->getExtension());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            $this->assertEquals(preg_match('#^.*\.(\w+)$#', $pathname, $match) ? $match[1] : null, $file->getExtension());
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            $this->assertEquals(preg_match('#^.*\.(\w+)$#', $pathname, $match) ? $match[1] : null, $file->getExtension());
+	        }
+	    }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
@@ -448,11 +466,13 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals(dirname($pathname) != '.' ? $this->fs->getFile(dirname($pathname)) : $this->fs->getRoot(), $file->getParent());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            $this->assertEquals(dirname($pathname) != '.' ? $this->fs->getFile(dirname($pathname)) : $this->fs->getRoot(), $file->getParent());
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            $this->assertEquals(dirname($pathname) != '.' ? $this->fs->getFile(dirname($pathname)) : $this->fs->getRoot(), $file->getParent());
+	        }
+	    }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
@@ -478,11 +498,13 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals(fileatime($this->path . '/' . $pathname), $file->getAccessTime());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            $this->assertEquals(fileatime($this->path . '/' . $pathname), $file->getAccessTime());
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            $this->assertEquals(fileatime($this->path . '/' . $pathname), $file->getAccessTime());
+	        }
+	    }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
@@ -508,11 +530,13 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals(filectime($this->path . '/' . $pathname), $file->getCreationTime());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            $this->assertEquals(filectime($this->path . '/' . $pathname), $file->getCreationTime());
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            $this->assertEquals(filectime($this->path . '/' . $pathname), $file->getCreationTime());
+	        }
+	    }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
@@ -538,11 +562,13 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals(filemtime($this->path . '/' . $pathname), $file->getModifyTime());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            $this->assertEquals(filemtime($this->path . '/' . $pathname), $file->getModifyTime());
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            $this->assertEquals(filemtime($this->path . '/' . $pathname), $file->getModifyTime());
+	        }
+	    }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
@@ -568,11 +594,13 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals(filesize($this->path . '/' . $pathname), $file->getSize());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            $this->assertEquals(filesize($this->path . '/' . $pathname), $file->getSize());
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            $this->assertEquals(filesize($this->path . '/' . $pathname), $file->getSize());
+	        }
+	    }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
@@ -598,11 +626,13 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals(fileowner($this->path . '/' . $pathname), $file->getOwner());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            $this->assertEquals(fileowner($this->path . '/' . $pathname), $file->getOwner());
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            $this->assertEquals(fileowner($this->path . '/' . $pathname), $file->getOwner());
+	        }
+	    }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
@@ -628,11 +658,13 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals(filegroup($this->path . '/' . $pathname), $file->getGroup());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            $this->assertEquals(filegroup($this->path . '/' . $pathname), $file->getGroup());
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            $this->assertEquals(filegroup($this->path . '/' . $pathname), $file->getGroup());
+	        }
+	    }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
@@ -658,11 +690,13 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertEquals(fileperms($this->path . '/' . $pathname), $file->getMode());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            $this->assertEquals(fileperms($this->path . '/' . $pathname), $file->getMode());
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            $this->assertEquals(fileperms($this->path . '/' . $pathname), $file->getMode());
+	        }
+	    }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
@@ -688,11 +722,13 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertTrue($file->isReadable());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            $this->assertTrue($file->isReadable());
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            $this->assertTrue($file->isReadable());
+	        }
+	    }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
@@ -718,11 +754,13 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertTrue($file->isWritable());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            $this->assertTrue($file->isWritable());
-        }
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            $this->assertTrue($file->isWritable());
+	        }
+	    }
 
         // test non existing files
         foreach ($this->notExists as $pathname) {
@@ -748,19 +786,21 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
             $this->assertTrue($file->isExecutable());
         }
 
-        // test links
-        foreach ($this->links as $pathname => $type) {
-            $file = $this->fs->getFile($pathname);
-            switch ($type) {
-                case 'file':
-                    $this->assertFalse($file->isExecutable());
-                    break;
-                case 'dir':
-                    $this->assertTrue($file->isExecutable());
-                    break;
-            }
-        }
-
+	    if (function_exists('symlink')) {
+	        // test links
+	        foreach ($this->links as $pathname => $type) {
+	            $file = $this->fs->getFile($pathname);
+	            switch ($type) {
+	                case 'file':
+	                    $this->assertFalse($file->isExecutable());
+	                    break;
+	                case 'dir':
+	                    $this->assertTrue($file->isExecutable());
+	                    break;
+	            }
+	        }
+	    }
+	    
         // test non existing files
         foreach ($this->notExists as $pathname) {
             $file = $this->fs->getFile($pathname);

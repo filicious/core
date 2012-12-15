@@ -13,10 +13,9 @@
 
 namespace Filicious\Local;
 
-use Filicious\Local\LocalFilesystemConfig;
-
 require_once(__DIR__ . '/../../bootstrap.php');
 
+use Filicious\FilesystemConfig;
 use Filicious\Iterator\FilesystemIterator;
 use Filicious\Iterator\RecursiveFilesystemIterator;
 
@@ -95,11 +94,11 @@ class LocalFilesystemTest extends \PHPUnit_Framework_TestCase
 			symlink('../foo/bar/', $this->path . '/zap/bar.lnk');
 		}
 
-		// create the filesystem object
-		$this->config = LocalFilesystemConfig::create($this->path);
+        // create the filesystem object
+        $this->config = LocalFilesystem::newConfig()->setBasePath($this->path);
 
-		$this->fs = LocalFilesystem::create($this->config);
-	}
+        $this->fs = $this->config->create();
+    }
 
 	/**
 	 * Tears down the fixture, for example, closes a network connection.

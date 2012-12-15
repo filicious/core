@@ -15,8 +15,8 @@ namespace Filicious\Mountcontainer;
 
 require_once(__DIR__ . '/../../bootstrap.php');
 
+use Filicious\FilesystemConfig;
 use Filicious\Local\LocalFilesystem;
-use Filicious\Local\LocalFilesystemConfig;
 use Filicious\Iterator\FilesystemIterator;
 use Filicious\Iterator\RecursiveFilesystemIterator;
 
@@ -51,10 +51,10 @@ class MergedFilesystemTest extends \PHPUnit_Framework_TestCase
 	 */
 	protected function setUp()
 	{
-		$this->merged = MountcontainerFilesystem::create(MountcontainerFilesystemConfig::create());
-		$this->src = new LocalFilesystem(LocalFilesystemConfig::create(__DIR__ . '/../../../src'));
-		$this->test = new LocalFilesystem(LocalFilesystemConfig::create(__DIR__ . '/../../../test'));
-		$this->nest = new LocalFilesystem(LocalFilesystemConfig::create(__DIR__ . '/../../../test'));
+		$this->merged = MountcontainerFilesystem::newConfig()->create();
+		$this->src = LocalFilesystem::newConfig()->setBasePath(__DIR__ . '/../../../src')->create();
+		$this->test = LocalFilesystem::newConfig()->setBasePath(__DIR__ . '/../../../test')->create();
+		$this->nest = LocalFilesystem::newConfig(array('base' => __DIR__ . '/../../../test'))->create();
 	}
 
 	/**

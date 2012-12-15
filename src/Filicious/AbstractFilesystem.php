@@ -26,11 +26,26 @@ use Filicious\Stream\StreamManager;
 abstract class AbstractFilesystem
 	implements Filesystem
 {
-
+	/* (non-PHPdoc)
+	 * @see Filicious.Filesystem::newConfig()
+	 */
+	public static function newConfig(\Traversable $data = null) {
+		$clazz = new \ReflectionClass(get_called_class());
+		if(!$clazz->isInstantiable()) {
+			throw new LogicException(); // TODO
+		}
+		return FilesystemConfig::newConfig($data)->setImplementation($clazz->getName());
+	}
+	
 	/**
 	 * @var FilesystemConfig
 	 */
 	protected $config;
+	
+	/**
+	 * @var PublicURLProvider
+	 */
+	protected $provider;
 	
 	/**
 	 * @var PublicURLProvider

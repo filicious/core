@@ -15,6 +15,7 @@ namespace Filicious\Mountcontainer;
 
 use Filicious\File;
 use Filicious\Filesystem;
+use Filicious\FilesystemConfig;
 use Filicious\AbstractSimpleFilesystem;
 use Filicious\FilesystemException;
 use Filicious\Util;

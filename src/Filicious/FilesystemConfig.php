@@ -245,12 +245,13 @@ class FilesystemConfig
 			$impl = $this->get(static::IMPLEMENTATION);
 		}
 		
-		$impl = strval($impl);
-		if(!strlen($impl)) {
-			throw new \Exception(); //ConfigurationException(); // TODO
+		try {
+			$clazz = new \ReflectionClass(strval($impl));
+			return $clazz->newInstance($this->fork());
 		}
-		
-		return new $impl($this->fork());
+		catch(Exception $e) {
+			throw new \Exception('', 0, $e); //ConfigurationException(); // TODO
+		}
 	}
 	
 	/**

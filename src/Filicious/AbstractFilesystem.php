@@ -52,11 +52,8 @@ abstract class AbstractFilesystem
 	 */
 	protected function __construct(FilesystemConfig $config, PublicURLProvider $provider = null)
 	{
-		$this->config = $config = $config->fork();
 		$this->provider = $provider;
-		$this->prepareConfig();
-		$this->config = null; // because config binding asserts fs->getConfig is null
-		$this->config = $config->bind($this);
+		$this->config = $this->prepareConfig($config->fork())->bind($this);
 	}
 
 	/* (non-PHPdoc)
@@ -76,9 +73,10 @@ abstract class AbstractFilesystem
 	 * Gets called before at construction time before the config is made
 	 * immutable. Override in concrete classes to extend or alter behavior.
 	 */
-	protected function prepareConfig()
+	protected function prepareConfig(FilesystemConfig $config)
 	{
-		$this->config->setBasePath(Util::normalizePath($this->config->getBasePath()));
+		$config->setBasePath(Util::normalizePath($config->getBasePath()));
+		return $config;
 	}
 
 	/* (non-PHPdoc)

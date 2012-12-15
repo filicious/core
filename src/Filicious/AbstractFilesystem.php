@@ -29,7 +29,7 @@ abstract class AbstractFilesystem
 	/* (non-PHPdoc)
 	 * @see Filicious.Filesystem::newConfig()
 	 */
-	public static function newConfig(\Traversable $data = null) {
+	public static function newConfig($data = null) {
 		$clazz = new \ReflectionClass(get_called_class());
 		if(!$clazz->isInstantiable()) {
 			throw new LogicException(); // TODO

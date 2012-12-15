@@ -13,6 +13,9 @@
 
 namespace Filicious;
 
+function is_traversable($thingee) {
+	return is_array($thingee) || $thingee instanceof \Traversable;
+}
 
 /**
  * A filesystem configuration
@@ -53,15 +56,20 @@ class FilesystemConfig
 	/**
 	 * Create a new filesystem config.
 	 *
-	 * @param \Traversable $base
+	 * @param \Traversable|array $base
 	 * @param callable $handler
 	 * @return FilesystemConfig
 	 */
-	public static function newConfig(\Traversable $data = null, Filesystem $fs = null) {
-		if(is_array($data) && $fs === null) { // cheap forking
-			$config = new static();
-			$config->data = $data;
-			return $config;
+	public static function newConfig($data = null, Filesystem $fs = null) {
+		if($data !== null) {
+			if(!is_traversable($data)) {
+				throw new \InvalidArgumentException(); // TODO
+			}
+			if($fs === null && is_array($data)) { // cheap forking
+				$config = new static();
+				$config->data = $data;
+				return $config;
+			}
 		}
 		return new static($data, $fs);
 	}
@@ -79,15 +87,15 @@ class FilesystemConfig
 	/**
 	 * Create a new filesytem config.
 	 * 
-	 * @param \Traversable $data Initial parameters to use
+	 * @param \Traversable|array $data Initial parameters to use
 	 * @param Filesystem $fs The filesystem this config will be bound to
 	 */
-	protected function __construct(\Traversable $data = null, Filesystem $fs = null) {
+	protected function __construct($data = null, Filesystem $fs = null) {
 		if(!$fs) {
 			$this->merge($data);
 		}
 		elseif($fs->getConfig()) {
-			throw new Exception(); //ConfigurationException(); // TODO
+			throw new \Exception(); //ConfigurationException(); // TODO
 		}
 		else {
 			$this->merge($data);
@@ -116,16 +124,21 @@ class FilesystemConfig
 	/**
 	 * Add all configuration parameter from given traversable.
 	 *
-	 * @param \Traversable $data The parameters to merge
+	 * @param \Traversable|array $data The parameters to merge
 	 * @return FilesystemConfig This config object
 	 * @throws InvalidStateException When the bound filesystem denies the update
 	 * 		of the given parameter
 	 * @throws ConfigurationException When the bound filesystem decides that the
 	 * 		parameter value set is not a valid setting
 	 */
-	public function merge(\Traversable $data = null) {
-		if($data !== null) foreach($data as $param => $value) {
-			$this->set($param, $value);
+	public function merge($data = null) {
+		if($data !== null) {
+			if(!is_traversable($data)) {
+				throw new \InvalidArgumentException(); // TODO
+			}
+			foreach($data as $param => $value) {
+				$this->set($param, $value);
+			}
 		}
 		return $this;
 	}
@@ -133,12 +146,12 @@ class FilesystemConfig
 	/**
 	 * Fork this configuration and merge in the given parameters.
 	 *
-	 * @param \Traversable $data The config to merge in
+	 * @param \Traversable|array $data The config to merge in
 	 * @param Filesystem The filesystem this config is bound to
 	 * @return FilesystemConfig The forked config instance
 	 */
-	public function fork(\Traversable $data = null) {
-		return static::newConfig($this)->merge($data);
+	public function fork($data = null) {
+		return static::newConfig($this->data)->merge($data);
 	}
 	
 	/**
@@ -149,7 +162,7 @@ class FilesystemConfig
 	 * @return FilesystemConfig The new bound config instance
 	 */
 	public function bind(Filesystem $fs) {
-		return static::newConfig($this, $fs);
+		return static::newConfig($this->data, $fs);
 	}
 	
 	/**
@@ -189,7 +202,7 @@ class FilesystemConfig
 			$this->data[$param] = $value;
 		}
 		elseif($param == static::IMPLEMENTATION) {
-			throw new Exception(); //InvalidStateException(); // TODO
+			throw new \Exception(); //InvalidStateException(); // TODO
 		}
 		else {
 			$this->getFilesystem()->notify($this->data, $param, $value);
@@ -234,7 +247,7 @@ class FilesystemConfig
 		
 		$impl = strval($impl);
 		if(!strlen($impl)) {
-			throw new Exception(); //ConfigurationException(); // TODO
+			throw new \Exception(); //ConfigurationException(); // TODO
 		}
 		
 		return new $impl($this->fork());

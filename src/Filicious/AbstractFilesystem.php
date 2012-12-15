@@ -48,11 +48,6 @@ abstract class AbstractFilesystem
 	protected $provider;
 	
 	/**
-	 * @var PublicURLProvider
-	 */
-	protected $provider;
-
-	/**
 	 * @param FilesystemConfig $config
 	 */
 	protected function __construct(FilesystemConfig $config, PublicURLProvider $provider = null)

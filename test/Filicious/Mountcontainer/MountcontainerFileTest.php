@@ -15,7 +15,6 @@ namespace Filicious\Mountcontainer;
 
 use Filicious\FilesystemConfig;
 use Filicious\Local\LocalFilesystem;
-use Filicious\Local\LocalFilesystemConfig;
 use Filicious\Iterator\FilesystemIterator;
 use Filicious\Iterator\RecursiveFilesystemIterator;
 
@@ -50,8 +49,8 @@ class MountcontainerFileTest extends \PHPUnit_Framework_TestCase
      */
     protected function setUp()
     {
-        $this->merged = MountcontainerFilesystem::create(MountcontainerFilesystemConfig::create());
-        $this->src = new LocalFilesystem(LocalFilesystemConfig::create(__DIR__ . '/../../../../src'));
+        $this->merged = FilesystemConfig::newConfig()->create('Filicious\Mountcontainer\MountcontainerFilesystem');
+        $this->src = FilesystemConfig::newConfig()->setBasePath(__DIR__ . '/../../../src')->create('Filicious\Local\LocalFilesystem');
         $this->merged->mount($this->src, '_test');
 
 		$this->srcFile = $this->src->getFile('/Filicious/Merged/MergedFile.php');

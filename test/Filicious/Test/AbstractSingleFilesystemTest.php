@@ -13,6 +13,7 @@
 
 namespace Filicious\Test;
 
+use Filicious\FilesystemConfig;
 use Filicious\Iterator\FilesystemIterator;
 use Filicious\Iterator\RecursiveFilesystemIterator;
 use PHPUnit_Framework_TestCase;
@@ -95,7 +96,12 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			// create link <path>/zap/bar.lnk -> ../foo/bar/
 			$this->adapter->symlink('../foo/bar/', '/zap/bar.lnk');
 		}
-	}
+
+        // create the filesystem object
+        $this->config = LocalFilesystem::newConfig()->setBasePath($this->path);
+
+        $this->fs = $this->config->create();
+    }
 
 	protected function tearDown()
 	{

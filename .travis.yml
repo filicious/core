@@ -9,5 +9,5 @@ notifications:
         - c.schiffler@cyberspectrum.de
         - oliver@hofff.com
     irc:
-        channels: "irc.freenode.org#contao.dev"
+        channels: "irc.freenode.org#filicious"
         use_notice: true

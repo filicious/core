@@ -352,11 +352,18 @@ class SimpleFile
 		);
 	}
 
-	public function getRealURL()
+	public function getURL()
 	{
 		return $this
 			->getFilesystem()
-			->getRealURLOf($this);
+			->getURLOf($this);
+	}
+
+	public function getStream()
+	{
+		return $this
+			->getFilesystem()
+			->getStreamOf($this);
 	}
 
 	public function getPublicURL()

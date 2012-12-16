@@ -674,7 +674,7 @@ class LocalFilesystem
 	 *
 	 * @return string
 	 */
-	public function getRealURLOf($file)
+	public function getURLOf($file)
 	{
 		return 'file:' . $this->realPath($file);
 	}

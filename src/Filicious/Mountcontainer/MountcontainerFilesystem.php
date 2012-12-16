@@ -825,7 +825,7 @@ class MountcontainerFilesystem
 	 *
 	 * @return string
 	 */
-	public function getRealURLOf($file)
+	public function getURLOf($file)
 	{
 		return 'mountcontainer:' . $this->realPath($file);
 	}

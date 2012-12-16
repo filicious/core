@@ -339,11 +339,18 @@ interface SimpleFilesystem
 	public function lsFile();
 
 	/**
-	 * Get the real url, e.g. file:/real/path/to/file to the pathname.
+	 * Get a streamable url, e.g. filicious://automount12345/real/path/to/file
 	 *
 	 * @return string
 	 */
-	public function getRealURLOf($file);
+	public function getURLOf($file);
+
+	/**
+	 * Get the stream object.
+	 *
+	 * @return string
+	 */
+	public function getStreamOf($file);
 
 	/**
 	 * Get a public url, e.g. http://www.example.com/path/to/public/file to the file.

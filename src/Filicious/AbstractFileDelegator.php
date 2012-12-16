@@ -19,6 +19,7 @@ namespace Filicious;
  *
  * @package filicious-core
  * @author  Oliver Hoff <oliver@hofff.com>
+ * @author  Tristan Lins <tristan.lins@bit3.de>
  */
 abstract class AbstractFileDelegator
 	implements File
@@ -272,9 +273,9 @@ abstract class AbstractFileDelegator
 		return call_user_func_array(array($this->getDelegate(), __METHOD__), $args);
 	}
 
-	public function getRealURL()
+	public function getURL()
 	{
-		return $this->getDelegate()->getRealURL();
+		return $this->getDelegate()->getURL();
 	}
 
 	public function getPublicURL()

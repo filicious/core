@@ -359,13 +359,24 @@ interface File
 	public function truncate($size = 0);
 
 	/**
-	 * Gets an stream for the file. May return <em>null</em> if streaming is not supported.
+	 * Gets an stream for the file.
 	 *
 	 * @param string $mode
 	 *
-	 * @return resource|null
+	 * @return resource
+	 *
+	 * @throws \Filicious\Stream\StreamNotSupportedException
 	 */
 	public function open($mode = 'rb');
+
+	/**
+	 * Get a stream object for the file.
+	 *
+	 * @return Stream
+	 *
+	 * @throws \Filicious\Stream\StreamNotSupportedException
+	 */
+	public function getStream();
 
 	/**
 	 * Get mime content type.
@@ -424,11 +435,11 @@ interface File
 	public function ls();
 
 	/**
-	 * Get the real url, e.g. file:/real/path/to/file to the pathname.
+	 * Get a streamable url, e.g. filicious://automount12345/real/path/to/file
 	 *
 	 * @return string
 	 */
-	public function getRealURL();
+	public function getURL();
 
 	/**
 	 * Get a public url, e.g. http://www.example.com/path/to/public/file to the file.

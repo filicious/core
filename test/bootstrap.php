@@ -25,3 +25,9 @@ spl_autoload_register(
 	}
 );
 
+set_error_handler(
+	function ($errno, $errstr, $errfile = null, $errline = -1, array $errcontext = array()) {
+		throw new ErrorException($errstr, $errno, 0, $errfile, $errline);
+	},
+	E_RECOVERABLE_ERROR | E_WARNING | E_USER_ERROR | E_USER_WARNING
+);

@@ -193,6 +193,8 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 	 */
 	public function testIsLink()
 	{
+		// TODO check fs ability: symlinks supported
+
 		// test files
 		foreach ($this->files as $pathname) {
 			$file = $this->fs->getFile($pathname);

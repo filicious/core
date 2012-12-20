@@ -9,52 +9,52 @@ inspired by the Java filesystem API.
 Why another filesystem abstraction?
 ===================================
 
-We evaluated some *filesystem abstraction* frameworks, like [Gaufrette](https://github.com/KnpLabs/Gaufrette).
-But none of the frameworks we found, is a real *filesystem abstraction*.
-Gaufrette for example is more a `key => value` storage, that use a filesystem or online storage as source.
-Some essential functions, like delete directory are **not** available in Gaufrette.
+We evaluated various *filesystem abstraction* frameworks, like [Gaufrette](https://github.com/KnpLabs/Gaufrette).
+But none of the frameworks we found, provides a real *filesystem abstraction*.
+Gaufrette for example is more a `key => value` storage, that uses a filesystem or online storage as source.
+Some essential functions, like deleting a directory are **not** available in Gaufrette.
 Copying files across filesystem adapters is also **not** possible.
 
-The benefit of `php-filesystem` is that it is a unique layer that can be...
+The benefit of `Filicious` is that it is a unique layer that...
 
-* used every time you work with files (also for temporary files)
-* used across multiple filesystem (also move or copy files between each other)
-* nearly complete replace the php file api
-* do **not** hide the file structure
-* provide high and low level functions to the filesystem
+* can be used every time you work with files (also for temporary files)
+* can be used across multiple filesystems (also move or copy files between one another)
+* is a nearly complete replacement for the php file API
+* does **not** hide the file structure
+* provides high and low level functions to the filesystem
 * works with php iterators
-* provide a "merged" filesystem, that build a merged structure from several filesystems
-* support streaming
-* provide configurable public url generation (useful for web apps)
+* provides a "merged" filesystem, that builds a merged structure from several filesystems
+* supports streaming
+* provides configurable public url generation (useful for web apps)
 
-Filesystem api
+Filesystem API
 ==============
 
 `Filesystem` is the basic interface to access any filesystem.
 You need a `Filesystem` instance to connect to the filesystem and get files, but not to work with it.
 
 `File` is the basic interface to access files and directories inside of a filesystem.
-A `File` instance represents a pathname inside of the underlaying filesystem.
-With a `File` you can do all what you want, create files and directories, delete files and directories,
+A `File` instance represents a pathname inside of the underlying filesystem.
+With a `File` you can do everything you like: create files and directories, delete files and directories,
 read and write files and list directory content including glob'ing it.
 
-`FS` is an *static* object, to control and access global filesystem access.
-Currently `FS` only handle the system temporary filesystem.
+`FS` is a *static* object, to control and access global filesystem access.
+Currently `FS` only handles the system temporary filesystem.
 
 `TemporaryFilesystem` is an extending interface of `Filesystem`.
-The `TemporaryFilesystem` provide a `createTempFile` and `createTempDirectory` method.
-All files/directories created with these methods will be deleted if the filesystem gets destroyed.
+The `TemporaryFilesystem` provides a `createTempFile` and  a `createTempDirectory` method.
+All files/directories created with those methods will be deleted if the filesystem instance gets destroyed.
 
 `Util` is a *static* object with some filesystem related methods.
 
-`PublicUrlProvider` is an interface for a class that generated public urls for a file.
+`PublicUrlProvider` is an interface for a class that generates public URL's for a file.
 
 `AbstractFile` is a basic abstract implementation of `File`.
 
-Work with the filesystem
+Working with the filesystem
 ========================
 
-Get the root `/` node of a filesystem
+Getting the root `/` node of a filesystem
 -------------------------------------
 
 ```php
@@ -63,7 +63,7 @@ Get the root `/` node of a filesystem
 $root = $fs->getRoot();
 ```
 
-Get a file from the filesystem
+Getting a file from the filesystem
 ------------------------------
 
 ```php
@@ -72,7 +72,7 @@ Get a file from the filesystem
 $file = $fs->getFile('/example.txt');
 ```
 
-Test if file exists and test if it is a file, directory or link
+Testing for file existance and file types
 ---------------------------------------------------------------
 
 ```php
@@ -90,7 +90,7 @@ if ($file->exists()) {
 }
 ```
 
-Get basic informations about a file
+Getting basic information about a file
 -----------------------------------
 
 ```php
@@ -127,7 +127,7 @@ $owner = $file->getOwner();
 $group = $file->getGroup();
 ```
 
-Get and test permissions
+Getting and testing permissions
 ------------------------
 
 ```php
@@ -151,7 +151,7 @@ if ($file->isExecutable()) {
 }
 ```
 
-Delete files and directories
+Deleting files and directories
 ----------------------------
 
 ```php
@@ -164,10 +164,10 @@ else {
 }
 ```
 
-Copy files
+Copying files
 ----------
 
-Keep in mind: `$source` and `$target` does not need to be files in the same filesystem!
+Keep in mind: `$source` and `$target` do not need to be files in the same filesystem!
 
 ```php
 /** @var File $source */
@@ -175,10 +175,10 @@ Keep in mind: `$source` and `$target` does not need to be files in the same file
 $source->copyTo($target);
 ```
 
-Rename/Move files
+Renaming/Moving files
 -----------------
 
-Keep in mind: `$source` and `$target` does not need to be files in the same filesystem!
+Keep in mind: `$source` and `$target` do not need to be files in the same filesystem!
 
 ```php
 /** @var File $source */
@@ -186,7 +186,7 @@ Keep in mind: `$source` and `$target` does not need to be files in the same file
 $source->moveTo($target);
 ```
 
-Create a directory
+Creating a directory
 ------------------
 
 ```php
@@ -196,7 +196,7 @@ if (!$file->exists()) {
 }
 ```
 
-Create a directory path (including all missing parent directories)
+Creating a directory path (including all missing parent directories)
 ------------------------------------------------------------------
 
 ```php
@@ -206,7 +206,7 @@ if (!$file->exists()) {
 }
 ```
 
-Create a new empty file
+Creating a new empty file
 -----------------------
 
 ```php
@@ -216,7 +216,7 @@ if (!$file->exists()) {
 }
 ```
 
-Read and write files
+Reading and writing files
 --------------------
 
 ```php
@@ -231,7 +231,7 @@ $file->setContents("Hello world!\n");
 $file->appendContents("The world is like a pizza!\n");
 ```
 
-Truncate files
+Truncating files
 --------------
 
 ```php
@@ -260,7 +260,7 @@ fwrite($stream, "The world is like a pizza!\n");
 fclose($stream);
 ```
 
-Calculate file hashes
+Calculating file hashes
 ---------------------
 
 ```php
@@ -278,7 +278,7 @@ $sha1 = $file->hashSHA1();
 $sha1raw = $file->hashSHA1(true);
 ```
 
-List files in a directory
+Listing files in a directory
 -------------------------
 
 ```php
@@ -295,7 +295,7 @@ if ($file->isDirectory()) {
 }
 ```
 
-Glob files in a directory
+Glob'ing files in a directory
 -------------------------
 
 ```php
@@ -312,10 +312,10 @@ if ($file->isDirectory()) {
 }
 ```
 
-Iterate directories (simple)
+Iterating over directories (simple)
 ----------------------------
 
-Keep in mind: the *magic* childrens `.` and `..` will never be visible to you!
+Keep in mind: the *magic* children `.` and `..` will never be visible to you!
 
 ```php
 /** @var File $file */
@@ -327,10 +327,10 @@ if ($file->isDirectory()) {
 }
 ```
 
-Iterate directories (expert)
+Iterating over directories (advanced)
 ----------------------------
 
-Keep in mind: the *magic* childrens `.` and `..` will never be visible to you!
+Keep in mind: the *magic* children `.` and `..` will never be visible to you!
 
 ```php
 use Bit3\Filesystem\Iterator\FilesystemIterator;
@@ -346,7 +346,7 @@ if ($file->isDirectory()) {
 }
 ```
 
-Get real url to a file
+Geting the real URL to a file
 ----------------------
 
 ```php
@@ -359,7 +359,7 @@ $url = $file->getRealUrl();
 // ...
 ```
 
-Get public url to a file
+Geting the public URL to a file
 ------------------------
 
 ```php
@@ -399,14 +399,14 @@ foreach ($treeIterator as $path) {
 }
 ```
 
-The `LocalFilesystem` constructor accept a *base path* to the root directory and an optional `PublicUrlProvider` as second argument.
+The `LocalFilesystem` constructor accepts a *base path* to the root directory and an optional `PublicUrlProvider` as second argument.
 All files from the `LocalFilesystem` are relative to the *base path*, even absolute files.
 
 Merged filesystem
 -----------------
 
 A merged filesystem is similar to the [union mount](http://en.wikipedia.org/wiki/Union_mount).
-With the merged filesystem several other filesystems can be *mounted* into a virtual structure.
+Using a merged filesystem several other filesystems can be *mounted* into a virtual structure.
 
 ```php
 use Bit3\Filesystem\Merged\MergedFilesystem;
@@ -434,12 +434,12 @@ foreach ($treeIterator as $path) {
 }
 ```
 
-The `MergedFilesystem` constructor accept an optional filesystem object as root (/) filesystem.
+The `MergedFilesystem` constructor accepts an optional filesystem object as root (/) filesystem.
 
 FTP filesystem
 --------------
 
-The `FTPFilesystem` allow access to an ftp server.
+The `FTPFilesystem` allows access to an ftp server.
 
 ```php
 use Bit3\Filesystem\FTP\FTPFilesystemConfig;
@@ -469,10 +469,10 @@ foreach ($treeIterator as $path) {
 }
 ```
 
-The `FTPFilesystem` constructor accept an instance of `FTPFilesystemConfig` and an optional `PublicUrlProvider` as second argument.
-The `FTPFilesystemConfig` object is used, to setup the ftp configuration. The instance can be reused for several `FTPFilesystem` instantiations.
+The `FTPFilesystem` constructor accepts an instance of `FTPFilesystemConfig` and an optional `PublicUrlProvider` as second argument.
+The `FTPFilesystemConfig` object is used to setup the ftp configuration. The instance can be reused for several `FTPFilesystem` instances.
 
 SSH Filesystem
 --------------
 
-in work...
+work in progress...

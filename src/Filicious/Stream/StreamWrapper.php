@@ -75,16 +75,16 @@ class StreamWrapper
 			parse_url($url)
 		);
 
-		$host = $this->url['host'];
-		if (strlen($this->url['port'])) {
-			$host .= ':' . $this->url['port'];
+		$host = $this->url->host;
+		if (strlen($this->url->port)) {
+			$host .= ':' . $this->url->port;
 		}
 
 		// search the filesystem bound to the scheme+host
-		$this->fs = StreamManager::searchFilesystem($host, $this->url['scheme']);
+		$this->fs = StreamManager::searchFilesystem($host, $this->url->scheme);
 
 		// get the file from the filesystem
-		$this->file = $this->fs->getFile($this->url['path']);
+		$this->file = $this->fs->getFile($this->url->path);
 
 		return $this->file;
 	}

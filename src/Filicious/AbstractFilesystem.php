@@ -31,7 +31,7 @@ abstract class AbstractFilesystem
 	 *         another config class.
 	 */
 	const CONFIG_CLASS = 'FilesystemConfig';
-	
+
 	/* (non-PHPdoc)
 	 * @see Filicious.Filesystem::create()
 	*/
@@ -39,12 +39,14 @@ abstract class AbstractFilesystem
 	{
 		// the instanceof operator has lexer issues...
 		if (!is_a($config, static::CONFIG_CLASS)) {
-			throw new FilesystemException(sprintf(
-				'%s requires a config of type %s, given %s',
-				get_called_class(),
-				static::CONFIG_CLASS,
-				get_class($config)
-			));
+			throw new FilesystemException(
+				sprintf(
+					'%s requires a config of type %s, given %s',
+					get_called_class(),
+					static::CONFIG_CLASS,
+					get_class($config)
+				)
+			);
 		}
 
 		$args  = func_get_args();
@@ -56,12 +58,12 @@ abstract class AbstractFilesystem
 	 * @var FilesystemConfig
 	 */
 	protected $config;
-	
+
 	/**
 	 * @var PublicURLProvider
 	 */
 	protected $provider;
-	
+
 	/**
 	 * @param FilesystemConfig $config
 	 */

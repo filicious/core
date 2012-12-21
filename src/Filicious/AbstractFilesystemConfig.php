@@ -39,6 +39,11 @@ abstract class AbstractFilesystemConfig
 	 */
 	protected $basePath;
 
+	/**
+	 * @var string
+	 */
+	protected $streamURI = null;
+
 	/* (non-PHPdoc)
 	 * @see Filicious.FilesystemConfig::create()
 	 */
@@ -90,5 +95,30 @@ abstract class AbstractFilesystemConfig
 	{
 		$this->checkImmutable()->basePath = (string) $basePath;
 		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getStreamURI()
+	{
+		return $this->streamURI;
+	}
+
+	/**
+	 * @param string $uri
+	 */
+	public function setStreamURI($uri)
+	{
+		$url = array_merge(
+			array(
+			     'scheme'   => '',
+			     'host'     => '',
+			     'port'     => '',
+			),
+			parse_url($uri)
+		);
+
+		$this->streamURI = $url['scheme'] . '://' . $url['host'] . ($url['port'] ? ':' . $url['port'] : '');
 	}
 }

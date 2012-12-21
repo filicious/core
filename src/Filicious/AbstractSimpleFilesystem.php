@@ -210,6 +210,18 @@ abstract class AbstractSimpleFilesystem
 	}
 
 	/**
+	 * Get a streamable url, e.g. filicious://automount12345/real/path/to/file
+	 *
+	 * @param File $file
+	 *
+	 * @return string
+	 */
+	public function getURLOf($file)
+	{
+		return $this->getConfig()->getStreamURI() . $file->getPathname();
+	}
+
+	/**
 	 * Get a public url, e.g. http://www.example.com/path/to/public/file to the file.
 	 *
 	 * @return string

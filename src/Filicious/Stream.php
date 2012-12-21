@@ -13,6 +13,7 @@
 
 namespace Filicious;
 
+use Filicious\Stream\StreamMode;
 
 /**
  * A file stream object.

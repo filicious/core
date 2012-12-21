@@ -15,6 +15,7 @@ namespace Filicious;
 
 use \ReflectionClass;
 use \Exception;
+use Filicious\Stream\StreamManager;
 
 /**
  * Skeleton for Filesystem implementors.
@@ -72,7 +73,46 @@ abstract class AbstractFilesystem
 		$this->config   = clone $config;
 		$this->provider = $provider;
 		$this->prepareConfig();
+
+		if ($this->config->getStreamURI()) {
+			$url = array_merge(
+				array(
+				     'scheme' => '',
+				     'host'   => '',
+				     'port'   => '',
+				),
+				parse_url($this->config->getStreamURI())
+			);
+
+			$scheme = $url['scheme'];
+			$host   = $url['host'] . ($url['port'] ? ':' . $url['port'] : '');
+
+			StreamManager::register($this, $host, $scheme);
+		}
+		else {
+			list($host, $scheme) = StreamManager::autoregister($this);
+
+			$this->config->setStreamURI($scheme . '://' . $host);
+
+		}
 		$this->config->makeImmutable();
+	}
+
+	function __destruct()
+	{
+		$url = array_merge(
+			array(
+			     'scheme' => '',
+			     'host'   => '',
+			     'port'   => '',
+			),
+			parse_url($this->config->getStreamURI())
+		);
+
+		$scheme = $url['scheme'];
+		$host   = $url['host'] . ($url['port'] ? ':' . $url['port'] : '');
+
+		StreamManager::unregister($host, $scheme);
 	}
 
 	/* (non-PHPdoc)

@@ -670,12 +670,14 @@ class LocalFilesystem
 	}
 
 	/**
-	 * Get the real url, e.g. file:/real/path/to/file to the pathname.
+	 * Get the stream object.
+	 *
+	 * @param File $file
 	 *
 	 * @return string
 	 */
-	public function getURLOf($file)
+	public function getStreamOf($file)
 	{
-		return 'file:' . $this->realPath($file);
+		return new \Filicious\Stream\BuildInStream('file://' . $this->realPath($file));
 	}
 }

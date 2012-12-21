@@ -24,11 +24,15 @@ interface Stream
 {
 	/**
 	 * Opens file or URL
+	 *
+	 * @return bool
 	 */
 	public function open(StreamMode $mode);
 
 	/**
 	 * Close an resource
+	 *
+	 * @return bool
 	 */
 	public function close();
 

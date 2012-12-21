@@ -87,5 +87,7 @@ class LocalFilesystemTestEnvironment
 				rmdir($path->getPathname());
 			}
 		}
+
+		rmdir($this->temporaryPath);
 	}
 }

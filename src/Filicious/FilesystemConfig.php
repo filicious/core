@@ -45,4 +45,14 @@ interface FilesystemConfig
 	 * @param string $basePath
 	 */
 	public function setBasePath($basePath);
+
+	/**
+	 * @return string
+	 */
+	public function getStreamURI();
+
+	/**
+	 * @param string $uri
+	 */
+	public function setStreamURI($uri);
 }

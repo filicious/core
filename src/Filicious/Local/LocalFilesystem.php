@@ -544,7 +544,7 @@ class LocalFilesystem
 	 */
 	public function open($file, $mode = 'rb')
 	{
-		return fopen($this->realPath($file), $mode);
+		return fopen($this->getURLOf($file), $mode);
 	}
 
 	/**

@@ -22,6 +22,13 @@ namespace Filicious\Stream;
 class StreamMode
 {
 	/**
+	 * The mode.
+	 *
+	 * @var string
+	 */
+	protected $mode;
+
+	/**
 	 * The mode keys, e.g. ['r', 'b', '+']
 	 *
 	 * @var array
@@ -72,6 +79,7 @@ class StreamMode
 
 	public function __construct($mode)
 	{
+		$this->mode = $mode;
 		$this->keys = str_split($mode);
 
 		$this->read       = in_array('r', $this->keys) || in_array('+', $this->keys);
@@ -80,6 +88,14 @@ class StreamMode
 		$this->createOnly = in_array('x', $this->keys);
 		$this->noTruncateWrite = in_array('c', $this->keys);
 		$this->binary     = in_array('b', $this->keys);
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getMode()
+	{
+		return $this->mode;
 	}
 
 	/**

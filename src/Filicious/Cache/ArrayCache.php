@@ -38,7 +38,7 @@ class ArrayCache implements Cache
 	public function exists($key)
 	{
 		return isset($this->array[$key]) &&
-			($this->array[$key] === null || time() < $this->array[$key]);
+			($this->array[$key]['ttl'] === null || time() < $this->array[$key]['ttl']);
 	}
 
 	/**
@@ -89,7 +89,7 @@ class ArrayCache implements Cache
 	{
 		$this->array[$key] = array(
 			'value' => $value,
-			'tll'   => $ttl > 0 ? time() + $ttl : null
+			'ttl'   => $ttl > 0 ? time() + $ttl : null
 		);
 		return true;
 	}

@@ -13,8 +13,6 @@
 
 namespace Filicious\Test;
 
-require_once(__DIR__ . '/../../bootstrap.php');
-
 use Filicious\Iterator\FilesystemIterator;
 use Filicious\Iterator\RecursiveFilesystemIterator;
 

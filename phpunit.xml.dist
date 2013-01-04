@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit backupGlobals="false"
+		 backupStaticAttributes="false"
+		 bootstrap="test/bootstrap.php"
+		 colors="true"
+		 convertErrorsToExceptions="true"
+		 convertNoticesToExceptions="true"
+		 convertWarningsToExceptions="true"
+		 processIsolation="true"
+		 strict="true">
+	<testsuites>
+		<testsuite name="FiliciousCoreTestSuite">
+			<directory suffix="Test.php">test/Filicious/Test/Local/</directory>
+		</testsuite>
+	</testsuites>
+</phpunit>

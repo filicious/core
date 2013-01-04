@@ -13,8 +13,6 @@
 
 namespace Filicious\Test;
 
-require_once(__DIR__ . '/../../bootstrap.php');
-
 /**
  * A test adapter allow direct access to a filesystem.
  * This adapter is an alternative implementation to a filesystem.

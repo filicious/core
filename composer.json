@@ -39,7 +39,8 @@
 	},
 	"autoload":{
 		"psr-0":{
-			"Filicious":"src/"
+			"Filicious":"src/",
+			"Filicious\\Test":"test/"
 		}
 	},
 	"minimum-stability":"dev"

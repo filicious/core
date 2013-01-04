@@ -1,7 +1,10 @@
 {
 	"name":"Filicious/FiliciousCore",
 	"description":"Filicious is a high level object oriented filesystem abstraction for PHP.",
+	"version":"1.0-dev",
+	"keywords":["filesystem","file","vfs"],
 	"homepage":"http://filicious.org",
+	"license":"LGPL-3.0+",
 	"authors":[
 		{
 			"name":"Tristan Lins",
@@ -22,6 +25,18 @@
 			"role":"Developer"
 		}
 	],
+	"support":{
+		"irc": "irc://irc.freenode.org/filicious"
+	},
+	"require-dev":{
+		"phpunit/phpunit": "3.*"
+	},
+	"suggest":{
+		"Filicious/FiliciousFTP": "Adds ftp support to Filicious.",
+		"Filicious/FiliciousSFTP": "Adds sftp support to Filicious.",
+		"Filicious/FiliciousDropbox": "Adds dropbox support to Filicious.",
+		"Filicious/FiliciousAmazonS3": "Adds amazon S3 support to Filicious."
+	},
 	"autoload":{
 		"psr-0":{
 			"Filicious":"src/"

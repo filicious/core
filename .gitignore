@@ -1,5 +1,16 @@
-# ide settings
-.idea
-.project
-.settings
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs 
 .buildpath
+.project
+.settings/
+.build/
+.idea/
+nbproject/
+
+# Dependencies
+composer.lock
+vendor
+

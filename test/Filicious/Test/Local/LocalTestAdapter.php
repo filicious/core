@@ -69,56 +69,67 @@ class LocalTestAdapter implements TestAdapter
 
 	public function isFile($path)
 	{
+		clearstatcache();
 		return is_file($this->basepath . $path);
 	}
 
 	public function isDirectory($path)
 	{
+		clearstatcache();
 		return is_dir($this->basepath . $path);
 	}
 
 	public function isLink($path)
 	{
+		clearstatcache();
 		return is_link($this->basepath . $path);
 	}
 
 	public function exists($path)
 	{
+		clearstatcache();
 		return file_exists($this->basepath . $path);
 	}
 
 	public function getATime($path)
 	{
+		clearstatcache();
 		return fileatime($this->basepath . $path);
 	}
 
 	public function getCTime($path)
 	{
+		clearstatcache();
 		return filectime($this->basepath . $path);
 	}
 
 	public function getMTime($path)
 	{
+		clearstatcache();
 		return filemtime($this->basepath . $path);
 	}
 
 	public function getFileSize($path)
 	{
+		clearstatcache();
 		return filesize($this->basepath . $path);
 	}
 
 	public function getOwner($path)
 	{
+		clearstatcache();
 		return fileowner($this->basepath . $path);
 	}
 
 	public function getGroup($path)
 	{
+		clearstatcache();
 		return filegroup($this->basepath . $path);
 	}
 
 	public function getMode($path)
 	{
+		clearstatcache();
 		return fileperms($this->basepath . $path);
 	}
 

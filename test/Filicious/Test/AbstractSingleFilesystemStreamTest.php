@@ -14,6 +14,7 @@
 namespace Filicious\Test;
 
 use Filicious\Stream;
+use Filicious\Stream\StreamMode;
 use Filicious\Iterator\FilesystemIterator;
 use PHPUnit_Framework_TestCase;
 
@@ -44,7 +45,7 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 
 	protected $contents = array(
 		'example.txt'  => 'The world is like a pizza!',
-		'zap/file.txt' => 'Hello World!',
+		'zap/file.txt' => 'Hello World! Everything is fine :)',
 	);
 
 	protected $dirs = array(
@@ -157,8 +158,344 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 			$file  = $this->fs->getFile($pathname);
 			$url   = $file->getURL();
 			$resource = fopen($url, 'r');
-			var_dump($resource);
-			fclose($resource);
+
+			$this->assertTrue(is_resource($resource));
+
+			if (is_resource($resource)) {
+				$this->assertTrue(fclose($resource));
+			}
+			else {
+				$this->markTestIncomplete('Open stream failed, could not test close!');
+			}
 		}
+	}
+
+	/**
+	 * @covers Filicious\Stream::cast()
+	 */
+	public function testCast()
+	{
+		// test files
+		foreach ($this->files as $pathname) {
+			$file  = $this->fs->getFile($pathname);
+			$url   = $file->getURL();
+			$resource = fopen($url, 'r');
+
+			$read = array($resource);
+			$write = null;
+			$except = null;
+
+			$this->assertTrue(false !== stream_select($read, $write, $except, 0));
+		}
+	}
+
+	/**
+	 * @covers Filicious\Stream::stat()
+	 */
+	public function testStat()
+	{
+		$self = $this;
+
+		$test = function($stat, $pathname) use ($self) {
+			$self->assertTrue(isset($stat['dev']));
+			$self->assertTrue(isset($stat['ino']));
+			$self->assertTrue(isset($stat['mode']));
+			$self->assertTrue(isset($stat['nlink']));
+			$self->assertTrue(isset($stat['uid']));
+			$self->assertTrue(isset($stat['gid']));
+			$self->assertTrue(isset($stat['rdev']));
+			$self->assertTrue(isset($stat['size']));
+			$self->assertTrue(isset($stat['atime']));
+			$self->assertTrue(isset($stat['mtime']));
+			$self->assertTrue(isset($stat['ctime']));
+			$self->assertTrue(isset($stat['blksize']));
+			$self->assertTrue(isset($stat['blocks']));
+
+			$this->assertEquals($this->adapter->stat($pathname), $stat);
+		};
+
+		// test files
+		foreach ($this->files as $pathname) {
+			$file  = $this->fs->getFile($pathname);
+			$url   = $file->getURL();
+
+			// from stream object
+			$stream = $file->getStream();
+			$stream->open(new StreamMode('r'));
+			$stat = $stream->stat();
+			$stream->close();
+			$test($stat, $pathname);
+
+			// from opened stream
+			$resource = fopen($url, 'r');
+			$stat = fstat($resource);
+			fclose($resource);
+			$test($stat, $pathname);
+
+			// from url
+			$stat = stat($url);
+			$test($stat, $pathname);
+		}
+	}
+
+	/**
+	 * @covers Filicious\Stream::lock()
+	 */
+	public function testLock()
+	{
+		$this->markTestIncomplete();
+	}
+
+	/**
+	 * @covers Filicious\Stream::read()
+	 * @covers Filicious\Stream::write()
+	 * @covers Filicious\Stream::seek()
+	 * @covers Filicious\Stream::tell()
+	 * @covers Filicious\Stream::eof()
+	 * @covers Filicious\Stream::truncate()
+	 */
+	public function testStreaming()
+	{
+		// test files
+		foreach ($this->files as $pathname) {
+			$file  = $this->fs->getFile($pathname);
+			$url   = $file->getURL();
+			$content = $this->contents[$pathname];
+			$length = strlen($content);
+			$n = (int) floor($length / 5);
+			$resource = fopen($url, 'rb+');
+
+
+			// test tell on start
+			$this->assertEquals(
+				0,
+				ftell($resource)
+			);
+			// test eof on start
+			$this->assertFalse(
+				feof($resource)
+			);
+
+
+			// test read from start
+			$this->assertEquals(
+				substr($content, 0, $n),
+				fread($resource, $n)
+			);
+			// test tell after read
+			$this->assertEquals(
+				$n,
+				ftell($resource)
+			);
+			// test eof after read
+			$this->assertFalse(
+				feof($resource)
+			);
+
+
+			// test seek set
+			$this->assertEquals(
+				0,
+				fseek($resource, 2 * $n, SEEK_SET)
+			);
+			// test tell after seek set
+			$this->assertEquals(
+				2 * $n,
+				ftell($resource)
+			);
+			// test eof after seek set
+			$this->assertFalse(
+				feof($resource)
+			);
+			// test read after seek set
+			$this->assertEquals(
+				substr($content, 2 * $n, $n),
+				fread($resource, $n)
+			);
+
+
+			// test seek add
+			$this->assertEquals(
+				0,
+				fseek($resource, $n, SEEK_CUR)
+			);
+			// test tell after seek add
+			$this->assertEquals(
+				4 * $n,
+				ftell($resource)
+			);
+			// test eof after seek add
+			$this->assertFalse(
+				feof($resource)
+			);
+			// test read after seek add
+			$this->assertEquals(
+				substr($content, 4 * $n),
+				fread($resource, $length)
+			);
+			// test eof after read
+			$this->assertTrue(
+				feof($resource)
+			);
+
+
+			// test seek append
+			$this->assertEquals(
+				0,
+				fseek($resource, 5, SEEK_END)
+			);
+			// test tell after seek append
+			$this->assertEquals(
+				$length + 5,
+				ftell($resource)
+			);
+			// test eof after seek append
+			$this->assertFalse(
+				feof($resource)
+			);
+			// test read after seek append
+			$this->assertEquals(
+				'',
+				fread($resource, strlen($content))
+			);
+
+
+			// test write
+			$this->assertEquals(
+				$length,
+				fwrite($resource, $content)
+			);
+			fflush($resource);
+			$newContent = $content . "\0\0\0\0\0" . $content;
+			fseek($resource, 0);
+			$this->assertEquals(
+				$newContent,
+				fread($resource, 3 * $length)
+			);
+
+			// test truncate
+			$this->assertEquals(
+				2 * $length + 5,
+				$this->adapter->getFileSize($pathname)
+			);
+			ftruncate($resource, $length);
+			fflush($resource);
+			fclose($resource);
+			$this->assertEquals(
+				$length,
+				$this->adapter->getFileSize($pathname)
+			);
+		}
+	}
+
+	/**
+	 * @covers Filicious\Stream\StreamWrapper::mkdir()
+	 * @covers Filicious\Stream\StreamWrapper::rename()
+	 * @covers Filicious\Stream\StreamWrapper::rmdir()
+	 * @covers Filicious\Stream\StreamWrapper::unlink()
+	 */
+	public function testPhpFileOperations()
+	{
+		$root = $this->fs->getRoot();
+		$rootURL = $root->getURL();
+
+		$directory1 = 'test1';
+		$directory2 = 'test2';
+
+		$file1 = $directory2 . '/file1';
+		$file2 = $directory2 . '/file2';
+
+		// test create directory
+		$this->assertTrue(
+			mkdir($rootURL . '/' . $directory1)
+		);
+		$this->assertTrue(
+			$this->adapter->isDirectory($directory1)
+		);
+		$this->assertFalse(
+			$this->adapter->isDirectory($directory2)
+		);
+
+		// test rename directory
+		$this->assertTrue(
+			rename(
+				$rootURL . '/' . $directory1,
+				$rootURL . '/' . $directory2
+			)
+		);
+		$this->assertFalse(
+			$this->adapter->isDirectory($directory1)
+		);
+		$this->assertTrue(
+			$this->adapter->isDirectory($directory2)
+		);
+
+		// test touch file
+		$this->assertTrue(
+			touch($rootURL . '/' . $file1)
+		);
+		$this->assertTrue(
+			$this->adapter->exists($file1)
+		);
+		$this->assertTrue(
+			$this->adapter->isFile($file1)
+		);
+
+		// test rename file
+		$this->assertTrue(
+			rename(
+				$rootURL . '/' . $file1,
+				$rootURL . '/' . $file2
+			)
+		);
+		$this->assertFalse(
+			$this->adapter->exists($file1)
+		);
+		$this->assertTrue(
+			$this->adapter->exists($file2)
+		);
+		$this->assertTrue(
+			$this->adapter->isFile($file2)
+		);
+
+		// test unlink file
+		$this->assertTrue(
+			unlink($rootURL . $file2)
+		);
+		$this->assertFalse(
+			$this->adapter->exists($file2)
+		);
+
+		// test rmdir directory
+		$this->assertTrue(
+			rmdir($rootURL . '/' . $directory2)
+		);
+		$this->assertFalse(
+			$this->adapter->exists($directory2)
+		);
+	}
+
+	/**
+	 * @covers Filicious\Stream\StreamWrapper::dir_opendir()
+	 * @covers Filicious\Stream\StreamWrapper::dir_closedir()
+	 * @covers Filicious\Stream\StreamWrapper::dir_readdir()
+	 * @covers Filicious\Stream\StreamWrapper::dir_rewinddir()
+	 */
+	public function testPhpDirOperation()
+	{
+		$root = $this->fs->getRoot();
+		$rootURL = $root->getURL();
+
+		$this->assertEquals(
+			array_values(
+				array_filter(
+					$this->adapter->scandir('/'),
+					function($entry) {
+						return $entry != '.' && $entry != '..';
+					}
+				)
+			),
+			scandir($rootURL)
+		);
 	}
 }

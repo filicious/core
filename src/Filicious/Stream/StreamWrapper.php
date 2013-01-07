@@ -273,12 +273,24 @@ class StreamWrapper
 	/**
 	 * Retrieve information about a file
 	 *
-	 * @param string $path
+	 * @param string $url
 	 * @param int    $flags
 	 */
-	public function url_stat($path, $flags)
+	public function url_stat($url, $flags)
 	{
-		// TODO implement
+		try {
+			$this->openFile($url);
+			if ($this->file->isLink() && !($flags & STREAM_URL_STAT_LINK)) {
+				return $this->file->getLinkTarget()->getStat();
+			}
+			return $this->file->getStat();
+		}
+		catch (Exception $e) {
+			if ($flags & STREAM_URL_STAT_QUIET) {
+				throw $e;
+			}
+			return false;
+		}
 	}
 
 	/**

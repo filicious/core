@@ -13,6 +13,7 @@
 
 namespace Filicious\Stream;
 
+use Filicious\File;
 use Filicious\Stream;
 use Filicious\Stream\StreamMode;
 
@@ -30,6 +31,11 @@ class BuildInStream implements Stream
 	protected $url;
 
 	/**
+	 * @var File
+	 */
+	protected $file;
+
+	/**
 	 * @var resource
 	 */
 	protected $resource;
@@ -37,9 +43,10 @@ class BuildInStream implements Stream
 	/**
 	 * @param string $url
 	 */
-	public function __construct($url)
+	public function __construct($url, File $file)
 	{
-		$this->url = $url;
+		$this->url  = $url;
+		$this->file = $file;
 	}
 
 	/**
@@ -79,7 +86,7 @@ class BuildInStream implements Stream
 	 */
 	public function stat()
 	{
-		return fstat($this->resource);
+		return $this->file->getStat();
 	}
 
 	/**

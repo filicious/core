@@ -60,4 +60,8 @@ interface TestAdapter
 	public function getGroup($path);
 
 	public function getMode($path);
+
+	public function stat($path);
+
+	public function scandir($path);
 }

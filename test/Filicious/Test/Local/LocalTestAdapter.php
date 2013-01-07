@@ -121,4 +121,16 @@ class LocalTestAdapter implements TestAdapter
 	{
 		return fileperms($this->basepath . $path);
 	}
+
+	public function stat($path)
+	{
+		clearstatcache();
+		return stat($this->basepath . $path);
+	}
+
+	public function scandir($path)
+	{
+		clearstatcache();
+		return scandir($this->basepath . $path);
+	}
 }

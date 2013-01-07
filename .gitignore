@@ -14,3 +14,6 @@ nbproject/
 composer.lock
 vendor
 
+# Unit tests
+phpunit.xml
+

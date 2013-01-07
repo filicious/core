@@ -104,7 +104,7 @@ class BuildInStream implements Stream
 	 */
 	public function seek($offset, $whence = SEEK_SET)
 	{
-		return fseek($this->resource, $offset, $whence);
+		return 0 === fseek($this->resource, $offset, $whence);
 	}
 
 	/**

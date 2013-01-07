@@ -93,8 +93,8 @@ abstract class AbstractFilesystem
 			list($host, $scheme) = StreamManager::autoregister($this);
 
 			$this->config->setStreamURI($scheme . '://' . $host);
-
 		}
+
 		$this->config->makeImmutable();
 	}
 

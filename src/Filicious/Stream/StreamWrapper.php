@@ -267,7 +267,7 @@ class StreamWrapper
 	 */
 	public function stream_stat()
 	{
-		return $this->stream->stat();
+		return $this->file->getStat();
 	}
 
 	/**

@@ -13,6 +13,8 @@
 
 namespace Filicious;
 
+use ArrayIterator;
+
 /**
  * A simple file system object.
  * This base class implements the simple file system interface by delegating

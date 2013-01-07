@@ -19,6 +19,7 @@ use Filicious\SimpleFile;
 use Filicious\SimpleFilesystem;
 use Filicious\PublicURLProvider;
 use Filicious\Util;
+use Filicious\Stream\BuildInStream;
 
 /**
  * Local filesystem adapter.
@@ -678,6 +679,6 @@ class LocalFilesystem
 	 */
 	public function getStreamOf($file)
 	{
-		return new \Filicious\Stream\BuildInStream('file://' . $this->realPath($file));
+		return new BuildInStream('file://' . $this->realPath($file), $file);
 	}
 }

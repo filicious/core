@@ -406,8 +406,11 @@ class LocalFilesystem
 	 */
 	public function moveTo($file, File $destination)
 	{
-		if ($destination instanceof LocalFile) {
-			return rename($this->realPath($file), $this->realPath($destination));
+		if ($destination->getFilesystem() instanceof LocalFilesystem) {
+			return rename(
+				$this->realPath($file),
+				$destination->getFilesystem()->realPath($destination)
+			);
 		}
 		else {
 			return Util::streamCopy($file, $destination) && $file->delete();

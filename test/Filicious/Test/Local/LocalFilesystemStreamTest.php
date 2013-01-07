@@ -13,8 +13,6 @@
 
 namespace Filicious\Test\Local;
 
-require_once(__DIR__ . '/../../../bootstrap.php');
-
 use Filicious\Test\AbstractSingleFilesystemStreamTest;
 
 /**

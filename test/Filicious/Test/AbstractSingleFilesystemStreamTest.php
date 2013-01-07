@@ -13,8 +13,6 @@
 
 namespace Filicious\Test;
 
-require_once(__DIR__ . '/../../bootstrap.php');
-
 use Filicious\Stream;
 use Filicious\Iterator\FilesystemIterator;
 use PHPUnit_Framework_TestCase;

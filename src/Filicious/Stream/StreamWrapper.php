@@ -189,10 +189,10 @@ class StreamWrapper
 	 */
 	public function dir_readdir()
 	{
-		$this->directoryIterator->next();
-
 		if ($this->directoryIterator->valid()) {
-			return $this->directoryIterator->current()->getURL();
+			$value = $this->directoryIterator->current()->getBasename();
+			$this->directoryIterator->next();
+			return $value;
 		}
 
 		return false;

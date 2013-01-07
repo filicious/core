@@ -89,5 +89,9 @@ class LocalFilesystemTestEnvironment
 		}
 
 		rmdir($this->temporaryPath);
+
+		unset($this->fs);
+
+		unset($this->adapter);
 	}
 }

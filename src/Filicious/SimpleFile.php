@@ -51,6 +51,18 @@ class SimpleFile
 		return $this->fs;
 	}
 
+	/**
+	 * Get stat about the file.
+	 *
+	 * @return array
+	 */
+	public function getStat()
+	{
+		return $this
+			->getFilesystem()
+			->getStatOf($this);
+	}
+
 	public function isFile()
 	{
 		return $this

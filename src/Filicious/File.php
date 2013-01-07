@@ -90,6 +90,13 @@ interface File
 	public function getFilesystem();
 
 	/**
+	 * Get stat about the file.
+	 *
+	 * @return array
+	 */
+	public function getStat();
+
+	/**
 	 * Test whether this pathname is a file.
 	 *
 	 * @return bool

@@ -25,6 +25,13 @@ interface SimpleFilesystem
 	extends Filesystem
 {
 	/**
+	 * @param File $file
+	 *
+	 * @return array
+	 */
+	public function getStatOf($file);
+
+	/**
 	 * Get the type of this file.
 	 *
 	 * @return int Type bitmask

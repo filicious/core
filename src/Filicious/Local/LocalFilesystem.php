@@ -110,6 +110,15 @@ class LocalFilesystem
 	/**************************************************************************
 	 * Interface SimpleFilesystem
 	 *************************************************************************/
+	/**
+	 * @param File $file
+	 *
+	 * @return array
+	 */
+	public function getStatOf($file)
+	{
+		return stat($this->realPath($file));
+	}
 
 	/**
 	 * Get the type of this file.

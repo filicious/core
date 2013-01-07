@@ -294,6 +294,39 @@ class StreamWrapper
 	}
 
 	/**
+	 * Change stream options
+	 *
+	 * @param string $path
+	 * @param int    $option
+	 * @param int    $var
+	 */
+	public function stream_metadata($path, $option, $var)
+	{
+		$this->openFile($path);
+
+		switch ($option) {
+			case STREAM_META_TOUCH:
+				return $this->file->touch(
+					isset($var[0]) ? $var[0] : null,
+					isset($var[1]) ? $var[1] : null
+				);
+
+			case STREAM_META_OWNER_NAME:
+			case STREAM_META_OWNER:
+				return $this->file->setOwner($var);
+
+			case STREAM_META_GROUP_NAME:
+			case STREAM_META_GROUP:
+				return $this->file->setGroup($var);
+
+			case STREAM_META_ACCESS:
+				return $this->file->setMode($var);
+		}
+
+		return false;
+	}
+
+	/**
 	 * Seeks to specific location in a stream
 	 *
 	 * @param int $offset

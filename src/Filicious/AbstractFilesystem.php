@@ -112,7 +112,7 @@ abstract class AbstractFilesystem
 		$scheme = $url['scheme'];
 		$host   = $url['host'] . ($url['port'] ? ':' . $url['port'] : '');
 
-		StreamManager::unregister($host, $scheme);
+		StreamManager::unregister($host, $scheme, true);
 	}
 
 	/* (non-PHPdoc)

@@ -89,7 +89,7 @@ final class StreamManager
 		static::$map[$scheme][$host] = $filesystem;
 	}
 
-	public static function unregister($host, $scheme)
+	public static function unregister($host, $scheme, $silent = false)
 	{
 		if (!$scheme) {
 			$scheme = 'filicious';
@@ -97,7 +97,11 @@ final class StreamManager
 
 		// throw exception, if no wrapper/filesystem is registered
 		if (!isset(static::$map[$scheme]) || !isset(static::$map[$scheme][$host])) {
-			throw new StreamWrapperAlreadyRegisteredException(
+			if ($silent) {
+				return;
+			}
+
+			throw new StreamWrapperNotRegisteredException(
 				$scheme,
 				$host
 			);

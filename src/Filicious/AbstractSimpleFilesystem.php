@@ -46,7 +46,7 @@ abstract class AbstractSimpleFilesystem
 	 */
 	public function touch($file, $time = null, $atime = null, $doNotCreate = false)
 	{
-		if (!$this->exists() && $doNotCreate && (!$this->createFile())) {
+		if (!$this->exists($file) && $doNotCreate && (!$this->createFile($file))) {
 			return false;
 		}
 

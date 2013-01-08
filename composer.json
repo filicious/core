@@ -1,5 +1,5 @@
 {
-	"name":"filicious/core",
+	"name":"filicious/filicious",
 	"description":"Filicious is a high level object oriented filesystem abstraction for PHP.",
 	"version":"1.0-dev",
 	"keywords":["filesystem","file","vfs"],

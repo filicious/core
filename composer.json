@@ -32,10 +32,10 @@
 		"phpunit/phpunit": "3.*"
 	},
 	"suggest":{
-		"Filicious/FiliciousFTP": "Adds ftp support to Filicious.",
-		"Filicious/FiliciousSFTP": "Adds sftp support to Filicious.",
-		"Filicious/FiliciousDropbox": "Adds dropbox support to Filicious.",
-		"Filicious/FiliciousAmazonS3": "Adds amazon S3 support to Filicious."
+		"filicious/filicious-ftp": "Adds ftp support to Filicious.",
+		"filicious/filicious-sftp": "Adds sftp support to Filicious.",
+		"filicious/filicious-dropbox": "Adds dropbox support to Filicious.",
+		"filicious/filicious-amazon-s3": "Adds amazon S3 support to Filicious."
 	},
 	"autoload":{
 		"psr-0":{

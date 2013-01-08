@@ -42,6 +42,5 @@
 			"Filicious":"src/",
 			"Filicious\\Test":"test/"
 		}
-	},
-	"minimum-stability":"dev"
+	}
 }

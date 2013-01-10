@@ -15,52 +15,41 @@ namespace Filicious;
 
 
 /**
- * A filesystem object
+ * Virtual filesystem structure.
  *
  * @package filicious-core
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  */
-interface Filesystem
+class Filesystem
 {
 	/**
-	 * Create a new empty config with the filesystem implementation parameter is
-	 * set to the called class name.
-	 * 
-	 * @param \Traversable|array $data The data to merge in in the new config
-	 * @return FilesystemConfig The newly create config
-	 * @throws \LogicException When this method is called from
-	 * 		a non-instantiable class
+	 * @var FilesystemConfig
 	 */
-	public static function newConfig($data = null);
-
-	/**
-	 * Get the config used by this filesystem.
-	 * 
-	 * @return FilesystemConfig The config of this filesystem
-	 */
-	public function getConfig();
+	protected $config;
 	
-	/**
-	 * Notify this filesystem that the given param should change to the given
-	 * value.
-	 * 
-	 * <strong>THIS METHOD SHOULD ONLY BE CALLED FROM WITHIN
-	 * A <em>FilesystemConfig</em>!</strong>
-	 * 
-	 * @param array $data The internal key value storage of the config object
-	 * @param string $param The parameter to change
-	 * @param mixed $value The new value to set
-	 * @return void
-	 * @throws ConfigurationException
-	 */
-	public function notify(array &$data, $param, $value);
+	protected $adapter;
 
+	public function __construct(FilesystemConfig $config)
+	{
+		$this->config		= $config->bind($this);
+		$this->adapter		= $this->config->getRootAdapter();
+	}
+
+	public function getConfig()
+	{
+		return $this->config;
+	}
+	
 	/**
 	 * Get the root (/) file node.
 	 *
 	 * @return File
 	 */
-	public function getRoot();
+	public function getRoot()
+	{
+		return $this->getFile(); // same as ->getFile('/') and ->getFile('')
+	}
 
 	/**
 	 * Get a file object for the specific file.
@@ -69,23 +58,117 @@ interface Filesystem
 	 *
 	 * @return File
 	 */
-	public function getFile($path);
+	public function getFile($path = null)
+	{
+		$pathname = implode('/', static::getPathnameParts($path));
+		strlen($pathname) && $pathname = '/' . $pathname;
+		return new File($this, $pathname, $this->adapter);
+	}
+	
+	public static function getPathnameParts($path)
+	{
+		$path = strval($path);
+		if(!strlen($path)) {
+			return array();
+		}
+		$path = str_replace('\\', '/', $path);
+		$path = preg_replace('@^(?>[a-zA-Z]:)?[/\s]+|[/\s]+$@', '', $path); // TODO how to handle win pathnames?
+		$parts = array();
+		
+		foreach (explode('/', $path) as $part) {
+			if($part === '..') {
+				array_pop($parts);
+			}
+			elseif($part !== '.' && strlen($part)) {
+				$parts[] = $part;
+			}
+		}
+		
+		return $parts;
+	}
 
-	/**
-	 * Returns available space on filesystem or disk partition.
-	 *
-	 * @param File $path
-	 *
-	 * @return int
-	 */
-	public function getFreeSpace(File $path = null);
+// 	/**
+// 	 * Create a temporary file and return the file object.
+// 	 *
+// 	 * @param string $prefix
+// 	 *
+// 	 * @return File
+// 	 */
+// 	public static function createTempFile($prefix) {
+// // 		// create a temporary file
+// // 		$pathname = tempnam($this->getBasePath(), $prefix);
 
-	/**
-	 * Returns the total size of a filesystem or disk partition.
-	 *
-	 * @param File $path
-	 *
-	 * @return int
-	 */
-	public function getTotalSpace(File $path = null);
+// // 		// remove the base path from pathname
+// // 		$file = substr($pathname, strlen($this->getBasePath()));
+
+// // 		// create new local file object
+// // 		$file = $this->getFile($file);
+
+// 		return $file;
+// 	}
+
+// 	/**
+// 	 * Create a temporary directory and return the file object.
+// 	 *
+// 	 * @param string $prefix
+// 	 *
+// 	 * @return File
+// 	 */
+// 	public static function createTempDirectory($prefix) {
+// // 		// create a temporary file
+// // 		$file = $this->createTempFile($prefix);
+
+// // 		// delete the file and...
+// // 		$file->delete();
+
+// // 		// finally create a directory
+// // 		$file->createDirectory();
+
+// 		// return the local file object
+// 		return $file;
+// 	}
+
+	
+// 	/**
+// 	 * @var string|null
+// 	 */
+// 	protected static $tempFilesystemConfig = null;
+	
+// 	/**
+// 	 * Get the default temporary directory.
+// 	 *
+// 	 * @return string
+// 	 */
+// 	public static function getTempFilesystemConfig()
+// 	{
+// 		if(!static::$tempFilesystemConfig) {
+// 			$config = FilesystemConfig::create();
+// 			$config->addAdapterConfig(array(
+// // 				'impl' => 'Filicious\Local\LocalAdapter',
+// 				'base' => sys_get_temp_dir()
+// 			));
+// 			$this->setTempFilesystemConfig($config);
+// 		}
+// 		return static::$tempFilesystemConfig;
+// 	}
+	
+// 	/**
+// 	 * Set the default temporary directory.
+// 	 * Warning: Changing this pass will only new initialized TemporaryFilesystem's!
+// 	 *
+// 	 * @param string $tempPath
+// 	 */
+// 	public static function setTempFilesystemConfig(FilesystemConfig $config = null)
+// 	{
+// 		static::$tempFilesystemConfig = $config;
+// 	}
+	
+// 	/**
+// 	 * @return TemporaryFilesystem
+// 	 */
+// 	public static function getTempFilesystem()
+// 	{
+// 		return static::getTempFilesystemConfig()->getFilesystem();
+// 	}
+	
 }

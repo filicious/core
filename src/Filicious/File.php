@@ -13,445 +13,449 @@
 
 namespace Filicious;
 
-use SplFileInfo;
-use Traversable;
-use IteratorAggregate;
-use ArrayIterator;
+use Filicious\Internals\FileState;
+
 
 /**
  * A file object
  *
  * @package filicious-core
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
-interface File
-	extends \IteratorAggregate, \Countable
+class File
+	implements \IteratorAggregate, \Countable
 {
+	
+	public static function getDateTime($time) {
+		if($time instanceof \DateTime) {
+			return $time;
+		}
+		if(is_int($time) || is_float($time)) {
+			return new \DateTime('@' . intval($time));
+		}
+		return new \DateTime($time);
+	}
+	
 	/**
-	 * File type.
+	 * @var int Flag for file operations, which involve a file target
+	 * 		destination, indicating that missing parent directories of the
+	 * 		operations file target destination should be created before the
+	 * 		execution of the operation is done
 	 */
-	const TYPE_FILE = 0x1;
-
+	const OPERATION_PARENTS		= 0x01;
 	/**
-	 * Directory type.
+	 * @var int Flag for file operations to apply the execution recrusivly, if
+	 * 		the file being operated on is a directory.
 	 */
-	const TYPE_DIRECTORY = 0x2;
-
+	const OPERATION_RECURSIVE	= 0x02;
 	/**
-	 * Link type.
+	 * @var int Flag for file operations, which involve a file target
+	 * 		destination, to reject the execution of the operation, if the
+	 * 		operations file target destination already exists. This flag
+	 * 		overrules the OPERATION_REPLACE flag.
 	 */
-	const TYPE_LINK = 0x4;
-
+	const OPERATION_REJECT		= 0x10;
+	/**
+	 * @var int Flag for file operations, which involve a file target
+	 * 		destination, to merge the operations file source with the operations
+	 * 		file target destination.
+	 */
+	const OPERATION_MERGE		= 0x20;
+	/**
+	 * @var int Flag for file operations, which involve a file target
+	 * 		destination, to replace the target destination.
+	 */
+	const OPERATION_REPLACE		= 0x40;
+	
 	/**
 	 * List everything (including "." and "..")
 	 */
 	const LIST_ALL = 1;
-
+	
 	/**
 	 * Return hidden files (starting with ".")
 	 */
 	const LIST_HIDDEN = 2;
-
+	
 	/**
 	 * Return non-hidden (not starting with ".")
 	 */
 	const LIST_VISIBLE = 4;
-
+	
 	/**
 	 * Return only files.
 	 */
 	const LIST_FILES = 128;
-
+	
 	/**
 	 * Return only directories.
 	 */
 	const LIST_DIRECTORIES = 256;
-
+	
 	/**
 	 * Return only links.
 	 */
 	const LIST_LINKS = 512;
-
+	
 	/**
 	 * List non-links.
 	 */
 	const LIST_OPAQUE = 1024;
-
+	
 	/**
 	 * List recursive.
 	 */
 	const LIST_RECURSIVE = 8192;
 
+	protected $filesystem;
+	
+	protected $pathname;
+	
+	protected $adapter;
+	
 	/**
-	 * Get the underlaying filesystem for this pathname.
-	 *
-	 * @return Filesystem
+	 * @param string $pathname
+	 * @param FileState $stat
 	 */
-	public function getFilesystem();
+	public function __construct(Filesystem $filesystem, $pathname, Adapter $adapter)
+	{
+		$this->filesystem = $filesystem;
+		$this->pathname = $pathname;
+		$this->adapter = $adapter;
+	}
+
+	public function __toString()
+	{
+		try {
+			return $this->adapter->getStreamURL($this->pathname);
+		} catch(\Exception $e) { // TODO catch correct exception
+			return '';
+		}
+	}
+	
+	/**
+	 * Returns the full abstracted pathname of this file within the containing
+	 * filesystem.
+	 * A pathname always starts with a forward slash and never ends with one.
+	 * The exception is the root of the filesystem, which returns the empty
+	 * string.
+	 * 
+	 * @return string The full abstracted pathname
+	 */
+	public function getPathname()
+	{
+		return $this->pathname;
+	}
 
 	/**
-	 * Get stat about the file.
-	 *
-	 * @return array
+	 * Returns the basename of this file, which is the string after the last
+	 * forward slash of the pathname of this file.
+	 * If the basename ends with the given suffix, it will be truncated off
+	 * of the end of the basename.
+	 * 
+	 * @param string $suffix The suffix to truncate
+	 * @return string The basename 
 	 */
-	public function getStat();
+	public function getBasename($suffix = null)
+	{
+		return basename($this->pathname, $suffix);
+	}
+
+	public function getExtension()
+	{
+		$basename = $this->getBasename();
+		$pos      = strrpos($basename, '.');
+		return $pos === false ? '' : substr($basename, $pos + 1);
+	}
+	
+	public function getDirname() {
+		return dirname($this->pathname);
+	}
+
+	public function getParent()
+	{
+		return $this->filesystem->getFile($this->getDirname());
+	}
+	
+	/**
+	 * Checks if the file is a file.
+	 *
+	 * @return bool True if the file exists and is a file; otherwise false
+	 */
+	public function isFile()
+	{
+		return $this->adapter->isFile($this->pathname, $this->pathname);
+	}
 
 	/**
-	 * Test whether this pathname is a file.
-	 *
-	 * @return bool
+	 * Checks if the file is a (symbolic) link.
+	 * 
+	 * @return bool True if the file exists and is a link; otherwise false
 	 */
-	public function isFile();
+	public function isLink()
+	{
+		return $this->adapter->isLink($this->pathname, $this->pathname);
+	}
 
 	/**
-	 * Test whether this pathname is a link.
-	 *
-	 * @return bool
+	 * Checks if the file is a directory.
+	 * 
+	 * @return bool True if the file exists and is a directory; otherwise false
 	 */
-	public function isLink();
+	public function isDirectory()
+	{
+		return $this->adapter->isDirectory($this->pathname, $this->pathname);
+	}
+
+	public function getLinkTarget()
+	{
+		return $this->adapter->getLinkTarget($this->pathname, $this->pathname);
+	}
 
 	/**
-	 * Test whether this pathname is a directory.
-	 *
-	 * @return bool
+	 * Returns the date and time at which the file was accessed last time.
+	 * 
+	 * @return \DateTime The last access time
+	 * @throws FileStateException If the file does not exists
 	 */
-	public function isDirectory();
+	public function getAccessTime()
+	{
+		return $this->adapter->getAccessTime($this->pathname, $this->pathname);
+	}
+	
+	/**
+	 * Set the date and time at which the file was accessed last time.
+	 * The given $atime parameter is converted to a \DateTime object via
+	 * File::getDateTime.
+	 *
+	 * @param mixed $atime The new access time
+	 * @return void
+	 * @throws FileStateException If the file does not exists
+	 */
+	public function setAccessTime($atime = 'now')
+	{
+		return $this->adapter->setAccessTime($this->pathname, $this->pathname, static::getDateTime($atime));
+	}
 
 	/**
-	 * Get the type of this file.
-	 *
-	 * @return int Type bitmask
+	 * Returns the date and time at which the file was created.
+	 * 
+	 * @return \DateTime The creation time
+	 * @throws FileStateException If the file does not exists
 	 */
-	public function getType();
+	public function getCreationTime()
+	{ 
+		return $this->adapter->getCreationTime($this->pathname, $this->pathname);
+	}
+	
+	/**
+	 * Returns the time at which the file was modified last time.
+	 *
+	 * @return \DateTime The modify time
+	 * @throws FileStateException If the file does not exists
+	 */
+	public function getModifyTime()
+	{ 
+		return $this->adapter->getModifyTime($this->pathname, $this->pathname);
+	}
+	
+	/**
+	 * Set the date and time at which the file was modified last time.
+	 * The given $mtime parameter is converted to a \DateTime object via
+	 * File::getDateTime.
+	 *
+	 * @param mixed $atime The new modify time
+	 * @return void
+	 * @throws FileStateException If the file does not exists
+	 */
+	public function setModifyTime($mtime = 'now')
+	{
+		return $this->adapter->setModifyTime($this->pathname, $this->pathname, static::getDateTime($mtime));
+	}
 
 	/**
-	 * Returns the absolute pathname.
-	 *
-	 * @return string
+	 * Set the date and time at which the file was modified and / or accessed
+	 * last time.
+	 * The given $time and $atime parameters are converted to \DateTime objects
+	 * via File::getDateTime, with the one exception, that if $atime parameter
+	 * is set to null, then the date and time given in the $time parameter will
+	 * be used for $atime.
+	 * 
+	 * @param mixed $time The new modify time
+	 * @param mixed $atime The new access time; If null then $time will be used
+	 * @param bool $create Whether to create the file, if it does not already
+	 * 		exists
+	 * @return void
+	 * @throws FileStateException If the file does not exists and $create is set
+	 * 		to false
 	 */
-	public function getPathname();
+	public function touch($time = 'now', $atime = null, $create = true)
+	{
+		$time = static::getDateTime($time);
+		$atime = $atime === null ? $time : static::getDateTime($atime);
+		return $this->adapter->touch($this->pathname, $this->pathname, $time, $atime, $create);
+	}
 
 	/**
-	 * Get the link target of the link.
-	 *
-	 * @return string
+	 * Returns the size of the file.
+	 * 
+	 * @return int The file size
+	 * @throws FileStateException If the file does not exists
 	 */
-	public function getLinkTarget();
+	public function getSize()
+	{
+		return $this->adapter->getSize($this->pathname, $this->pathname);
+	}
 
-	/**
-	 * Get the name of the file or directory.
-	 *
-	 * @return string
-	 */
-	public function getBasename($suffix = '');
+	public function getOwner()
+	{
+		return $this->adapter->getOwner($this->pathname, $this->pathname);
+	}
 
-	/**
-	 * Get the extension of the file.
-	 *
-	 * @return mixed
-	 */
-	public function getExtension();
+	public function setOwner($user)
+	{
+		return $this->adapter->setOwner($this->pathname, $this->pathname, $user);
+	}
 
-	/**
-	 * Returns the the path of this pathname's parent, or <em>null</em> if this pathname does not name a parent directory.
-	 *
-	 * @return File|null
-	 */
-	public function getParent();
+	public function getGroup()
+	{
+		return $this->adapter->getGroup($this->pathname, $this->pathname);
+	}
 
-	/**
-	 * Return the time that the file denoted by this pathname was las modified.
-	 *
-	 * @return int
-	 */
-	public function getAccessTime();
+	public function setGroup($group)
+	{
+		return $this->adapter->setGroup($this->pathname, $this->pathname, $group);
+	}
 
-	/**
-	 * Sets the last-modified time of the file or directory named by this pathname.
-	 *
-	 * @param int $time
-	 */
-	public function setAccessTime($time);
+	public function getMode()
+	{
+		return $this->adapter->getMode($this->pathname, $this->pathname);
+	}
 
-	/**
-	 * Return the time that the file denoted by this pathname was las modified.
-	 *
-	 * @return int
-	 */
-	public function getCreationTime();
+	public function setMode($mode)
+	{
+		return $this->adapter->setMode($this->pathname, $this->pathname, $mode);
+	}
 
-	/**
-	 * Return the time that the file denoted by this pathname was las modified.
-	 *
-	 * @return int
-	 */
-	public function getModifyTime();
+	public function isReadable()
+	{
+		return $this->adapter->isReadable($this->pathname, $this->pathname);
+	}
 
-	/**
-	 * Sets the last-modified time of the file or directory named by this pathname.
-	 *
-	 * @param int $time
-	 */
-	public function setModifyTime($time);
+	public function isWritable()
+	{
+		return $this->adapter->isWritable($this->pathname, $this->pathname);
+	}
 
-	/**
-	 * Sets access and modification time of file.
-	 *
-	 * @param int $time
-	 * @param int $atime
-	 *
-	 * @return bool
-	 */
-	public function touch($time = null, $atime = null, $doNotCreate = false);
+	public function isExecutable()
+	{
+		return $this->adapter->isExecutable($this->pathname, $this->pathname);
+	}
 
-	/**
-	 * Get the size of the file denoted by this pathname.
-	 *
-	 * @return int
-	 */
-	public function getSize();
+	public function exists()
+	{
+		return $this->adapter->exists($this->pathname, $this->pathname);
+	}
 
-	/**
-	 * Get the owner of the file denoted by this pathname.
-	 *
-	 * @return string|int
-	 */
-	public function getOwner();
+	public function delete($recursive = false, $force = false)
+	{
+		return $this->adapter->delete($this->pathname, $this->pathname, $recursive, $force);
+	}
 
-	/**
-	 * Set the owner of the file denoted by this pathname.
-	 *
-	 * @param string|int $user
-	 *
-	 * @return bool
-	 */
-	public function setOwner($user);
+	public function copyTo(File $destination, $recursive = false, $overwrite = self::OVERWRITE_REJECT, $parents = false)
+	{
+		return $this->adapter->copyTo($this->pathname, $this->pathname, $destination->adapter, $destination->pathname, $parents);
+	}
 
-	/**
-	 * Get the group of the file denoted by this pathname.
-	 *
-	 * @return string|int
-	 */
-	public function getGroup();
+	public function moveTo(File $destination, $overwrite = self::OVERWRITE_REJECT, $parents = false)
+	{
+		return $this->adapter->moveTo($this->pathname, $this->pathname, $destination, $parents);
+	}
 
-	/**
-	 * Change the group of the file denoted by this pathname.
-	 *
-	 * @param mixed $group
-	 *
-	 * @return bool
-	 */
-	public function setGroup($group);
+	public function createDirectory($parents = false)
+	{
+		return $this->adapter->createDirectory($this->pathname, $this->pathname, $parents);
+	}
 
-	/**
-	 * Get the mode of the file denoted by this pathname.
-	 *
-	 * @return int
-	 */
-	public function getMode();
+	public function createFile($parents = false)
+	{
+		return $this->adapter->createFile($this->pathname, $this->pathname, $parents);
+	}
 
-	/**
-	 * Set the mode of the file denoted by this pathname.
-	 *
-	 * @param int  $mode
-	 *
-	 * @return bool
-	 */
-	public function setMode($mode);
+	public function getContents()
+	{
+		return $this->adapter->getContents($this->pathname, $this->pathname);
+	}
 
-	/**
-	 * Test whether this pathname is readable.
-	 *
-	 * @return bool
-	 */
-	public function isReadable();
+	public function setContents($content)
+	{
+		return $this->adapter->setContents($this->pathname, $this->pathname, $content);
+	}
 
-	/**
-	 * Test whether this pathname is writeable.
-	 *
-	 * @return bool
-	 */
-	public function isWritable();
+	public function appendContents($content)
+	{
+		return $this->adapter->appendContents($this->pathname, $this->pathname, $content);
+	}
 
-	/**
-	 * Test whether this pathname is executeable.
-	 *
-	 * @return bool
-	 */
-	public function isExecutable();
+	public function truncate($size = 0)
+	{
+		return $this->adapter->truncate($this->pathname, $this->pathname, $size);
+	}
 
-	/**
-	 * Checks whether a file or directory exists.
-	 *
-	 * @return bool
-	 */
-	public function exists();
+	public function open($mode = 'rb')
+	{
+		return $this->adapter->open($this->pathname, $this->pathname, $mode);
+	}
 
-	/**
-	 * Delete a file or directory.
-	 *
-	 * @param bool $recursive
-	 *
-	 * @return bool
-	 */
-	public function delete($recursive = false, $force = false);
+	public function getMIMEName()
+	{
+		return $this->adapter->getMIMEName($this->pathname, $this->pathname);
+	}
 
-	/**
-	 * Copies file
-	 *
-	 * @param File $destination
-	 * @param bool $recursive
-	 *
-	 * @return bool
-	 */
-	public function copyTo(File $destination, $parents = false);
+	public function getMIMEType()
+	{
+		return $this->adapter->getMIMEType($this->pathname, $this->pathname);
+	}
 
-	/**
-	 * Renames a file or directory
-	 *
-	 * @param File $destination
-	 *
-	 * @return bool
-	 */
-	public function moveTo(File $destination);
+	public function getMIMEEncoding()
+	{
+		return $this->adapter->getMIMEEncoding($this->pathname, $this->pathname);
+	}
 
-	/**
-	 * Makes directory
-	 *
-	 * @return bool
-	 */
-	public function createDirectory($parents = false);
+	public function getMD5($raw = false)
+	{
+		return $this->adapter->getMD5($this->pathname, $this->pathname, $raw);
+	}
 
-	/**
-	 * Create new empty file.
-	 *
-	 * @return bool
-	 */
-	public function createFile($parents = false);
+	public function getSHA1($raw = false)
+	{
+		return $this->adapter->getSHA1($this->pathname, $this->pathname, $raw);
+	}
 
-	/**
-	 * Get contents of the file. Returns <em>null</em> if file does not exists
-	 * and <em>false</em> on error (e.a. if file is a directory).
-	 *
-	 * @return string|null|bool
-	 */
-	public function getContents();
+	public function ls()
+	{
+		return $this->adapter->ls($this->pathname, $this->pathname, func_get_args());
+	}
 
-	/**
-	 * Write contents to a file. Returns <em>false</em> on error (e.a. if file is a directory).
-	 *
-	 * @param string $content
-	 *
-	 * @return bool
-	 */
-	public function setContents($content);
+	public function count()
+	{
+		return $this->adapter->count($this->pathname, $this->pathname, func_get_args());
+	}
 
-	/**
-	 * Write contents to a file. Returns <em>false</em> on error (e.a. if file is a directory).
-	 *
-	 * @param string $content
-	 *
-	 * @return bool
-	 */
-	public function appendContents($content);
-
-	/**
-	 * Truncate a file to a given length. Returns the new length or
-	 * <em>false</em> on error (e.a. if file is a directory).
-	 *
-	 * @param int $size
-	 *
-	 * @return int|bool
-	 */
-	public function truncate($size = 0);
-
-	/**
-	 * Gets an stream for the file.
-	 *
-	 * @param string $mode
-	 *
-	 * @return resource
-	 *
-	 * @throws \Filicious\Stream\StreamNotSupportedException
-	 */
-	public function open($mode = 'rb');
-
-	/**
-	 * Get a stream object for the file.
-	 *
-	 * @return Stream
-	 *
-	 * @throws \Filicious\Stream\StreamNotSupportedException
-	 */
-	public function getStream();
-
-	/**
-	 * Get mime content type.
-	 *
-	 * @param int $type
-	 *
-	 * @return string
-	 */
-	public function getMIMEName();
-
-	/**
-	 * Get mime content type.
-	 *
-	 * @param int $type
-	 *
-	 * @return string
-	 */
-	public function getMIMEType();
-
-	/**
-	 * Get mime content type.
-	 *
-	 * @param int $type
-	 *
-	 * @return string
-	 */
-	public function getMIMEEncoding();
-
-	/**
-	 * Calculate the md5 hash of this file.
-	 * Returns <em>false</em> on error (e.a. if file is a directory).
-	 *
-	 * @param bool $raw Return binary hash, instead of string hash.
-	 *
-	 * @return string|null
-	 */
-	public function getMD5($raw = false);
-
-	/**
-	 * Calculate the sha1 hash of this file.
-	 * Returns <em>false</em> on error (e.a. if file is a directory).
-	 *
-	 * @param bool $raw Return binary hash, instead of string hash.
-	 *
-	 * @return string|null
-	 */
-	public function getSHA1($raw = false);
-
-	/**
-	 * List files.
-	 *
-	 * @param int|string|callable Multiple list of LIST_* bitmask, glob pattern and callables to filter the list.
-	 *
-	 * @return array<File>
-	 */
-	public function ls();
-
-	/**
-	 * Get a streamable url, e.g. filicious://automount12345/real/path/to/file
-	 *
-	 * @return string
-	 */
-	public function getURL();
-
-	/**
-	 * Get a public url, e.g. http://www.example.com/path/to/public/file to the file.
-	 *
-	 * @return string
-	 */
-	public function getPublicURL();
+	public function getIterator()
+	{
+		return $this->adapter->getIterator($this->pathname, $this->pathname, func_get_args());
+	}
+	
+	public function getFreeSpace()
+	{
+		return $this->adapter->getFreeSpace($this->pathname, $this->pathname);
+	}
+	
+	public function getTotalSpace()
+	{
+		return $this->adapter->getTotalSpace($this->pathname, $this->pathname);
+	}
 }

@@ -11,9 +11,16 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Filicious;
+namespace Filicious\Internals;
 
-interface PublicURLProvider
+
+/**
+ * Filesystem exception
+ *
+ * @package filicious-core
+ * @author  Tristan Lins <tristan.lins@bit3.de>
+ */
+class FilesystemException
+	extends \Exception
 {
-	public function getPublicURL(File $file);
 }

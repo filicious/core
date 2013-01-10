@@ -11,9 +11,10 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Filicious;
+namespace Filicious\Internals;
 
 use \Exception;
+
 
 /**
  * Utility class
@@ -35,34 +36,22 @@ class Util
 	 */
 	static public function normalizePath($path)
 	{
-		$path   = str_replace('\\', '/', $path);
-		$prefix = static::getAbsolutePrefix($path);
-		$path   = substr($path, strlen($prefix));
-		$parts  = array_filter(explode('/', $path), 'strlen');
-		$name   = array_pop($parts);
-		$tokens = array();
+		$path = str_replace('\\', '/', strval($path));
+		preg_match('@^((?>[a-zA-Z]:)?/)?@', $path, $match);
+		$abs = $match[1];
+		$abs && $path = substr($path, strlen($abs));
+		$path = preg_replace('@^[/\s]+|[/\s]+$@', '', $path);
+		$path = preg_replace('@/+@', '/', $path);
+		$parts = array();
 
-		foreach ($parts as $part) {
-			switch ($part) {
-				case '.':
-					continue;
-				case '..':
-					if (0 !== count($tokens)) {
-						array_pop($tokens);
-						continue;
-					}
-					else if (!empty($prefix)) {
-						continue;
-					}
-				default:
-					$tokens[] = $part;
+		foreach (explode('/', $path) as $part) {
+			if($part === '.' || $part === '..' && array_pop($parts) || $abs) {
+				continue;
 			}
+			$parts[] = $part;
 		}
 
-		// prevent "." and ".." names
-		$tokens[] = $name;
-
-		return $prefix . implode('/', $tokens);
+		return $abs . implode('/', $parts);
 	}
 
 	/**
@@ -385,4 +374,24 @@ class Util
 			$globSearchPatterns
 		);
 	}
+	
+	/**
+	 * @var resource
+	 */
+	protected static $finfo = null;
+	
+	/**
+	 * Get the FileInfo resource identifier.
+	 *
+	 * @return resource
+	 */
+	public static function getFileInfo()
+	{
+		if (static::$finfo === null) {
+			static::$finfo = finfo_open();
+		}
+	
+		return static::$finfo;
+	}
+	
 }

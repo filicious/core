@@ -304,9 +304,9 @@ class File
 	 * @return int The file size
 	 * @throws FileStateException If the file does not exists
 	 */
-	public function getSize()
+	public function getSize($recursive = false)
 	{
-		return $this->adapter->getSize($this->pathname, $this->pathname);
+		return $this->adapter->getSize($this->pathname, $this->pathname, $recursive);
 	}
 
 	public function getOwner()

@@ -25,13 +25,13 @@ class StreamNotSupportedException extends StreamException
 {
 	protected $pathname;
 
-	public function __construct($pathname, Exception $previous = null)
+	public function __construct($srcPathname, Exception $previous = null)
 	{
-		$this->pathname = $pathname;
+		$this->pathname = $srcPathname;
 		parent::__construct(
 			sprintf(
 				'There file %s does not support streaming!',
-				$pathname
+				$srcPathname
 			),
 			0,
 			$previous

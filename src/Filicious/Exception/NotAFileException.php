@@ -13,6 +13,7 @@
 
 namespace Filicious\Exception;
 
+use Filicious\Internals\Pathname;
 
 /**
  * Filesystem exception
@@ -23,27 +24,27 @@ namespace Filicious\Exception;
 class NotAFileException
 	extends FilesystemException
 {
+	/**
+	 * @var \Filicious\Internals\Pathname
+	 */
 	protected $pathname;
 
 	protected $local;
 
-	public function __construct($pathname, $local, $code = 0, $previous = null) {
+	public function __construct(Pathname $pathname, $code = 0, $previous = null) {
 		parent::__construct(
-			sprintf('Pathname %s is not a file!', $pathname),
+			sprintf('Pathname %s is not a file!', $pathname->full()),
 			$code,
 			$previous
 		);
 		$this->pathname = $pathname;
-		$this->local = $local;
 	}
 
+	/**
+	 * @return \Filicious\Internals\Pathname
+	 */
 	public function getPathname()
 	{
 		return $this->pathname;
-	}
-
-	public function getLocal()
-	{
-		return $this->local;
 	}
 }

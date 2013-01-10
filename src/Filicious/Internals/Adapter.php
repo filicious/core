@@ -62,6 +62,17 @@ interface Adapter
 	 * @return Adapter|null The parent adapter
 	 */
 	public function getParentAdapter();
+
+	/**
+	 * Get the parent of a pathname.
+	 *
+	 * @param string $pathname The full abstracted pathname
+	 * @param string $local The adapter local path
+	 * @param Adapter $parentAdapter Variable to store the parent adapter.
+	 * @param string $parentPathname Variable to store the parent full abstracted pathname.
+	 * @param string $parentLocal Variable to store the parent local path.
+	 */
+	public function getParent(Pathname $pathname, &$parentAdapter, &$parentPathname);
 	
 	/**
 	 * Tests whether the file denoted by the given pathname exists and is a
@@ -73,7 +84,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function isFile($pathname, $local);
+	public function isFile(Pathname $pathname);
 	
 	/**
 	 * Tests whether the file denoted by the given pathname exists and is a
@@ -85,7 +96,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function isDirectory($pathname, $local);
+	public function isDirectory(Pathname $pathname);
 	
 	/**
 	 * Tests whether the file denoted by the given pathname exists and is a
@@ -97,7 +108,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function isLink($pathname, $local);
+	public function isLink(Pathname $pathname);
 	
 	/**
 	 * Returns the time of the file named by the given pathname was accessed
@@ -110,7 +121,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getAccessTime($pathname, $local);
+	public function getAccessTime(Pathname $pathname);
 	
 	/**
 	 * Sets the access time of the file named by the given pathname.
@@ -122,7 +133,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function setAccessTime($pathname, $local, \DateTime $atime);
+	public function setAccessTime(Pathname $pathname, \DateTime $atime);
 	
 	/**
 	 * Returns the time of the file named by the given pathname at which it was
@@ -135,7 +146,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getCreationTime($pathname, $local);
+	public function getCreationTime(Pathname $pathname);
 	
 	/**
 	 * Returns the time of the file named by the given pathname was modified
@@ -148,7 +159,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getModifyTime($pathname, $local);
+	public function getModifyTime(Pathname $pathname);
 	
 	/**
 	 * Sets the modify time of the file named by the given pathname.
@@ -161,7 +172,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function setModifyTime($pathname, $local, \DateTime $mtime);
+	public function setModifyTime(Pathname $pathname, \DateTime $mtime);
 	
 	/**
 	 * Sets access and modify time of file, optionally creating the file, if it
@@ -180,7 +191,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function touch($pathname, $local, \DateTime $time, \DateTime $atime, $create);
+	public function touch(Pathname $pathname, \DateTime $time, \DateTime $atime, $create);
 	
 	/**
 	 * Get the size of the file named by the given pathname.
@@ -193,7 +204,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getSize($pathname, $local, $recursive);
+	public function getSize(Pathname $pathname, $recursive);
 	
 	/**
 	 * Get the owner of the file named by the given pathname.
@@ -205,7 +216,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getOwner($pathname, $local);
+	public function getOwner(Pathname $pathname);
 	
 	/**
 	 * Set the owner of the file named by the given pathname.
@@ -218,7 +229,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function setOwner($pathname, $local, $user);
+	public function setOwner(Pathname $pathname, $user);
 	
 	/**
 	 * Get the group of the file named by the given pathname.
@@ -230,7 +241,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getGroup($pathname, $local);
+	public function getGroup(Pathname $pathname);
 	
 	/**
 	 * Change the group of the file named by the given pathname.
@@ -243,7 +254,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function setGroup($pathname, $local, $group);
+	public function setGroup(Pathname $pathname, $group);
 	
 	/**
 	 * Get the mode of the file named by the given pathname.
@@ -255,7 +266,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getMode($pathname, $local);
+	public function getMode(Pathname $pathname);
 	
 	/**
 	 * Set the mode of the file named by the given pathname.
@@ -268,7 +279,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function setMode($pathname, $local, $mode);
+	public function setMode(Pathname $pathname, $mode);
 	
 	/**
 	 * Tests whether the file named by the given pathname is readable.
@@ -279,7 +290,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function isReadable($pathname, $local);
+	public function isReadable(Pathname $pathname);
 	
 	/**
 	 * Tests whether the file named by the given pathname is writable.
@@ -290,7 +301,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function isWritable($pathname, $local);
+	public function isWritable(Pathname $pathname);
 	
 	/**
 	 * Tests whether the file named by the given pathname is executeable.
@@ -301,7 +312,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function isExecutable($pathname, $local);
+	public function isExecutable(Pathname $pathname);
 	
 	/**
 	 * Checks whether a file or directory exists.
@@ -312,7 +323,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function exists($pathname, $local);
+	public function exists(Pathname $pathname);
 	
 	/**
 	 * Delete a file or directory.
@@ -325,15 +336,15 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function delete($pathname, $local, $recursive, $force);
+	public function delete(Pathname $pathname, $recursive, $force);
 	
 	/**
 	 * Copies file
 	 * 
 	 * TODO list valid flags
 	 *
-	 * @param string $pathname The full abstracted pathname
-	 * @param string $local The adapter local path
+	 * @param string $srcPathname The full abstracted pathname
+	 * @param string $srcLocal The adapter local path
 	 * @param Adapter $dstAdapter The root adapter of destination filesystem
 	 * @param string $dstPathname The full abstracted destination pathname
 	 * @param int $flags Flags to control the operations behavior
@@ -343,8 +354,9 @@ interface Adapter
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
 	public function copyTo(
-		$pathname, $local,
-		Adapter $dstAdapter, $dstPathname,
+		Pathname $srcPathname,
+		Adapter $dstAdapter,
+		Pathname $dstPathname,
 		$flags);
 	
 	/**
@@ -352,8 +364,8 @@ interface Adapter
 	 * 
 	 * TODO list valid flags
 	 *
-	 * @param string $pathname The full abstracted pathname
-	 * @param string $local The adapter local path
+	 * @param string $dstPathname The full abstracted pathname
+	 * @param string $dstLocal The adapter local path
 	 * @param Adapter $srcAdapter
 	 * @param string $srcPathname The full abstracted pathname of the source
 	 * 		from which will be copied
@@ -367,8 +379,9 @@ interface Adapter
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
 	public function copyFrom(
-		$pathname, $local,
-		Adapter $srcAdapter, $srcPathname, $srcLocal,
+		Pathname $dstPathname,
+		Adapter $srcAdapter,
+		Pathname $srcPathname,
 		$flags);
 	
 	/**
@@ -387,8 +400,9 @@ interface Adapter
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
 	public function moveTo(
-		$pathname, $local,
-		Adapter $dstAdapter, $dstPathname,
+		Pathname $srcPathname,
+		Adapter $dstAdapter,
+		Pathname $dstPathname,
 		$flags);
 	
 	/**
@@ -411,8 +425,9 @@ interface Adapter
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
 	public function moveFrom(
-		$pathname, $local, 
-		Adapter $srcAdapter, $srcPathname, $srcLocal,
+		Pathname $dstPathname,
+		Adapter $srcAdapter,
+		Pathname $srcPathname,
 		$flags);
 	
 	/**
@@ -426,7 +441,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function createDirectory($pathname, $local, $parents);
+	public function createDirectory(Pathname $pathname, $parents);
 	
 	/**
 	 * Create new empty file.
@@ -439,7 +454,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function createFile($pathname, $local, $parents);
+	public function createFile(Pathname $pathname, $parents);
 	
 	/**
 	 * Get contents of the file. Returns <em>null</em> if file does not exists
@@ -452,7 +467,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getContents($pathname, $local);
+	public function getContents(Pathname $pathname);
 	
 	/**
 	 * Write contents to a file. Returns <em>false</em> on error (e.a. if file is a directory).
@@ -467,7 +482,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function setContents($pathname, $local, $content, $create);
+	public function setContents(Pathname $pathname, $content, $create);
 	
 	/**
 	 * Write contents to a file. Returns <em>false</em> on error (e.a. if file is a directory).
@@ -482,7 +497,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function appendContents($pathname, $local, $content, $create);
+	public function appendContents(Pathname $pathname, $content, $create);
 	
 	/**
 	 * Truncate a file to a given length. Returns the new length or
@@ -496,7 +511,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function truncate($pathname, $local, $size);
+	public function truncate(Pathname $pathname, $size);
 	
 	/**
 	 * Gets an stream for the file. May return <em>null</em> if streaming is not supported.
@@ -508,7 +523,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function open($pathname, $local, $mode);
+	public function open(Pathname $pathname, $mode);
 	
 	/**
 	 * Get the real url, e.g. file:/real/path/to/file to the pathname.
@@ -519,7 +534,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getStreamURL($pathname, $local);
+	public function getStreamURL(Pathname $pathname);
 	
 	/**
 	 * Get mime content type.
@@ -531,7 +546,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getMIMEName($pathname, $local);
+	public function getMIMEName(Pathname $pathname);
 	
 	/**
 	 * Get mime content type.
@@ -543,7 +558,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getMIMEType($pathname, $local);
+	public function getMIMEType(Pathname $pathname);
 	
 	/**
 	 * Get mime content type.
@@ -555,7 +570,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getMIMEEncoding($pathname, $local);
+	public function getMIMEEncoding(Pathname $pathname);
 	
 	/**
 	 * Calculate the md5 hash of this file.
@@ -569,7 +584,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getMD5($pathname, $local, $binary);
+	public function getMD5(Pathname $pathname, $binary);
 	
 	/**
 	 * Calculate the sha1 hash of this file.
@@ -583,7 +598,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getSHA1($pathname, $local, $binary);
+	public function getSHA1(Pathname $pathname, $binary);
 	
 	/**
 	 * Returns all filenames of all (direct) children.
@@ -596,7 +611,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function ls($pathname, $local);
+	public function ls(Pathname $pathname);
 	
 	/**
 	 * TODO
@@ -610,7 +625,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function count($pathname, $local, array $filter);
+	public function count(Pathname $pathname, array $filter);
 	
 	/**
 	 * TODO
@@ -624,7 +639,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getIterator($pathname, $local, array $filter);
+	public function getIterator(Pathname $pathname, array $filter);
 	
 	/**
 	 * Returns the available space of the disk or partition or system
@@ -637,7 +652,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getFreeSpace($pathname, $local);
+	public function getFreeSpace(Pathname $pathname);
 	
 	/**
 	 * Returns the total size of the disk or partition or system the directory
@@ -650,7 +665,7 @@ interface Adapter
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function getTotalSpace($pathname, $local);
+	public function getTotalSpace(Pathname $pathname);
 
 	/**
 	 * Check if the pathname exists and throw an exception if not.
@@ -660,7 +675,7 @@ interface Adapter
 	 * @return void
 	 * @throws Filicious\Exception\FileNotFoundException
 	 */
-	public function requireExists($pathname, $local);
+	public function requireExists(Pathname $pathname);
 
 	/**
 	 * Check if the pathname is a file and throw an exception if not.
@@ -670,7 +685,7 @@ interface Adapter
 	 * @return void
 	 * @throws Filicious\Exception\NotAFileException
 	 */
-	public function checkFile($pathname, $local);
+	public function checkFile(Pathname $pathname);
 
 	/**
 	 * Check if the pathname is a directory and throw an exception if not.
@@ -680,5 +695,5 @@ interface Adapter
 	 * @return void
 	 * @throws Filicious\Exception\NotADirectoryException
 	 */
-	public function checkDirectory($pathname, $local);
+	public function checkDirectory(Pathname $pathname);
 }

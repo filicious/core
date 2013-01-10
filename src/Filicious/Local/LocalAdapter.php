@@ -13,8 +13,10 @@
 
 namespace Filicious\Local;
 
+use Filicious\File;
 use Filicious\Internals\Adapter;
 use Filicious\Internals\AbstractAdapter;
+use Filicious\Internals\Pathname;
 use Filicious\Exception\FilesystemException;
 use Filicious\Exception\FilesystemOperationException;
 Use Filicious\Stream\BuildInStream;
@@ -37,50 +39,67 @@ class LocalAdapter
 	}
 
 	/**
+	 * @see Filicious\Internals\Adapter::getParent()
+	 */
+	public function getParent(Pathname $pathname, &$parentAdapter, &$parentPathname)
+	{
+		// local path is more than the root
+		// -> the parent is inside of this adapter
+		if ($pathname->local() != '/') {
+			$parentAdapter  = $this;
+			$parentPathname = new Pathname(
+				dirname($pathname->full()),
+				dirname($pathname->local())
+			);
+		}
+		else {
+			$this->root->getParent($pathname, $parentAdapter, $parentPathname);
+		}
+	}
+
+	/**
 	 * @see Filicious\Internals\Adapter::isFile()
 	 */
-	public function isFile($pathname, $local)
+	public function isFile(Pathname $pathname)
 	{
-		if (!$this->exists($pathname, $local)) {
-			return false;
-		}
+		$this->requireExists($pathname);
 
-		return is_file($this->basepath . $local);
+		return is_file($this->basepath . $pathname->local());
 	}
 
 	/**
 	 * @see Filicious\Internals\Adapter::isDirectory()
 	 */
-	public function isDirectory($pathname, $local)
+	public function isDirectory(Pathname $pathname)
 	{
-		if (!$this->exists($pathname, $local)) {
+		if (!$this->exists($pathname)) {
 			return false;
 		}
 
-		return is_dir($this->basepath . $local);
+		return is_dir($this->basepath . $pathname->local());
 	}
 
 	/**
 	 * @see Filicious\Internals\Adapter::isLink()
 	 */
-	public function isLink($pathname, $local)
+	public function isLink(Pathname $pathname)
 	{
-		if (!$this->exists($pathname, $local)) {
+		if (!$this->exists($pathname)) {
 			return false;
 		}
 
-		return is_link($this->basepath . $local);
+		return is_link($this->basepath . $pathname->local());
 	}
 
 	/**
 	 * @see Filicious\Internals\Adapter::getAccessTime()
 	 */
-	public function getAccessTime($pathname, $local)
+	public function getAccessTime(Pathname $pathname)
 	{
-		$this->requireExists($pathname, $local);
+		$this->requireExists($pathname);
 
 		try {
-			$atime = fileatime($this->basepath . $local);
+			$atime = fileatime($this->basepath . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -102,14 +121,14 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::setAccessTime()
 	 */
-	public function setAccessTime($pathname, $local, \DateTime $time)
+	public function setAccessTime(Pathname $pathname, \DateTime $time)
 	{
-		$this->requireExists($pathname, $local);
+		$this->requireExists($pathname);
 
 		try {
 			$result = touch(
-				$this->basepath . $local,
-				$this->getModifyTime($pathname, $local),
+				$this->basepath . $pathname->local(),
+				$this->getModifyTime($pathname),
 				$time->getTimestamp()
 			);
 		}
@@ -131,12 +150,12 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::getCreationTime()
 	 */
-	public function getCreationTime($pathname, $local)
+	public function getCreationTime(Pathname $pathname)
 	{
-		$this->requireExists($pathname, $local);
+		$this->requireExists($pathname);
 
 		try {
-			$ctime = filectime($this->basepath . $local);
+			$ctime = filectime($this->basepath . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -158,12 +177,12 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::getCreationTime()
 	 */
-	public function getModifyTime($pathname, $local)
+	public function getModifyTime(Pathname $pathname)
 	{
-		$this->requireExists($pathname, $local);
+		$this->requireExists($pathname);
 
 		try {
-			$mtime = filemtime($this->basepath . $local);
+			$mtime = filemtime($this->basepath . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -185,15 +204,15 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::setModifyTime()
 	 */
-	public function setModifyTime($pathname, $local, \DateTime $time)
+	public function setModifyTime(Pathname $pathname, \DateTime $time)
 	{
-		$this->requireExists($pathname, $local);
+		$this->requireExists($pathname);
 
 		try {
 			$result = touch(
-				$this->basepath . $local,
+				$this->basepath . $pathname->local(),
 				$time->getTimestamp(),
-				$this->getAccessTime($pathname, $local)
+				$this->getAccessTime($pathname)
 			);
 		}
 		catch (\ErrorException $e) {
@@ -214,15 +233,15 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::touch()
 	 */
-	public function touch($pathname, $local, \DateTime $time, \DateTime $atime, $create)
+	public function touch(Pathname $pathname, \DateTime $time, \DateTime $atime, $create)
 	{
 		if (!$create) {
-			$this->requireExists($pathname, $local);
+			$this->requireExists($pathname);
 		}
 
 		try {
 			$result = touch(
-				$this->basepath . $local,
+				$this->basepath . $pathname->local(),
 				$time->getTimestamp(),
 				$atime->getTimestamp()
 			);
@@ -245,17 +264,17 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::getSize()
 	 */
-	public function getSize($pathname, $local, $recursive)
+	public function getSize(Pathname $pathname, $recursive)
 	{
-		$this->requireExists($pathname, $local);
+		$this->requireExists($pathname);
 
 		// get directory size
-		if ($this->isDirectory($pathname, $local)) {
+		if ($this->isDirectory($pathname)) {
 			// calculate complete directory size
 			if ($recursive) {
 				$size = 0;
 
-				$iterator = $this->getIterator($pathname, $local, array());
+				$iterator = $this->getIterator($pathname, array());
 
 				foreach ($iterator as $pathname) {
 					$size += $this->fs
@@ -275,7 +294,7 @@ class LocalAdapter
 		// get file size
 		else {
 			try {
-				$result = filesize($this->basepath . $local);
+				$result = filesize($this->basepath . $pathname->local());
 			}
 			catch (\ErrorException $e) {
 				throw new FilesystemOperationException(
@@ -298,12 +317,12 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::getSize()
 	 */
-	public function getOwner($pathname, $local)
+	public function getOwner(Pathname $pathname)
 	{
-		$this->requireExists($pathname, $local);
+		$this->requireExists($pathname);
 
 		try {
-			$owner = fileowner($this->basepath . $local);
+			$owner = fileowner($this->basepath . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -325,13 +344,13 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::setOwner()
 	 */
-	public function setOwner($pathname, $local, $user)
+	public function setOwner(Pathname $pathname, $user)
 	{
-		$this->requireExists($pathname, $local);
+		$this->requireExists($pathname);
 
 		try {
 			$result = chown(
-				$this->basepath . $local,
+				$this->basepath . $pathname->local(),
 				$user
 			);
 		}
@@ -353,12 +372,12 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::getGroup()
 	 */
-	public function getGroup($pathname, $local)
+	public function getGroup(Pathname $pathname)
 	{
-		$this->requireExists($pathname, $local);
+		$this->requireExists($pathname);
 
 		try {
-			$owner = filegroup($this->basepath . $local);
+			$owner = filegroup($this->basepath . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -380,13 +399,13 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::setGroup()
 	 */
-	public function setGroup($pathname, $local, $group)
+	public function setGroup(Pathname $pathname, $group)
 	{
-		$this->requireExists($pathname, $local);
+		$this->requireExists($pathname);
 
 		try {
 			$result = chgrp(
-				$this->basepath . $local,
+				$this->basepath . $pathname->local(),
 				$group
 			);
 		}
@@ -408,12 +427,12 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::getMode()
 	 */
-	public function getMode($pathname, $local)
+	public function getMode(Pathname $pathname)
 	{
-		$this->requireExists($pathname, $local);
+		$this->requireExists($pathname);
 
 		try {
-			$owner = fileperms($this->basepath . $local);
+			$owner = fileperms($this->basepath . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -435,13 +454,13 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::setMode()
 	 */
-	public function setMode($pathname, $local, $mode)
+	public function setMode(Pathname $pathname, $mode)
 	{
-		$this->requireExists($pathname, $local);
+		$this->requireExists($pathname);
 
 		try {
 			$result = chmod(
-				$this->basepath . $local,
+				$this->basepath . $pathname->local(),
 				$mode
 			);
 		}
@@ -463,12 +482,12 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::isReadable()
 	 */
-	public function isReadable($pathname, $local)
+	public function isReadable(Pathname $pathname)
 	{
-		$this->requireExists($pathname, $local);
+		$this->requireExists($pathname);
 
 		try {
-			$readable = is_readable($this->basepath . $local);
+			$readable = is_readable($this->basepath . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -490,12 +509,12 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::isWritable()
 	 */
-	public function isWritable($pathname, $local)
+	public function isWritable(Pathname $pathname)
 	{
-		$this->requireExists($pathname, $local);
+		$this->requireExists($pathname);
 
 		try {
-			$writeable = is_writable($this->basepath . $local);
+			$writeable = is_writable($this->basepath . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -517,12 +536,12 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::isExecutable()
 	 */
-	public function isExecutable($pathname, $local)
+	public function isExecutable(Pathname $pathname)
 	{
-		$this->requireExists($pathname, $local);
+		$this->requireExists($pathname);
 
 		try {
-			$executeable = is_executable($this->basepath . $local);
+			$executeable = is_executable($this->basepath . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -544,10 +563,10 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::exists()
 	 */
-	public function exists($pathname, $local)
+	public function exists(Pathname $pathname)
 	{
 		try {
-			$exists = file_exists($this->basepath . $local);
+			$exists = file_exists($this->basepath . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -563,16 +582,16 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::delete()
 	 */
-	public function delete($pathname, $local, $recursive, $force)
+	public function delete(Pathname $pathname, $recursive, $force)
 	{
-		$this->requireExists($pathname, $local);
+		$this->requireExists($pathname);
 
-		if ($this->isDirectory($pathname, $local)) {
+		if ($this->isDirectory($pathname)) {
 			// TODO Handling $force flag needed here!
 
 			// recursive delete directories
 			if ($recursive) {
-				$iterator = $this->getIterator($pathname, $local, array());
+				$iterator = $this->getIterator($pathname, array());
 
 				foreach ($iterator as $pathname) {
 					$this->fs
@@ -580,12 +599,12 @@ class LocalAdapter
 						->delete($recursive, $force);
 				}
 			}
-			else if ($this->count($pathname, $local, array()) > 0) {
+			else if ($this->count($pathname, array()) > 0) {
 				return false;
 			}
 
 			try {
-				$result = rmdir($this->basepath . $local);
+				$result = rmdir($this->basepath . $pathname->local());
 			}
 			catch (\ErrorException $e) {
 				throw new FilesystemOperationException(
@@ -603,9 +622,9 @@ class LocalAdapter
 		}
 		else {
 			// Handling $force flag
-			if (!$this->isWritable($pathname, $local)) {
+			if (!$this->isWritable($pathname)) {
 				if ($force) {
-					$this->setMode($pathname, $local, 0666);
+					$this->setMode($pathname, 0666);
 				}
 				else {
 					return false;
@@ -613,7 +632,7 @@ class LocalAdapter
 			}
 
 			try {
-				$result = unlink($this->basepath . $local);
+				$result = unlink($this->basepath . $pathname->local());
 			}
 			catch (\ErrorException $e) {
 				throw new FilesystemOperationException(
@@ -635,18 +654,15 @@ class LocalAdapter
 	 * @see Filicious\Internals\Adapter::copyTo()
 	 */
 	public function copyTo(
-		$pathname,
-		$local,
+		Pathname $srcPathname,
 		Adapter $dstAdapter,
-		$dstPathname,
+		Pathname $dstPathname,
 		$flags
 	) {
 		$dstAdapter->copyFrom(
-			$pathname, // TODO $dstPathname
-			$local, // TODO $dstLocal missing!
+			$dstPathname,
 			$this,
-			$pathname,
-			$local,
+			$srcPathname,
 			$flags
 		);
 	}
@@ -655,11 +671,9 @@ class LocalAdapter
 	 * @see Filicious\Internals\Adapter::copyFrom()
 	 */
 	public function copyFrom(
-		$pathname,
-		$local,
+		Pathname $dstPathname,
 		Adapter $srcAdapter,
-		$srcPathname,
-		$srcLocal,
+		Pathname $srcPathname,
 		$flags
 	) {
 		// TODO the Adapter interface is inconsistent here!
@@ -683,18 +697,15 @@ class LocalAdapter
 	 * @see Filicious\Internals\Adapter::moveTo()
 	 */
 	public function moveTo(
-		$pathname,
-		$local,
+		Pathname $srcPathname,
 		Adapter $dstAdapter,
-		$dstPathname,
+		Pathname $dstPathname,
 		$flags
 	) {
 		$dstAdapter->moveFrom(
-			$pathname, // TODO $dstPathname
-			$local, // TODO $dstLocal missing!
+			$dstPathname,
 			$this,
-			$pathname,
-			$local,
+			$srcPathname,
 			$flags
 		);
 	}
@@ -703,11 +714,9 @@ class LocalAdapter
 	 * @see Filicious\Internals\Adapter::moveFrom()
 	 */
 	public function moveFrom(
-		$pathname,
-		$local,
+		Pathname $dstPathname,
 		Adapter $srcAdapter,
-		$srcPathname,
-		$srcLocal,
+		Pathname $srcPathname,
 		$flags
 	) {
 		// TODO the Adapter interface is inconsistent here!
@@ -724,23 +733,26 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::createDirectory()
 	 */
-	public function createDirectory($pathname, $local, $parents)
+	public function createDirectory(Pathname $pathname, $parents)
 	{
 		// if exists, check if pathname is allready a directory
-		if ($this->exists($pathname, $local)) {
-			return $this->isDirectory($pathname, $local);
+		if ($this->exists($pathname)) {
+			return $this->isDirectory($pathname);
 		}
 
 		try {
 			// create with parents
 			if ($parents) {
 				// TODO: apply umask.
-				$result = mkdir($this->basepath . $local, 0777, true);
+				$result = mkdir($this->basepath . $pathname->local(), 0777, true);
 			}
 			else {
-				$this->requireExists(dirname($pathname), dirname($local));
+				$parentAdapter = $parentPathname = null;
+				$this->getParent($pathname, $parentAdapter, $parentPathname);
 
-				$result = mkdir($this->basepath . $local);
+				$parentAdapter->requireExists($parentPathname);
+
+				$result = mkdir($this->basepath . $pathname->local());
 			}
 		}
 		catch (\ErrorException $e) {
@@ -761,16 +773,18 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::createFile()
 	 */
-	public function createFile($pathname, $local, $parents)
+	public function createFile(Pathname $pathname, $parents)
 	{
-		$parent = dirname($pathname);
+		$parentAdapter = $parentPathname = null;
+		$this->getParent($pathname, $parentAdapter, $parentPathname);
+
 		if ($parents) {
 			try {
-				$this->root->createDirectory($parent, $parent, true);
+				$parentAdapter->createDirectory($parentPathname, true);
 			}
 			catch (FilesystemException $e) {
 				throw new FilesystemException(
-					sprintf('Could not create parent path %s to create file %s!', $parent, $pathname),
+					sprintf('Could not create parent path %s to create file %s!', $parentPathname, $pathname),
 					0,
 					$e
 				);
@@ -778,11 +792,11 @@ class LocalAdapter
 		}
 		else {
 			try {
-				$this->root->checkDirectory($parent, $parent);
+				$parentAdapter->checkDirectory($parentPathname);
 			}
 			catch (FilesystemException $e) {
 				throw new FilesystemException(
-					sprintf('Could not create file %s, parent directory %s does not exists!', $pathname, $parent),
+					sprintf('Could not create file %s, parent directory %s does not exists!', $pathname, $parentPathname),
 					0,
 					$e
 				);
@@ -790,7 +804,7 @@ class LocalAdapter
 		}
 
 		try {
-			$result = touch($this->basepath . $local);
+			$result = touch($this->basepath . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -810,12 +824,12 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::getContents()
 	 */
-	public function getContents($pathname, $local)
+	public function getContents(Pathname $pathname)
 	{
-		$this->checkFile($pathname, $local);
+		$this->checkFile($pathname);
 
 		try {
-			$result = file_get_contents($this->basepath . $local);
+			$result = file_get_contents($this->basepath . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -837,18 +851,18 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::setContents()
 	 */
-	public function setContents($pathname, $local, $content, $create)
+	public function setContents(Pathname $pathname, $content, $create)
 	{
 		if (!$create) {
-			$this->requireExists($pathname, $local);
+			$this->requireExists($pathname);
 		}
 
-		if ($this->exists($pathname, $local)) {
-			$this->checkFile($pathname, $local);
+		if ($this->exists($pathname)) {
+			$this->checkFile($pathname);
 		}
 
 		try {
-			$result = file_put_contents($this->basepath . $local, $content);
+			$result = file_put_contents($this->basepath . $pathname->local(), $content);
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -868,21 +882,21 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::appendContents()
 	 */
-	public function appendContents($pathname, $local, $content, $create)
+	public function appendContents(Pathname $pathname, $content, $create)
 	{
 		if (!$create) {
-			$this->requireExists($pathname, $local);
+			$this->requireExists($pathname);
 		}
 
-		if ($this->exists($pathname, $local)) {
-			$this->checkFile($pathname, $local);
+		if ($this->exists($pathname)) {
+			$this->checkFile($pathname);
 		}
 
 		$f = false;
 		try {
 			$result = false;
 
-			if (false !== ($f = fopen($this->basepath . $local, 'ab'))) {
+			if (false !== ($f = fopen($this->basepath . $pathname->local(), 'ab'))) {
 				$result = fwrite($f, $content);
 				fclose($f);
 			}
@@ -908,15 +922,15 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::truncate()
 	 */
-	public function truncate($pathname, $local, $size)
+	public function truncate(Pathname $pathname, $size)
 	{
-		$this->checkFile($pathname, $local);
+		$this->checkFile($pathname);
 
 		$f = false;
 		try {
 			$result = false;
 
-			if (false !== ($f = fopen($this->basepath . $local, 'ab'))) {
+			if (false !== ($f = fopen($this->basepath . $pathname->local(), 'ab'))) {
 				$result = ftruncate($f, $size);
 				fclose($f);
 			}
@@ -942,17 +956,17 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::open()
 	 */
-	public function open($pathname, $local, $mode)
+	public function open(Pathname $pathname, $mode)
 	{
-		$this->checkFile($pathname, $local);
+		$this->checkFile($pathname);
 
-		return new BuildInStream('file://' . $this->basepath . $local, $mode);
+		return new BuildInStream('file://' . $this->basepath . $pathname->local(), $mode);
 	}
 
 	/**
 	 * @see Filicious\Internals\Adapter::getStreamURL()
 	 */
-	public function getStreamURL($pathname, $local)
+	public function getStreamURL(Pathname $pathname)
 	{
 		// TODO get stream protocol from filesystem!
 	}
@@ -960,12 +974,12 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::getMIMEName()
 	 */
-	public function getMIMEName($pathname, $local)
+	public function getMIMEName(Pathname $pathname)
 	{
-		$this->checkFile($pathname, $local);
+		$this->checkFile($pathname);
 
 		try {
-			$finfo = finfo_file(FS::getFileInfo(), $this->basepath . $local, FILEINFO_NONE);
+			$finfo = finfo_file(FS::getFileInfo(), $this->basepath . $pathname->local(), FILEINFO_NONE);
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -987,12 +1001,12 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::getMIMEType()
 	 */
-	public function getMIMEType($pathname, $local)
+	public function getMIMEType(Pathname $pathname)
 	{
-		$this->checkFile($pathname, $local);
+		$this->checkFile($pathname);
 
 		try {
-			$finfo = finfo_file(FS::getFileInfo(), $this->basepath . $local, FILEINFO_MIME_TYPE);
+			$finfo = finfo_file(FS::getFileInfo(), $this->basepath . $pathname->local(), FILEINFO_MIME_TYPE);
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -1014,12 +1028,12 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::getMIMEEncoding()
 	 */
-	public function getMIMEEncoding($pathname, $local)
+	public function getMIMEEncoding(Pathname $pathname)
 	{
-		$this->checkFile($pathname, $local);
+		$this->checkFile($pathname);
 
 		try {
-			$finfo = finfo_file(FS::getFileInfo(), $this->basepath . $local, FILEINFO_MIME_ENCODING);
+			$finfo = finfo_file(FS::getFileInfo(), $this->basepath . $pathname->local(), FILEINFO_MIME_ENCODING);
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -1041,12 +1055,12 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::getMD5()
 	 */
-	public function getMD5($pathname, $local, $binary)
+	public function getMD5(Pathname $pathname, $binary)
 	{
-		$this->checkFile($pathname, $local);
+		$this->checkFile($pathname);
 
 		try {
-			$md5 = md5_file($this->basepath . $local, $binary);
+			$md5 = md5_file($this->basepath . $pathname->local(), $binary);
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -1068,12 +1082,12 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::getSHA1()
 	 */
-	public function getSHA1($pathname, $local, $binary)
+	public function getSHA1(Pathname $pathname, $binary)
 	{
-		$this->checkFile($pathname, $local);
+		$this->checkFile($pathname);
 
 		try {
-			$md5 = sha1_file($this->basepath . $local, $binary);
+			$md5 = sha1_file($this->basepath . $pathname->local(), $binary);
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -1095,12 +1109,12 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::ls()
 	 */
-	public function ls($pathname, $local)
+	public function ls(Pathname $pathname)
 	{
-		$this->checkDirectory($pathname, $local);
+		$this->checkDirectory($pathname);
 
 		try {
-			$files = scandir($this->basepath . $local);
+			$files = scandir($this->basepath . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -1129,15 +1143,17 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::getFreeSpace()
 	 */
-	public function getFreeSpace($pathname, $local)
+	public function getFreeSpace(Pathname $pathname)
 	{
-		if (!$this->isDirectory($pathname, $local)) {
-			$pathname = dirname($pathname);
-			$local = dirname($local);
+		if (!$this->isDirectory($pathname)) {
+			$parentAdapter = $parentPathname = null;
+			$this->getParent($pathname, $parentAdapter, $parentPathname);
+
+			return $parentAdapter->getFreeSpace($parentPathname);
 		}
 
 		try {
-			$diskFreeSpace = disk_free_space($this->basepath . $local);
+			$diskFreeSpace = disk_free_space($this->basepath . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(
@@ -1159,15 +1175,17 @@ class LocalAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::getTotalSpace()
 	 */
-	public function getTotalSpace($pathname, $local)
+	public function getTotalSpace(Pathname $pathname)
 	{
-		if (!$this->isDirectory($pathname, $local)) {
-			$pathname = dirname($pathname);
-			$local = dirname($local);
+		if (!$this->isDirectory($pathname)) {
+			$parentAdapter = $parentPathname = null;
+			$this->getParent($pathname, $parentAdapter, $parentPathname);
+
+			return $parentAdapter->getTotalSpace($parentPathname);
 		}
 
 		try {
-			$diskTotalSpace = disk_total_space($this->basepath . $local);
+			$diskTotalSpace = disk_total_space($this->basepath . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new FilesystemOperationException(

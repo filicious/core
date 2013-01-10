@@ -14,9 +14,10 @@
 namespace Filicious\Internals;
 
 use Filicious\Filesystem;
-use Filicious\Internals\FileNotFoundException;
-use Filicious\Internals\NotAFileException;
-use Filicious\Internals\NotADirectoryException;
+use Filicious\Internals\Pathname;
+use Filicious\Exception\FileNotFoundException;
+use Filicious\Exception\NotAFileException;
+use Filicious\Exception\NotADirectoryException;
 
 /**
  * A mount aggregator can mount adapters to various paths.
@@ -70,26 +71,26 @@ abstract class AbstractAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::getMD5()
 	 */
-	public function getMD5($pathname, $local, $binary)
+	public function getMD5(Pathname $pathname, $binary)
 	{
-		return md5($this->getContents($pathname, $local), $binary);
+		return md5($this->getContents($pathname), $binary);
 	}
 
 	/**
 	 * @see Filicious\Internals\Adapter::getSHA1()
 	 */
-	public function getSHA1($pathname, $local, $binary)
+	public function getSHA1(Pathname $pathname, $binary)
 	{
-		return sha1($this->getContents($pathname, $local), $binary);
+		return sha1($this->getContents($pathname), $binary);
 	}
 
 	/**
 	 * @see Filicious\Internals\Adapter::count()
 	 */
-	public function count($pathname, $local, array $filter)
+	public function count(Pathname $pathname, array $filter)
 	{
 		$i = 0;
-		foreach ($this->getIterator($pathname, $local, $filter) as $pathname) {
+		foreach ($this->getIterator($pathname, $filter) as $pathname) {
 			$i++;
 		}
 		return $i;
@@ -98,38 +99,38 @@ abstract class AbstractAdapter
 	/**
 	 * @see Filicious\Internals\Adapter::getIterator()
 	 */
-	public function getIterator($pathname, $local, array $filter)
+	public function getIterator(Pathname $pathname, array $filter)
 	{
-		return new PathnameIterator($this->fs, $this->root, $this, $pathname, $local, $filter);
+		return new PathnameIterator($this->fs, $this->root, $this, $pathname, $filter);
 	}
 
 	/**
 	 * @see Filicious\Internals\Adapter::requireExists()
 	 */
-	public function requireExists($pathname, $local)
+	public function requireExists(Pathname $pathname)
 	{
-		if (!$this->exists($pathname, $local)) {
-			throw new FileNotFoundException($pathname, $local);
+		if (!$this->exists($pathname)) {
+			throw new FileNotFoundException($pathname);
 		}
 	}
 
 	/**
 	 * @see Filicious\Internals\Adapter::checkFile()
 	 */
-	public function checkFile($pathname, $local)
+	public function checkFile(Pathname $pathname)
 	{
-		if (!$this->isFile($pathname, $local)) {
-			throw new NotAFileException($pathname, $local);
+		if (!$this->isFile($pathname)) {
+			throw new NotAFileException($pathname);
 		}
 	}
 
 	/**
 	 * @see Filicious\Internals\Adapter::checkDirectory()
 	 */
-	public function checkDirectory($pathname, $local)
+	public function checkDirectory(Pathname $pathname)
 	{
-		if (!$this->isDirectory($pathname, $local)) {
-			throw new NotADirectoryException($pathname, $local);
+		if (!$this->isDirectory($pathname)) {
+			throw new NotADirectoryException($pathname);
 		}
 	}
 

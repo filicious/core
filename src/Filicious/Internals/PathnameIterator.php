@@ -16,6 +16,7 @@ namespace Filicious\Internals;
 use Filicious\File;
 use Filicious\Filesystem;
 use Filicious\Internals\Adapter;
+use Filicious\Internals\Pathname;
 use Iterator;
 use SeekableIterator;
 
@@ -32,13 +33,12 @@ class PathnameIterator
 		Filesystem $fs,
 		Adapter $rootAdapter,
 		Adapter $adapter,
-		$pathname,
-		$local,
+		Pathname $pathname,
 		$filter
 	) {
 		// TODO rework filtering
 
-		list($recursive, $bitmask, $globs, $callables, $globSearchPatterns) = Util::buildFilters($local, $filter);
+		list($recursive, $bitmask, $globs, $callables, $globSearchPatterns) = Util::buildFilters($pathname->local, $filter);
 
 		$files = array();
 

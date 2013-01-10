@@ -11,7 +11,7 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Filicious\Internals;
+namespace Filicious\Exception;
 
 
 /**

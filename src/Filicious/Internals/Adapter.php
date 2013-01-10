@@ -651,5 +651,34 @@ interface Adapter
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
 	public function getTotalSpace($pathname, $local);
-	
+
+	/**
+	 * Check if the pathname exists and throw an exception if not.
+	 *
+	 * @param string $pathname The full abstracted pathname
+	 * @param string $local The adapter local path
+	 * @return void
+	 * @throws Filicious\Exception\FileNotFoundException
+	 */
+	public function requireExists($pathname, $local);
+
+	/**
+	 * Check if the pathname is a file and throw an exception if not.
+	 *
+	 * @param string $pathname The full abstracted pathname
+	 * @param string $local The adapter local path
+	 * @return void
+	 * @throws Filicious\Exception\NotAFileException
+	 */
+	public function checkFile($pathname, $local);
+
+	/**
+	 * Check if the pathname is a directory and throw an exception if not.
+	 *
+	 * @param string $pathname The full abstracted pathname
+	 * @param string $local The adapter local path
+	 * @return void
+	 * @throws Filicious\Exception\NotADirectoryException
+	 */
+	public function checkDirectory($pathname, $local);
 }

@@ -89,10 +89,7 @@ abstract class AbstractAdapter
 	public function count($pathname, $local, array $filter)
 	{
 		$i = 0;
-		foreach (
-			$this->getIterator($pathname, $local, $filter)
-			as $pathname
-		) {
+		foreach ($this->getIterator($pathname, $local, $filter) as $pathname) {
 			$i++;
 		}
 		return $i;

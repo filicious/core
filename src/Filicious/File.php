@@ -364,12 +364,12 @@ class File
 		return $this->adapter->delete($this->pathname, $this->pathname, $recursive, $force);
 	}
 
-	public function copyTo(File $destination, $recursive = false, $overwrite = self::OVERWRITE_REJECT, $parents = false)
+	public function copyTo(File $destination, $recursive = false, $overwrite = self::OPERATION_REJECT, $parents = false)
 	{
-		return $this->adapter->copyTo($this->pathname, $this->pathname, $destination->adapter, $destination->pathname, $parents);
+		return $this->adapter->copyTo($this->pathname, $this->pathname, $destination->adapter, $destination->pathname, $destination->pathname, $parents);
 	}
 
-	public function moveTo(File $destination, $overwrite = self::OVERWRITE_REJECT, $parents = false)
+	public function moveTo(File $destination, $overwrite = self::OPERATION_REJECT, $parents = false)
 	{
 		return $this->adapter->moveTo($this->pathname, $this->pathname, $destination, $parents);
 	}

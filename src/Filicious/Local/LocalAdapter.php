@@ -19,6 +19,10 @@ use Filicious\Internals\AbstractAdapter;
 use Filicious\Internals\Pathname;
 use Filicious\Exception\FilesystemException;
 use Filicious\Exception\FilesystemOperationException;
+use Filicious\Exception\DirectoryOverwriteDirectoryException;
+use Filicious\Exception\DirectoryOverwriteFileException;
+use Filicious\Exception\FileOverwriteDirectoryException;
+use Filicious\Exception\FileOverwriteFileException;
 Use Filicious\Stream\BuildInStream;
 
 /**
@@ -676,21 +680,187 @@ class LocalAdapter
 		Pathname $srcPathname,
 		$flags
 	) {
-		// TODO the Adapter interface is inconsistent here!
-		throw new \Exception('TODO');
+		/** @var Adapter $dstParentAdapter */
+		$dstParentAdapter = $dstParentPathname = null;
+		$this->getParent($dstPathname, $dstParentAdapter, $dstParentPathname);
 
-		if ($file->isDirectory()) {
-			// TODO: recursive directory copy.
+		if ($flags & File::OPERATION_PARENTS) {
+			$dstParentAdapter->createDirectory(
+				$dstParentPathname,
+				true
+			);
 		}
-		else if ($file->isFile()) {
-			if (is_a($destination->getAdapter(), __CLASS__)) {
-				return copy($this->stat->realpath, $this->realPath($destination));
+		else {
+			$dstParentAdapter->checkDirectory($dstParentPathname);
+		}
+
+		$dstExists      = $this->exists($dstPathname);
+		$srcIsDirectory = $srcAdapter->isDirectory($srcPathname);
+		$dstIsDirectory = $this->isDirectory($dstPathname);
+
+		// target not exists
+		if (!$dstExists) {
+			if ($srcIsDirectory) {
+				$dstIsDirectory = true;
 			}
 			else {
-				return (bool) stream_copy_to_stream($this->open($state, 'rb'), $dest->open('wb'));
+				$dstIsDirectory = false;
+			}
+			// continue copy operation
+		}
+
+		// copy file -> directory
+		else if (!$srcIsDirectory && $dstIsDirectory) {
+			// replace directory with file
+			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+				$this->delete($dstPathname, true, false);
+				$dstIsDirectory = false;
+				// continue copy operation
+			}
+
+			// merge file into directory
+			else if ($flags & File::OPERATION_MERGE) {
+				$dstInsidePathname = $dstPathname->child($srcPathname);
+
+				$srcAdapter->copyTo($srcPathname, $this, $dstInsidePathname, $flags);
+				return;
+			}
+
+			else {
+				throw new FileOverwriteDirectoryException(
+					$srcPathname,
+					$dstPathname
+				);
 			}
 		}
-		// TODO: Implement copyFrom() method.
+		// copy directory -> file
+		else if ($srcIsDirectory && !$dstIsDirectory) {
+			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+				$this->delete($dstPathname, false, false);
+				$this->createDirectory($dstPathname, false);
+				$dstIsDirectory = true;
+				// continue copy operation
+			}
+
+			else {
+				throw new DirectoryOverwriteFileException(
+					$srcPathname,
+					$dstPathname
+				);
+			}
+		}
+
+		// copy directory -> directory
+		if ($srcIsDirectory && $dstIsDirectory) {
+			// replace target directory
+			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+				if ($dstExists) {
+					$this->delete($dstPathname, true, false);
+				}
+				$this->createDirectory($dstPathname, false);
+
+				$flags |= File::OPERATION_RECURSIVE;
+				// continue recursive copy
+			}
+
+			// recursive merge directories
+			if ($flags & File::OPERATION_RECURSIVE) {
+				$iterator = $srcAdapter->getIterator($srcPathname, array());
+
+				/** @var Pathname $srcChildPathname */
+				foreach ($iterator as $srcChildPathname) {
+					$srcAdapter->getRootAdapter()->copyTo(
+						$srcChildPathname,
+						$this,
+						$dstPathname->child($srcChildPathname),
+						$flags
+					);
+				}
+			}
+
+			else {
+				throw new DirectoryOverwriteDirectoryException(
+					$srcPathname,
+					$dstPathname
+				);
+			}
+		}
+
+		// copy file -> file
+		else if (!$srcIsDirectory && !$dstIsDirectory) {
+			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+				// native copy
+				if ($srcAdapter instanceof LocalAdapter) {
+					try {
+						$result = copy(
+							$srcAdapter->basepath . $srcPathname->local(),
+							$this->basepath . $dstPathname->local()
+						);
+					}
+					catch (\ErrorException $e) {
+						throw new FilesystemOperationException(
+							$e->getMessage(),
+							$e->getCode(),
+							$e
+						);
+					}
+
+					if ($result === false) {
+						throw new FilesystemOperationException(
+							sprintf('Could not copy %s to %s.', $srcPathname, $dstPathname)
+						);
+					}
+				}
+
+				// stream copy
+				else {
+					try {
+						$srcStream = $srcAdapter->open($srcPathname, 'rb');
+						$dstStream = $this->open($dstPathname, 'wb');
+
+						$result = stream_copy_to_stream(
+							$srcStream,
+							$dstStream
+						);
+
+						fclose($srcStream);
+						fclose($dstStream);
+					}
+					catch (\ErrorException $e) {
+						if (is_resource($srcStream)) {
+							fclose($srcStream);
+						}
+						if (is_resource(($dstStream))) {
+							fclose($dstStream);
+						}
+
+						throw new FilesystemOperationException(
+							$e->getMessage(),
+							$e->getCode(),
+							$e
+						);
+					}
+
+					if ($result === false) {
+						throw new FilesystemOperationException(
+							sprintf('Could not copy %s to %s.', $srcPathname, $dstPathname)
+						);
+					}
+				}
+			}
+
+			else {
+				throw new FileOverwriteFileException(
+					$srcPathname,
+					$dstPathname
+				);
+			}
+		}
+
+		// illegal state
+		else {
+			throw new FilesystemException('Illegal state!');
+		}
 	}
 
 	/**
@@ -719,14 +889,203 @@ class LocalAdapter
 		Pathname $srcPathname,
 		$flags
 	) {
-		// TODO the Adapter interface is inconsistent here!
-		throw new \Exception('TODO');
+		/** @var Adapter $dstParentAdapter */
+		$dstParentAdapter = $dstParentPathname = null;
+		$this->getParent($dstPathname, $dstParentAdapter, $dstParentPathname);
 
-		if ($destination instanceof LocalFile) {
-			return rename($this->basepath . $pathname, $this->realPath($destination));
+		if ($flags & File::OPERATION_PARENTS) {
+			$dstParentAdapter->createDirectory(
+				$dstParentPathname,
+				true
+			);
 		}
 		else {
-			return (bool) stream_copy_to_stream($this->open($state, 'rb'), $dest->open('wb'));
+			$dstParentAdapter->checkDirectory($dstParentPathname);
+		}
+
+		$dstExists      = $this->exists($dstPathname);
+		$srcIsDirectory = $srcAdapter->isDirectory($srcPathname);
+		$dstIsDirectory = $this->isDirectory($dstPathname);
+
+		// target not exists
+		if (!$dstExists) {
+			if ($srcIsDirectory) {
+				$dstIsDirectory = true;
+			}
+			else {
+				$dstIsDirectory = false;
+			}
+			// continue move operation
+		}
+
+		// move file -> directory
+		else if (!$srcIsDirectory && $dstIsDirectory) {
+			// replace directory with file
+			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+				$this->delete($dstPathname, true, false);
+				$dstIsDirectory = false;
+				// continue move operation
+			}
+
+			// merge file into directory
+			else if ($flags & File::OPERATION_MERGE) {
+				$dstInsidePathname = $dstPathname->child($srcPathname);
+
+				$srcAdapter->moveTo($srcPathname, $this, $dstInsidePathname, $flags);
+				return;
+			}
+
+			else {
+				throw new FileOverwriteDirectoryException(
+					$srcPathname,
+					$dstPathname
+				);
+			}
+		}
+		// move directory -> file
+		else if ($srcIsDirectory && !$dstIsDirectory) {
+			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+				$this->delete($dstPathname, false, false);
+				$this->createDirectory($dstPathname, false);
+				$dstIsDirectory = true;
+				// continue move operation
+			}
+
+			else {
+				throw new DirectoryOverwriteFileException(
+					$srcPathname,
+					$dstPathname
+				);
+			}
+		}
+
+		// move directory -> directory
+		if ($srcIsDirectory && $dstIsDirectory) {
+			// replace target directory
+			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+				if ($dstExists) {
+					$this->delete($dstPathname, true, false);
+				}
+
+				$flags |= File::OPERATION_RECURSIVE;
+				// continue recursive move
+			}
+
+			// recursive merge directories
+			if ($flags & File::OPERATION_RECURSIVE) {
+				if ($srcAdapter instanceof LocalAdapter) {
+					try {
+						$result = rename(
+							$srcAdapter->basepath . $srcPathname->local(),
+							$this->basepath . $dstPathname->local()
+						);
+					}
+					catch (\ErrorException $e) {
+						throw new FilesystemOperationException(
+							$e->getMessage(),
+							$e->getCode(),
+							$e
+						);
+					}
+
+					if ($result === false) {
+						throw new FilesystemOperationException(
+							sprintf('Could not move %s to %s.', $srcPathname, $dstPathname)
+						);
+					}
+				}
+				else {
+					$iterator = $srcAdapter->getIterator($srcPathname, array());
+
+					/** @var Pathname $srcChildPathname */
+					foreach ($iterator as $srcChildPathname) {
+						$srcAdapter->getRootAdapter()->moveTo(
+							$srcChildPathname,
+							$this,
+							$dstPathname->child($srcChildPathname),
+							$flags
+						);
+					}
+				}
+			}
+
+			else {
+				throw new DirectoryOverwriteDirectoryException(
+					$srcPathname,
+					$dstPathname
+				);
+			}
+		}
+
+		// move file -> file
+		else if (!$srcIsDirectory && !$dstIsDirectory) {
+			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+				// native move
+				if ($srcAdapter instanceof LocalAdapter) {
+					try {
+						$result = rename(
+							$srcAdapter->basepath . $srcPathname->local(),
+							$this->basepath . $dstPathname->local()
+						);
+					}
+					catch (\ErrorException $e) {
+						throw new FilesystemOperationException(
+							$e->getMessage(),
+							$e->getCode(),
+							$e
+						);
+					}
+
+					if ($result === false) {
+						throw new FilesystemOperationException(
+							sprintf('Could not move %s to %s.', $srcPathname, $dstPathname)
+						);
+					}
+				}
+
+				// stream move
+				else {
+					try {
+						$srcStream = $srcAdapter->open($srcPathname, 'rb');
+						$dstStream = $this->open($dstPathname, 'wb');
+
+						$result = stream_copy_to_stream(
+							$srcStream,
+							$dstStream
+						);
+
+						$srcAdapter->delete($srcPathname, false, false);
+
+						fclose($srcStream);
+						fclose($dstStream);
+					}
+					catch (\ErrorException $e) {
+						if (is_resource($srcStream)) {
+							fclose($srcStream);
+						}
+						if (is_resource(($dstStream))) {
+							fclose($dstStream);
+						}
+
+						throw new FilesystemOperationException(
+							$e->getMessage(),
+							$e->getCode(),
+							$e
+						);
+					}
+
+					if ($result === false) {
+						throw new FilesystemOperationException(
+							sprintf('Could not move %s to %s.', $srcPathname, $dstPathname)
+						);
+					}
+				}
+			}
+		}
+
+		// illegal state
+		else {
+			throw new FilesystemException('Illegal state!');
 		}
 	}
 

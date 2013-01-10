@@ -52,30 +52,36 @@ abstract class AbstractAdapter
 		return $this->parent;
 	}
 	
-	public function getMD5($pathname, $binary)
+	public function getMD5($pathname, $local, $binary)
 	{
-		return md5($this->getContents($pathname), $binary);
+		return md5($this->getContents($pathname, $local), $binary);
 	}
 	
-	public function getSHA1($pathname, $binary)
+	public function getSHA1($pathname, $local, $binary)
 	{
-		return sha1($this->getContents($pathname), $binary);
+		return sha1($this->getContents($pathname, $local), $binary);
 	}
 	
-	public function count($pathname, array $filter)
+	public function count($pathname, $local, array $filter)
 	{
-		foreach($this->getIterator() as $pathname) $i++;
+		$i = 0;
+		foreach(
+			$this->getIterator($pathname, $local, $filter)
+			as $pathname
+		) {
+			$i++;
+		}
 		return $i;
 	}
 	
-	protected function checkFile($pathname) {
-		if(!$this->isFile($pathname)) {
+	protected function checkFile($pathname, $local) {
+		if(!$this->isFile($pathname, $local)) {
 			throw new Exception('Pathname is not a file');
 		}
 	}
 	
-	protected function checkDirectory($pathname) {
-		if(!$this->isDirectory($pathname)) {
+	protected function checkDirectory($pathname, $local) {
+		if(!$this->isDirectory($pathname, $local)) {
 			throw new Exception('Pathname is not a directory');
 		}
 	}

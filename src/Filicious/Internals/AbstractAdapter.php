@@ -69,6 +69,15 @@ abstract class AbstractAdapter
 	}
 
 	/**
+	 * @see Filicious\Internals\Adapter::resolveLocal()
+	 */
+	public function resolveLocal(Pathname $pathname, &$localAdapter, &$local)
+	{
+		$localAdapter = $this;
+		$local = $pathname;
+	}
+
+	/**
 	 * @see Filicious\Internals\Adapter::getMD5()
 	 */
 	public function getMD5(Pathname $pathname, $binary)

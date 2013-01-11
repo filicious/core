@@ -13,6 +13,7 @@
 
 namespace Filicious\Internals;
 
+use Filicious\Internals\Adapter;
 
 /**
  * An object that hold the absolute and the adapter local pathname.
@@ -23,11 +24,25 @@ namespace Filicious\Internals;
 final class Pathname
 {
 	/**
+	 * The root adapter
+	 *
+	 * @var Adapter
+	 */
+	protected $adapter;
+
+	/**
 	 * The filesystem full abstracted pathname.
 	 *
 	 * @var string
 	 */
 	protected $full;
+
+	/**
+	 * The local adapter.
+	 *
+	 * @var Adapter
+	 */
+	protected $localAdapter;
 
 	/**
 	 * The adapter local pathname.
@@ -37,13 +52,16 @@ final class Pathname
 	protected $local;
 
 	/**
+	 * @param Adapter $adapter The root adapter
 	 * @param string $full  The full abstracted pathname
 	 * @param string $local The adapter local path
 	 */
-	public function __construct($full, $local)
+	public function __construct(Adapter $adapter, $full)
 	{
+		$this->adapter = $adapter;
 		$this->full  = $full;
-		$this->local = $local;
+		$this->localAdapter = null;
+		$this->local = null;
 	}
 
 	/**
@@ -54,9 +72,32 @@ final class Pathname
 	}
 
 	/**
+	 * @return Adapter
+	 */
+	public function localAdapter() {
+		if ($this->localAdapter === null) {
+			$this->adapter->resolveLocal(
+				$this,
+				$this->localAdapter,
+				$this->local
+			);
+		}
+
+		return $this->localAdapter;
+	}
+
+	/**
 	 * @return string
 	 */
 	public function local() {
+		if ($this->local === null) {
+			$this->adapter->resolveLocal(
+				$this,
+				$this->localAdapter,
+				$this->local
+			);
+		}
+
 		return $this->local;
 	}
 
@@ -68,6 +109,17 @@ final class Pathname
 	}
 
 	/**
+	 * Resolve the parent pathname.
+	 *
+	 * @return Pathname
+	 */
+	public function parent() {
+		return new Pathname($this->adapter, dirname($this->full()));
+	}
+
+	/**
+	 * Resolve the child pathname.
+	 *
 	 * @param string|Pathname $basename
 	 *
 	 * @return Pathname
@@ -77,8 +129,8 @@ final class Pathname
 			$basename = $basename->basename();
 		}
 		return new Pathname(
-			$this->full() . '/' . $basename,
-			$this->local() . '/' . $basename
+			$this->adapter,
+			$this->full() . '/' . $basename
 		);
 	}
 }

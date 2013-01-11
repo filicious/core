@@ -14,6 +14,7 @@
 namespace Filicious\Local;
 
 use Filicious\File;
+use Filicious\FilesystemConfig;
 use Filicious\Internals\Adapter;
 use Filicious\Internals\AbstractAdapter;
 use Filicious\Internals\Pathname;
@@ -659,13 +660,11 @@ class LocalAdapter
 	 */
 	public function copyTo(
 		Pathname $srcPathname,
-		Adapter $dstAdapter,
 		Pathname $dstPathname,
 		$flags
 	) {
-		$dstAdapter->copyFrom(
+		$dstPathname->localAdapter()->copyFrom(
 			$dstPathname,
-			$this,
 			$srcPathname,
 			$flags
 		);
@@ -676,7 +675,6 @@ class LocalAdapter
 	 */
 	public function copyFrom(
 		Pathname $dstPathname,
-		Adapter $srcAdapter,
 		Pathname $srcPathname,
 		$flags
 	) {
@@ -695,7 +693,7 @@ class LocalAdapter
 		}
 
 		$dstExists      = $this->exists($dstPathname);
-		$srcIsDirectory = $srcAdapter->isDirectory($srcPathname);
+		$srcIsDirectory = $srcPathname->localAdapter()->isDirectory($srcPathname);
 		$dstIsDirectory = $this->isDirectory($dstPathname);
 
 		// target not exists
@@ -722,7 +720,12 @@ class LocalAdapter
 			else if ($flags & File::OPERATION_MERGE) {
 				$dstInsidePathname = $dstPathname->child($srcPathname);
 
-				$srcAdapter->copyTo($srcPathname, $this, $dstInsidePathname, $flags);
+				$srcPathname->localAdapter()->copyTo(
+					$srcPathname,
+					$dstInsidePathname->localAdapter(),
+					$dstInsidePathname,
+					$flags
+				);
 				return;
 			}
 
@@ -765,11 +768,11 @@ class LocalAdapter
 
 			// recursive merge directories
 			if ($flags & File::OPERATION_RECURSIVE) {
-				$iterator = $srcAdapter->getIterator($srcPathname, array());
+				$iterator = $srcPathname->localAdapter()->getIterator($srcPathname, array());
 
 				/** @var Pathname $srcChildPathname */
 				foreach ($iterator as $srcChildPathname) {
-					$srcAdapter->getRootAdapter()->copyTo(
+					$srcPathname->localAdapter()->getRootAdapter()->copyTo(
 						$srcChildPathname,
 						$this,
 						$dstPathname->child($srcChildPathname),
@@ -790,10 +793,10 @@ class LocalAdapter
 		else if (!$srcIsDirectory && !$dstIsDirectory) {
 			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
 				// native copy
-				if ($srcAdapter instanceof LocalAdapter) {
+				if ($srcPathname->localAdapter() instanceof LocalAdapter) {
 					try {
 						$result = copy(
-							$srcAdapter->basepath . $srcPathname->local(),
+							$srcPathname->localAdapter()->basepath . $srcPathname->local(),
 							$this->basepath . $dstPathname->local()
 						);
 					}
@@ -815,7 +818,7 @@ class LocalAdapter
 				// stream copy
 				else {
 					try {
-						$srcStream = $srcAdapter->open($srcPathname, 'rb');
+						$srcStream = $srcPathname->localAdapter()->open($srcPathname, 'rb');
 						$dstStream = $this->open($dstPathname, 'wb');
 
 						$result = stream_copy_to_stream(
@@ -868,13 +871,11 @@ class LocalAdapter
 	 */
 	public function moveTo(
 		Pathname $srcPathname,
-		Adapter $dstAdapter,
 		Pathname $dstPathname,
 		$flags
 	) {
-		$dstAdapter->moveFrom(
+		$dstPathname->localAdapter()->moveFrom(
 			$dstPathname,
-			$this,
 			$srcPathname,
 			$flags
 		);
@@ -885,7 +886,6 @@ class LocalAdapter
 	 */
 	public function moveFrom(
 		Pathname $dstPathname,
-		Adapter $srcAdapter,
 		Pathname $srcPathname,
 		$flags
 	) {
@@ -904,7 +904,7 @@ class LocalAdapter
 		}
 
 		$dstExists      = $this->exists($dstPathname);
-		$srcIsDirectory = $srcAdapter->isDirectory($srcPathname);
+		$srcIsDirectory = $srcPathname->localAdapter()->isDirectory($srcPathname);
 		$dstIsDirectory = $this->isDirectory($dstPathname);
 
 		// target not exists
@@ -931,7 +931,11 @@ class LocalAdapter
 			else if ($flags & File::OPERATION_MERGE) {
 				$dstInsidePathname = $dstPathname->child($srcPathname);
 
-				$srcAdapter->moveTo($srcPathname, $this, $dstInsidePathname, $flags);
+				$srcPathname->localAdapter()->moveTo(
+					$srcPathname,
+					$dstInsidePathname,
+					$flags
+				);
 				return;
 			}
 
@@ -973,10 +977,10 @@ class LocalAdapter
 
 			// recursive merge directories
 			if ($flags & File::OPERATION_RECURSIVE) {
-				if ($srcAdapter instanceof LocalAdapter) {
+				if ($srcPathname->localAdapter() instanceof LocalAdapter) {
 					try {
 						$result = rename(
-							$srcAdapter->basepath . $srcPathname->local(),
+							$srcPathname->localAdapter()->basepath . $srcPathname->local(),
 							$this->basepath . $dstPathname->local()
 						);
 					}
@@ -995,11 +999,11 @@ class LocalAdapter
 					}
 				}
 				else {
-					$iterator = $srcAdapter->getIterator($srcPathname, array());
+					$iterator = $srcPathname->localAdapter()->getIterator($srcPathname, array());
 
 					/** @var Pathname $srcChildPathname */
 					foreach ($iterator as $srcChildPathname) {
-						$srcAdapter->getRootAdapter()->moveTo(
+						$srcPathname->localAdapter()->getRootAdapter()->moveTo(
 							$srcChildPathname,
 							$this,
 							$dstPathname->child($srcChildPathname),
@@ -1021,10 +1025,10 @@ class LocalAdapter
 		else if (!$srcIsDirectory && !$dstIsDirectory) {
 			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
 				// native move
-				if ($srcAdapter instanceof LocalAdapter) {
+				if ($srcPathname->localAdapter() instanceof LocalAdapter) {
 					try {
 						$result = rename(
-							$srcAdapter->basepath . $srcPathname->local(),
+							$srcPathname->localAdapter()->basepath . $srcPathname->local(),
 							$this->basepath . $dstPathname->local()
 						);
 					}
@@ -1046,7 +1050,7 @@ class LocalAdapter
 				// stream move
 				else {
 					try {
-						$srcStream = $srcAdapter->open($srcPathname, 'rb');
+						$srcStream = $srcPathname->localAdapter()->open($srcPathname, 'rb');
 						$dstStream = $this->open($dstPathname, 'wb');
 
 						$result = stream_copy_to_stream(
@@ -1054,7 +1058,7 @@ class LocalAdapter
 							$dstStream
 						);
 
-						$srcAdapter->delete($srcPathname, false, false);
+						$srcPathname->localAdapter()->delete($srcPathname, false, false);
 
 						fclose($srcStream);
 						fclose($dstStream);

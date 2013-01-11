@@ -64,16 +64,13 @@ interface Adapter
 	public function getParentAdapter();
 
 	/**
-	 * Get the parent of a pathname.
-	 *
-	 * @param string $pathname The full abstracted pathname
-	 * @param string $local The adapter local path
-	 * @param Adapter $parentAdapter Variable to store the parent adapter.
-	 * @param string $parentPathname Variable to store the parent full abstracted pathname.
-	 * @param string $parentLocal Variable to store the parent local path.
+	 * Resolve the local path
+	 * @param Pathname $pathname The pathname to resolve local path from
+	 * @param Adapter  $localAdapter The local adapter
+	 * @param string   $local The adapter local path
 	 */
-	public function getParent(Pathname $pathname, &$parentAdapter, &$parentPathname);
-	
+	public function resolveLocal(Pathname $pathname, &$localAdapter, &$local);
+
 	/**
 	 * Tests whether the file denoted by the given pathname exists and is a
 	 * file.
@@ -355,7 +352,6 @@ interface Adapter
 	 */
 	public function copyTo(
 		Pathname $srcPathname,
-		Adapter $dstAdapter,
 		Pathname $dstPathname,
 		$flags);
 	
@@ -380,7 +376,6 @@ interface Adapter
 	 */
 	public function copyFrom(
 		Pathname $dstPathname,
-		Adapter $srcAdapter,
 		Pathname $srcPathname,
 		$flags);
 	
@@ -401,7 +396,6 @@ interface Adapter
 	 */
 	public function moveTo(
 		Pathname $srcPathname,
-		Adapter $dstAdapter,
 		Pathname $dstPathname,
 		$flags);
 	
@@ -426,7 +420,6 @@ interface Adapter
 	 */
 	public function moveFrom(
 		Pathname $dstPathname,
-		Adapter $srcAdapter,
 		Pathname $srcPathname,
 		$flags);
 	

@@ -28,16 +28,45 @@ use Filicious\Internals\Pathname;
 class DelegatorAdapter
 	implements Adapter
 {
+	/**
+	 * @var Filesystem
+	 */
 	protected $fs;
 
+	/**
+	 * @var RootAdapter
+	 */
 	protected $root;
 
+	/**
+	 * @var Adapter
+	 */
 	protected $parent;
 
 	/**
 	 * @var Adapter
 	 */
 	protected $delegate;
+
+	/**
+	 * @param string|FilesystemConfig $basepath
+	 */
+	public function __construct(Adapter $delegate)
+	{
+		$this->delegate = $delegate;
+		$this->delegate->setParentAdapter($this);
+	}
+
+	/**
+	 * Select the delegate.
+	 *
+	 * @param \Filicious\Internals\Pathname $pathname
+	 *
+	 * @return \Filicious\Internals\Adapter
+	 */
+	protected function selectDelegate(Pathname $pathname) {
+		return $this->delegate;
+	}
 
 	/**
 	 * @see Filicious\Internals\Adapter::setFilesystem()
@@ -93,20 +122,11 @@ class DelegatorAdapter
 	}
 
 	/**
-	 * @param string|FilesystemConfig $basepath
-	 */
-	public function __construct(Adapter $delegate)
-	{
-		$this->delegate = $delegate;
-		$this->delegate->setParentAdapter($this);
-	}
-
-	/**
 	 * @see Filicious\Internals\Adapter::resolveLocal()
 	 */
 	public function resolveLocal(Pathname $pathname, &$localAdapter, &$local)
 	{
-		$this->delegate->resolveLocal($pathname, $localAdapter, $local);
+		$this->selectDelegate($pathname)->resolveLocal($pathname, $localAdapter, $local);
 	}
 
 	/**
@@ -114,7 +134,7 @@ class DelegatorAdapter
 	 */
 	public function isFile(Pathname $pathname)
 	{
-		return $this->delegate->isFile($pathname);
+		return $this->selectDelegate($pathname)->isFile($pathname);
 	}
 
 	/**
@@ -122,7 +142,7 @@ class DelegatorAdapter
 	 */
 	public function isDirectory(Pathname $pathname)
 	{
-		return $this->delegate->isDirectory($pathname);
+		return $this->selectDelegate($pathname)->isDirectory($pathname);
 	}
 
 	/**
@@ -130,7 +150,7 @@ class DelegatorAdapter
 	 */
 	public function isLink(Pathname $pathname)
 	{
-		return $this->delegate->isLink($pathname);
+		return $this->selectDelegate($pathname)->isLink($pathname);
 	}
 
 	/**
@@ -138,7 +158,7 @@ class DelegatorAdapter
 	 */
 	public function getAccessTime(Pathname $pathname)
 	{
-		return $this->delegate->getAccessTime($pathname);
+		return $this->selectDelegate($pathname)->getAccessTime($pathname);
 	}
 
 	/**
@@ -146,7 +166,7 @@ class DelegatorAdapter
 	 */
 	public function setAccessTime(Pathname $pathname, \DateTime $time)
 	{
-		$this->delegate->setAccessTime($pathname, $time);
+		$this->selectDelegate($pathname)->setAccessTime($pathname, $time);
 	}
 
 	/**
@@ -154,7 +174,7 @@ class DelegatorAdapter
 	 */
 	public function getCreationTime(Pathname $pathname)
 	{
-		return $this->delegate->getCreationTime($pathname);
+		return $this->selectDelegate($pathname)->getCreationTime($pathname);
 	}
 
 	/**
@@ -162,7 +182,7 @@ class DelegatorAdapter
 	 */
 	public function getModifyTime(Pathname $pathname)
 	{
-		return $this->delegate->getModifyTime($pathname);
+		return $this->selectDelegate($pathname)->getModifyTime($pathname);
 	}
 
 	/**
@@ -170,7 +190,7 @@ class DelegatorAdapter
 	 */
 	public function setModifyTime(Pathname $pathname, \DateTime $time)
 	{
-		$this->delegate->setModifyTime($pathname, $time);
+		$this->selectDelegate($pathname)->setModifyTime($pathname, $time);
 	}
 
 	/**
@@ -178,7 +198,7 @@ class DelegatorAdapter
 	 */
 	public function touch(Pathname $pathname, \DateTime $time, \DateTime $atime, $create)
 	{
-		$this->delegate->touch($pathname, $time, $atime, $create);
+		$this->selectDelegate($pathname)->touch($pathname, $time, $atime, $create);
 	}
 
 	/**
@@ -186,7 +206,7 @@ class DelegatorAdapter
 	 */
 	public function getSize(Pathname $pathname, $recursive)
 	{
-		return $this->delegate->getSize($pathname, $recursive);
+		return $this->selectDelegate($pathname)->getSize($pathname, $recursive);
 	}
 
 	/**
@@ -194,7 +214,7 @@ class DelegatorAdapter
 	 */
 	public function getOwner(Pathname $pathname)
 	{
-		return $this->delegate->getOwner($pathname);
+		return $this->selectDelegate($pathname)->getOwner($pathname);
 	}
 
 	/**
@@ -202,7 +222,7 @@ class DelegatorAdapter
 	 */
 	public function setOwner(Pathname $pathname, $user)
 	{
-		$this->delegate->setOwner($pathname, $user);
+		$this->selectDelegate($pathname)->setOwner($pathname, $user);
 	}
 
 	/**
@@ -210,7 +230,7 @@ class DelegatorAdapter
 	 */
 	public function getGroup(Pathname $pathname)
 	{
-		return $this->delegate->getGroup($pathname);
+		return $this->selectDelegate($pathname)->getGroup($pathname);
 	}
 
 	/**
@@ -218,7 +238,7 @@ class DelegatorAdapter
 	 */
 	public function setGroup(Pathname $pathname, $group)
 	{
-		$this->delegate->setGroup($pathname, $group);
+		$this->selectDelegate($pathname)->setGroup($pathname, $group);
 	}
 
 	/**
@@ -226,7 +246,7 @@ class DelegatorAdapter
 	 */
 	public function getMode(Pathname $pathname)
 	{
-		return $this->delegate->getMode($pathname);
+		return $this->selectDelegate($pathname)->getMode($pathname);
 	}
 
 	/**
@@ -234,7 +254,7 @@ class DelegatorAdapter
 	 */
 	public function setMode(Pathname $pathname, $mode)
 	{
-		$this->delegate->setModifyTime($pathname, $mode);
+		$this->selectDelegate($pathname)->setModifyTime($pathname, $mode);
 	}
 
 	/**
@@ -242,7 +262,7 @@ class DelegatorAdapter
 	 */
 	public function isReadable(Pathname $pathname)
 	{
-		return $this->delegate->isReadable($pathname);
+		return $this->selectDelegate($pathname)->isReadable($pathname);
 	}
 
 	/**
@@ -250,7 +270,7 @@ class DelegatorAdapter
 	 */
 	public function isWritable(Pathname $pathname)
 	{
-		return $this->delegate->isWritable($pathname);
+		return $this->selectDelegate($pathname)->isWritable($pathname);
 	}
 
 	/**
@@ -258,7 +278,7 @@ class DelegatorAdapter
 	 */
 	public function isExecutable(Pathname $pathname)
 	{
-		return $this->delegate->isExecutable($pathname);
+		return $this->selectDelegate($pathname)->isExecutable($pathname);
 	}
 
 	/**
@@ -266,7 +286,7 @@ class DelegatorAdapter
 	 */
 	public function exists(Pathname $pathname)
 	{
-		return $this->delegate->exists($pathname);
+		return $this->selectDelegate($pathname)->exists($pathname);
 	}
 
 	/**
@@ -274,7 +294,7 @@ class DelegatorAdapter
 	 */
 	public function delete(Pathname $pathname, $recursive, $force)
 	{
-		$this->delegate->delete($pathname, $recursive, $force);
+		$this->selectDelegate($pathname)->delete($pathname, $recursive, $force);
 	}
 
 	/**
@@ -285,7 +305,7 @@ class DelegatorAdapter
 		Pathname $dstPathname,
 		$flags
 	) {
-		return $this->delegate->copyTo($srcPathname, $dstPathname, $flags);
+		return $this->selectDelegate($srcPathname)->copyTo($srcPathname, $dstPathname, $flags);
 	}
 
 	/**
@@ -296,7 +316,7 @@ class DelegatorAdapter
 		Pathname $srcPathname,
 		$flags
 	) {
-		return $this->delegate->copyFrom($dstPathname, $srcPathname, $flags);
+		return $this->selectDelegate($srcPathname)->copyFrom($dstPathname, $srcPathname, $flags);
 	}
 
 	/**
@@ -307,7 +327,7 @@ class DelegatorAdapter
 		Pathname $dstPathname,
 		$flags
 	) {
-		return $this->delegate->moveTo($srcPathname, $dstPathname, $flags);
+		return $this->selectDelegate($srcPathname)->moveTo($srcPathname, $dstPathname, $flags);
 	}
 
 	/**
@@ -318,7 +338,7 @@ class DelegatorAdapter
 		Pathname $srcPathname,
 		$flags
 	) {
-		return $this->delegate->moveFrom($dstPathname, $srcPathname, $flags);
+		return $this->selectDelegate($srcPathname)->moveFrom($dstPathname, $srcPathname, $flags);
 	}
 
 	/**
@@ -326,7 +346,7 @@ class DelegatorAdapter
 	 */
 	public function createDirectory(Pathname $pathname, $parents)
 	{
-		$this->delegate->createDirectory($pathname, $parents);
+		$this->selectDelegate($pathname)->createDirectory($pathname, $parents);
 	}
 
 	/**
@@ -334,7 +354,7 @@ class DelegatorAdapter
 	 */
 	public function createFile(Pathname $pathname, $parents)
 	{
-		$this->delegate->createFile($pathname, $parents);
+		$this->selectDelegate($pathname)->createFile($pathname, $parents);
 	}
 
 	/**
@@ -342,7 +362,7 @@ class DelegatorAdapter
 	 */
 	public function getContents(Pathname $pathname)
 	{
-		return $this->delegate->getContents($pathname);
+		return $this->selectDelegate($pathname)->getContents($pathname);
 	}
 
 	/**
@@ -350,7 +370,7 @@ class DelegatorAdapter
 	 */
 	public function setContents(Pathname $pathname, $content, $create)
 	{
-		$this->delegate->setContents($pathname, $content, $create);
+		$this->selectDelegate($pathname)->setContents($pathname, $content, $create);
 	}
 
 	/**
@@ -358,7 +378,7 @@ class DelegatorAdapter
 	 */
 	public function appendContents(Pathname $pathname, $content, $create)
 	{
-		return $this->delegate->appendContents($pathname, $content, $create);
+		return $this->selectDelegate($pathname)->appendContents($pathname, $content, $create);
 	}
 
 	/**
@@ -366,7 +386,7 @@ class DelegatorAdapter
 	 */
 	public function truncate(Pathname $pathname, $size)
 	{
-		return $this->delegate->truncate($pathname, $size);
+		return $this->selectDelegate($pathname)->truncate($pathname, $size);
 	}
 
 	/**
@@ -374,7 +394,7 @@ class DelegatorAdapter
 	 */
 	public function open(Pathname $pathname, $mode)
 	{
-		return $this->delegate->open($pathname, $mode);
+		return $this->selectDelegate($pathname)->open($pathname, $mode);
 	}
 
 	/**
@@ -382,7 +402,7 @@ class DelegatorAdapter
 	 */
 	public function getStreamURL(Pathname $pathname)
 	{
-		return $this->delegate->getStreamURL($pathname);
+		return $this->selectDelegate($pathname)->getStreamURL($pathname);
 	}
 
 	/**
@@ -390,7 +410,7 @@ class DelegatorAdapter
 	 */
 	public function getMIMEName(Pathname $pathname)
 	{
-		return $this->delegate->getMIMEName($pathname);
+		return $this->selectDelegate($pathname)->getMIMEName($pathname);
 	}
 
 	/**
@@ -398,7 +418,7 @@ class DelegatorAdapter
 	 */
 	public function getMIMEType(Pathname $pathname)
 	{
-		return $this->delegate->getMIMEType($pathname);
+		return $this->selectDelegate($pathname)->getMIMEType($pathname);
 	}
 
 	/**
@@ -406,7 +426,7 @@ class DelegatorAdapter
 	 */
 	public function getMIMEEncoding(Pathname $pathname)
 	{
-		return $this->delegate->getMIMEEncoding($pathname);
+		return $this->selectDelegate($pathname)->getMIMEEncoding($pathname);
 	}
 
 	/**
@@ -414,7 +434,7 @@ class DelegatorAdapter
 	 */
 	public function getMD5(Pathname $pathname, $binary)
 	{
-		return $this->delegate->getMD5($pathname, $binary);
+		return $this->selectDelegate($pathname)->getMD5($pathname, $binary);
 	}
 
 	/**
@@ -422,7 +442,7 @@ class DelegatorAdapter
 	 */
 	public function getSHA1(Pathname $pathname, $binary)
 	{
-		return $this->delegate->getSHA1($pathname, $binary);
+		return $this->selectDelegate($pathname)->getSHA1($pathname, $binary);
 	}
 
 	/**
@@ -430,7 +450,7 @@ class DelegatorAdapter
 	 */
 	public function ls(Pathname $pathname)
 	{
-		return $this->delegate->ls($pathname);
+		return $this->selectDelegate($pathname)->ls($pathname);
 	}
 
 	/**
@@ -438,7 +458,7 @@ class DelegatorAdapter
 	 */
 	public function count(Pathname $pathname, array $filter)
 	{
-		return $this->delegate->count($pathname, $filter);
+		return $this->selectDelegate($pathname)->count($pathname, $filter);
 	}
 
 	/**
@@ -446,7 +466,7 @@ class DelegatorAdapter
 	 */
 	public function getIterator(Pathname $pathname, array $filter)
 	{
-		return $this->delegate->getIterator($pathname, $filter);
+		return $this->selectDelegate($pathname)->getIterator($pathname, $filter);
 	}
 
 	/**
@@ -454,7 +474,7 @@ class DelegatorAdapter
 	 */
 	public function getFreeSpace(Pathname $pathname)
 	{
-		return $this->delegate->getFreeSpace($pathname);
+		return $this->selectDelegate($pathname)->getFreeSpace($pathname);
 	}
 
 	/**
@@ -462,7 +482,7 @@ class DelegatorAdapter
 	 */
 	public function getTotalSpace(Pathname $pathname)
 	{
-		return $this->delegate->getTotalSpace($pathname);
+		return $this->selectDelegate($pathname)->getTotalSpace($pathname);
 	}
 
 	/**
@@ -470,7 +490,7 @@ class DelegatorAdapter
 	 */
 	public function requireExists(Pathname $pathname)
 	{
-		return $this->delegate->requireExists($pathname);
+		return $this->selectDelegate($pathname)->requireExists($pathname);
 	}
 
 	/**
@@ -478,7 +498,7 @@ class DelegatorAdapter
 	 */
 	public function checkFile(Pathname $pathname)
 	{
-		return $this->delegate->checkFile($pathname);
+		return $this->selectDelegate($pathname)->checkFile($pathname);
 	}
 
 	/**
@@ -486,6 +506,6 @@ class DelegatorAdapter
 	 */
 	public function checkDirectory(Pathname $pathname)
 	{
-		return $this->delegate->checkDirectory($pathname);
+		return $this->selectDelegate($pathname)->checkDirectory($pathname);
 	}
 }

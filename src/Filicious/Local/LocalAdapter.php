@@ -19,7 +19,7 @@ use Filicious\Internals\Adapter;
 use Filicious\Internals\AbstractAdapter;
 use Filicious\Internals\Pathname;
 use Filicious\Exception\FilesystemException;
-use Filicious\Exception\FilesystemOperationException;
+use Filicious\Exception\AdapterException;
 use Filicious\Exception\DirectoryOverwriteDirectoryException;
 use Filicious\Exception\DirectoryOverwriteFileException;
 use Filicious\Exception\FileOverwriteDirectoryException;
@@ -38,27 +38,27 @@ class LocalAdapter
 
 	protected $basepath;
 
-	public function __construct(Filesystem $fs, Adapter $root, Adapter $parent)
-	{
-		parent::__construct($fs, $root, $parent);
-	}
-
 	/**
-	 * @see Filicious\Internals\Adapter::getParent()
+	 * @param string|FilesystemConfig $basepath
 	 */
-	public function getParent(Pathname $pathname, &$parentAdapter, &$parentPathname)
+	public function __construct($basepath)
 	{
-		// local path is more than the root
-		// -> the parent is inside of this adapter
-		if ($pathname->local() != '/') {
-			$parentAdapter  = $this;
-			$parentPathname = new Pathname(
-				dirname($pathname->full()),
-				dirname($pathname->local())
-			);
+		if ($basepath instanceof FilesystemConfig) {
+			$this->config = $basepath;
+			$basepath = $basepath->get(FilesystemConfig::BASEPATH);
 		}
 		else {
-			$this->root->getParent($pathname, $parentAdapter, $parentPathname);
+			$this->config = new FilesystemConfig();
+			$this->config
+				->set(FilesystemConfig::IMPLEMENTATION, __CLASS__)
+				->set(FilesystemConfig::BASEPATH, $basepath);
+		}
+
+		$this->basepath = $basepath;
+
+		if (!is_dir($this->basepath)) {
+			// TODO
+			throw new \InvalidArgumentException();
 		}
 	}
 
@@ -103,24 +103,19 @@ class LocalAdapter
 	{
 		$this->requireExists($pathname);
 
-		try {
-			$atime = fileatime($this->basepath . $pathname->local());
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($atime === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not get access time of %s.', $pathname)
-			);
-		}
-
-		return $atime;
+		$self = $this;
+		return new \DateTime(
+			$this->execute(
+				function() use ($pathname, $self) {
+					return fileatime(
+						$this->basepath . $pathname->local()
+					);
+				},
+				0,
+				'Could not get access time of %s.',
+				$pathname
+			)
+		);
 	}
 
 	/**
@@ -130,26 +125,19 @@ class LocalAdapter
 	{
 		$this->requireExists($pathname);
 
-		try {
-			$result = touch(
-				$this->basepath . $pathname->local(),
-				$this->getModifyTime($pathname),
-				$time->getTimestamp()
-			);
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($result === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not set access time for %s.', $pathname)
-			);
-		}
+		$self = $this;
+		$this->execute(
+			function() use ($pathname, $time, $self) {
+				return touch(
+					$self->basepath . $pathname->local(),
+					$self->getModifyTime($pathname),
+					$time->getTimestamp()
+				);
+			},
+			0,
+			'Could not set access time of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -159,24 +147,19 @@ class LocalAdapter
 	{
 		$this->requireExists($pathname);
 
-		try {
-			$ctime = filectime($this->basepath . $pathname->local());
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($ctime === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not get creation time of %s.', $pathname)
-			);
-		}
-
-		return $ctime;
+		$self = $this;
+		return new \DateTime(
+			$this->execute(
+				function() use ($pathname, $self) {
+					return filectime(
+						$this->basepath . $pathname->local()
+					);
+				},
+				0,
+				'Could not get creation time of %s.',
+				$pathname
+			)
+		);
 	}
 
 	/**
@@ -186,24 +169,19 @@ class LocalAdapter
 	{
 		$this->requireExists($pathname);
 
-		try {
-			$mtime = filemtime($this->basepath . $pathname->local());
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($mtime === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not get creation time of %s.', $pathname)
-			);
-		}
-
-		return $mtime;
+		$self = $this;
+		return new \DateTime(
+			$this->execute(
+				function() use ($pathname, $self) {
+					return filemtime(
+						$this->basepath . $pathname->local()
+					);
+				},
+				0,
+				'Could not get modify time of %s.',
+				$pathname
+			)
+		);
 	}
 
 	/**
@@ -213,26 +191,19 @@ class LocalAdapter
 	{
 		$this->requireExists($pathname);
 
-		try {
-			$result = touch(
-				$this->basepath . $pathname->local(),
-				$time->getTimestamp(),
-				$this->getAccessTime($pathname)
-			);
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($result === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not set modify time for %s.', $pathname)
-			);
-		}
+		$self = $this;
+		$this->execute(
+			function() use ($pathname, $time, $self) {
+				return touch(
+					$this->basepath . $pathname->local(),
+					$time->getTimestamp(),
+					$this->getAccessTime($pathname)
+				);
+			},
+			0,
+			'Could not set modify time of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -244,26 +215,19 @@ class LocalAdapter
 			$this->requireExists($pathname);
 		}
 
-		try {
-			$result = touch(
-				$this->basepath . $pathname->local(),
-				$time->getTimestamp(),
-				$atime->getTimestamp()
-			);
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($result === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not touch %s.', $pathname)
-			);
-		}
+		$self = $this;
+		$this->execute(
+			function() use ($pathname, $time, $atime, $self) {
+				return touch(
+					$this->basepath . $pathname->local(),
+					$time->getTimestamp(),
+					$atime->getTimestamp()
+				);
+			},
+			0,
+			'Could not touch %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -298,24 +262,17 @@ class LocalAdapter
 
 		// get file size
 		else {
-			try {
-				$result = filesize($this->basepath . $pathname->local());
-			}
-			catch (\ErrorException $e) {
-				throw new FilesystemOperationException(
-					$e->getMessage(),
-					$e->getCode(),
-					$e
-				);
-			}
-
-			if ($result === false) {
-				throw new FilesystemOperationException(
-					sprintf('Could not get size of %s.', $pathname)
-				);
-			}
-
-			return $result;
+			$self = $this;
+			return $this->execute(
+				function() use ($pathname, $self) {
+					return filesize(
+						$this->basepath . $pathname->local()
+					);
+				},
+				0,
+				'Could not get size of %s.',
+				$pathname
+			);
 		}
 	}
 
@@ -326,24 +283,17 @@ class LocalAdapter
 	{
 		$this->requireExists($pathname);
 
-		try {
-			$owner = fileowner($this->basepath . $pathname->local());
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($owner === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not get owner of %s.', $pathname)
-			);
-		}
-
-		return $owner;
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $self) {
+				return fileowner(
+					$this->basepath . $pathname->local()
+				);
+			},
+			0,
+			'Could not get owner of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -353,25 +303,18 @@ class LocalAdapter
 	{
 		$this->requireExists($pathname);
 
-		try {
-			$result = chown(
-				$this->basepath . $pathname->local(),
-				$user
-			);
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($result === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not set owner for %s.', $pathname)
-			);
-		}
+		$self = $this;
+		$this->execute(
+			function() use ($pathname, $user, $self) {
+				return chown(
+					$this->basepath . $pathname->local(),
+					$user
+				);
+			},
+			0,
+			'Could not set owner of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -381,24 +324,17 @@ class LocalAdapter
 	{
 		$this->requireExists($pathname);
 
-		try {
-			$owner = filegroup($this->basepath . $pathname->local());
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($owner === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not get group of %s.', $pathname)
-			);
-		}
-
-		return $owner;
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $self) {
+				return filegroup(
+					$this->basepath . $pathname->local()
+				);
+			},
+			0,
+			'Could not get group of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -408,25 +344,18 @@ class LocalAdapter
 	{
 		$this->requireExists($pathname);
 
-		try {
-			$result = chgrp(
-				$this->basepath . $pathname->local(),
-				$group
-			);
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($result === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not set owner for %s.', $pathname)
-			);
-		}
+		$self = $this;
+		$this->execute(
+			function() use ($pathname, $group, $self) {
+				return chgrp(
+					$this->basepath . $pathname->local(),
+					$group
+				);
+			},
+			0,
+			'Could not set group of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -436,24 +365,17 @@ class LocalAdapter
 	{
 		$this->requireExists($pathname);
 
-		try {
-			$owner = fileperms($this->basepath . $pathname->local());
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($owner === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not get mode of %s.', $pathname)
-			);
-		}
-
-		return $owner;
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $self) {
+				return fileperms(
+					$this->basepath . $pathname->local()
+				);
+			},
+			0,
+			'Could not get mode of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -463,25 +385,18 @@ class LocalAdapter
 	{
 		$this->requireExists($pathname);
 
-		try {
-			$result = chmod(
-				$this->basepath . $pathname->local(),
-				$mode
-			);
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($result === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not set owner for %s.', $pathname)
-			);
-		}
+		$self = $this;
+		$this->execute(
+			function() use ($pathname, $mode, $self) {
+				return chmod(
+					$this->basepath . $pathname->local(),
+					$mode
+				);
+			},
+			0,
+			'Could not set mode of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -491,24 +406,17 @@ class LocalAdapter
 	{
 		$this->requireExists($pathname);
 
-		try {
-			$readable = is_readable($this->basepath . $pathname->local());
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($readable === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not get readable state of %s.', $pathname)
-			);
-		}
-
-		return $readable;
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $self) {
+				return is_readable(
+					$this->basepath . $pathname->local()
+				);
+			},
+			0,
+			'Could not get readable state of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -518,24 +426,17 @@ class LocalAdapter
 	{
 		$this->requireExists($pathname);
 
-		try {
-			$writeable = is_writable($this->basepath . $pathname->local());
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($writeable === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not get writeable state of %s.', $pathname)
-			);
-		}
-
-		return $writeable;
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $self) {
+				return is_writable(
+					$this->basepath . $pathname->local()
+				);
+			},
+			0,
+			'Could not get writeable state of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -545,24 +446,17 @@ class LocalAdapter
 	{
 		$this->requireExists($pathname);
 
-		try {
-			$executeable = is_executable($this->basepath . $pathname->local());
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($executeable === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not get executeable state of %s.', $pathname)
-			);
-		}
-
-		return $executeable;
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $self) {
+				return is_executable(
+					$this->basepath . $pathname->local()
+				);
+			},
+			0,
+			'Could not get executable state of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -574,8 +468,8 @@ class LocalAdapter
 			$exists = file_exists($this->basepath . $pathname->local());
 		}
 		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
+			throw new AdapterException(
+				sprintf('Could not get exists state of %s', $pathname),
 				$e->getCode(),
 				$e
 			);
@@ -608,22 +502,17 @@ class LocalAdapter
 				return false;
 			}
 
-			try {
-				$result = rmdir($this->basepath . $pathname->local());
-			}
-			catch (\ErrorException $e) {
-				throw new FilesystemOperationException(
-					$e->getMessage(),
-					$e->getCode(),
-					$e
-				);
-			}
-
-			if ($result === false) {
-				throw new FilesystemOperationException(
-					sprintf('Could not delete directory %s.', $pathname)
-				);
-			}
+			$self = $this;
+			$this->execute(
+				function() use ($pathname, $self) {
+					return rmdir(
+						$this->basepath . $pathname->local()
+					);
+				},
+				0,
+				'Could not delete directory %s.',
+				$pathname
+			);
 		}
 		else {
 			// Handling $force flag
@@ -636,22 +525,17 @@ class LocalAdapter
 				}
 			}
 
-			try {
-				$result = unlink($this->basepath . $pathname->local());
-			}
-			catch (\ErrorException $e) {
-				throw new FilesystemOperationException(
-					$e->getMessage(),
-					$e->getCode(),
-					$e
-				);
-			}
-
-			if ($result === false) {
-				throw new FilesystemOperationException(
-					sprintf('Could not delete file %s.', $pathname)
-				);
-			}
+			$self = $this;
+			return $this->execute(
+				function() use ($pathname, $self) {
+					return unlink(
+						$this->basepath . $pathname->local()
+					);
+				},
+				0,
+				'Could not delete file %s.',
+				$pathname
+			);
 		}
 	}
 
@@ -794,61 +678,44 @@ class LocalAdapter
 			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
 				// native copy
 				if ($srcPathname->localAdapter() instanceof LocalAdapter) {
-					try {
-						$result = copy(
-							$srcPathname->localAdapter()->basepath . $srcPathname->local(),
-							$this->basepath . $dstPathname->local()
-						);
-					}
-					catch (\ErrorException $e) {
-						throw new FilesystemOperationException(
-							$e->getMessage(),
-							$e->getCode(),
-							$e
-						);
-					}
-
-					if ($result === false) {
-						throw new FilesystemOperationException(
-							sprintf('Could not copy %s to %s.', $srcPathname, $dstPathname)
-						);
-					}
+					$self = $this;
+					return $this->execute(
+						function() use ($srcPathname, $dstPathname, $self) {
+							return copy(
+								$srcPathname->localAdapter()->basepath . $srcPathname->local(),
+								$this->basepath . $dstPathname->local()
+							);
+						},
+						0,
+						'Could not copy %s to %s.',
+						$srcPathname,
+						$dstPathname
+					);
 				}
 
 				// stream copy
 				else {
-					try {
-						$srcStream = $srcPathname->localAdapter()->open($srcPathname, 'rb');
-						$dstStream = $this->open($dstPathname, 'wb');
+					$self = $this;
+					return $this->execute(
+						function() use ($srcPathname, $dstPathname, $self) {
+							$srcStream = $srcPathname->localAdapter()->open($srcPathname, 'rb');
+							$dstStream = $this->open($dstPathname, 'wb');
 
-						$result = stream_copy_to_stream(
-							$srcStream,
-							$dstStream
-						);
+							$result = stream_copy_to_stream(
+								$srcStream,
+								$dstStream
+							);
 
-						fclose($srcStream);
-						fclose($dstStream);
-					}
-					catch (\ErrorException $e) {
-						if (is_resource($srcStream)) {
 							fclose($srcStream);
-						}
-						if (is_resource(($dstStream))) {
 							fclose($dstStream);
-						}
 
-						throw new FilesystemOperationException(
-							$e->getMessage(),
-							$e->getCode(),
-							$e
-						);
-					}
-
-					if ($result === false) {
-						throw new FilesystemOperationException(
-							sprintf('Could not copy %s to %s.', $srcPathname, $dstPathname)
-						);
-					}
+							return $result;
+						},
+						0,
+						'Could not copy %s to %s.',
+						$srcPathname,
+						$dstPathname
+					);
 				}
 			}
 
@@ -978,25 +845,19 @@ class LocalAdapter
 			// recursive merge directories
 			if ($flags & File::OPERATION_RECURSIVE) {
 				if ($srcPathname->localAdapter() instanceof LocalAdapter) {
-					try {
-						$result = rename(
-							$srcPathname->localAdapter()->basepath . $srcPathname->local(),
-							$this->basepath . $dstPathname->local()
-						);
-					}
-					catch (\ErrorException $e) {
-						throw new FilesystemOperationException(
-							$e->getMessage(),
-							$e->getCode(),
-							$e
-						);
-					}
-
-					if ($result === false) {
-						throw new FilesystemOperationException(
-							sprintf('Could not move %s to %s.', $srcPathname, $dstPathname)
-						);
-					}
+					$self = $this;
+					return $this->execute(
+						function() use ($srcPathname, $dstPathname, $self) {
+							return rename(
+								$srcPathname->localAdapter()->basepath . $srcPathname->local(),
+								$this->basepath . $dstPathname->local()
+							);
+						},
+						0,
+						'Could not move %s to %s.',
+						$srcPathname,
+						$dstPathname
+					);
 				}
 				else {
 					$iterator = $srcPathname->localAdapter()->getIterator($srcPathname, array());
@@ -1026,63 +887,46 @@ class LocalAdapter
 			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
 				// native move
 				if ($srcPathname->localAdapter() instanceof LocalAdapter) {
-					try {
-						$result = rename(
-							$srcPathname->localAdapter()->basepath . $srcPathname->local(),
-							$this->basepath . $dstPathname->local()
-						);
-					}
-					catch (\ErrorException $e) {
-						throw new FilesystemOperationException(
-							$e->getMessage(),
-							$e->getCode(),
-							$e
-						);
-					}
-
-					if ($result === false) {
-						throw new FilesystemOperationException(
-							sprintf('Could not move %s to %s.', $srcPathname, $dstPathname)
-						);
-					}
+					$self = $this;
+					return $this->execute(
+						function() use ($srcPathname, $dstPathname, $self) {
+							return rename(
+								$srcPathname->localAdapter()->basepath . $srcPathname->local(),
+								$this->basepath . $dstPathname->local()
+							);
+						},
+						0,
+						'Could not move %s to %s.',
+						$srcPathname,
+						$dstPathname
+					);
 				}
 
 				// stream move
 				else {
-					try {
-						$srcStream = $srcPathname->localAdapter()->open($srcPathname, 'rb');
-						$dstStream = $this->open($dstPathname, 'wb');
+					$self = $this;
+					return $this->execute(
+						function() use ($srcPathname, $dstPathname, $self) {
+							$srcStream = $srcPathname->localAdapter()->open($srcPathname, 'rb');
+							$dstStream = $this->open($dstPathname, 'wb');
 
-						$result = stream_copy_to_stream(
-							$srcStream,
-							$dstStream
-						);
+							$result = stream_copy_to_stream(
+								$srcStream,
+								$dstStream
+							);
 
-						$srcPathname->localAdapter()->delete($srcPathname, false, false);
+							$srcPathname->localAdapter()->delete($srcPathname, false, false);
 
-						fclose($srcStream);
-						fclose($dstStream);
-					}
-					catch (\ErrorException $e) {
-						if (is_resource($srcStream)) {
 							fclose($srcStream);
-						}
-						if (is_resource(($dstStream))) {
 							fclose($dstStream);
-						}
 
-						throw new FilesystemOperationException(
-							$e->getMessage(),
-							$e->getCode(),
-							$e
-						);
-					}
-
-					if ($result === false) {
-						throw new FilesystemOperationException(
-							sprintf('Could not move %s to %s.', $srcPathname, $dstPathname)
-						);
-					}
+							return $result;
+						},
+						0,
+						'Could not move %s to %s.',
+						$srcPathname,
+						$dstPathname
+					);
 				}
 			}
 		}
@@ -1103,34 +947,27 @@ class LocalAdapter
 			return $this->isDirectory($pathname);
 		}
 
-		try {
-			// create with parents
-			if ($parents) {
-				// TODO: apply umask.
-				$result = mkdir($this->basepath . $pathname->local(), 0777, true);
-			}
-			else {
-				$parentAdapter = $parentPathname = null;
-				$this->getParent($pathname, $parentAdapter, $parentPathname);
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $parents, $self) {
+				// create with parents
+				if ($parents) {
+					// TODO: apply umask.
+					return mkdir($this->basepath . $pathname->local(), 0777, true);
+				}
+				else {
+					$parentAdapter = $parentPathname = null;
+					$this->getParent($pathname, $parentAdapter, $parentPathname);
 
-				$parentAdapter->requireExists($parentPathname);
+					$parentAdapter->requireExists($parentPathname);
 
-				$result = mkdir($this->basepath . $pathname->local());
-			}
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($result === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not create directory %s.', $pathname)
-			);
-		}
+					return mkdir($this->basepath . $pathname->local());
+				}
+			},
+			0,
+			'Could not create directory %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -1166,22 +1003,17 @@ class LocalAdapter
 			}
 		}
 
-		try {
-			$result = touch($this->basepath . $pathname->local());
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($result === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not create file %s.', $pathname)
-			);
-		}
+		$self = $this;
+		$this->execute(
+			function() use ($pathname, $self) {
+				return touch(
+					$this->basepath . $pathname->local()
+				);
+			},
+			0,
+			'Could not create file %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -1191,24 +1023,17 @@ class LocalAdapter
 	{
 		$this->checkFile($pathname);
 
-		try {
-			$result = file_get_contents($this->basepath . $pathname->local());
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($result === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not get contents of %s.', $pathname)
-			);
-		}
-
-		return $result;
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $self) {
+				return file_get_contents(
+					$this->basepath . $pathname->local()
+				);
+			},
+			0,
+			'Could not get contents of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -1224,22 +1049,18 @@ class LocalAdapter
 			$this->checkFile($pathname);
 		}
 
-		try {
-			$result = file_put_contents($this->basepath . $pathname->local(), $content);
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($result === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not set contents to %s.', $pathname)
-			);
-		}
+		$self = $this;
+		$this->execute(
+			function() use ($pathname, $content, $self) {
+				return file_put_contents(
+					$this->basepath . $pathname->local(),
+					$content
+				);
+			},
+			0,
+			'Could not set contents of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -1255,31 +1076,20 @@ class LocalAdapter
 			$this->checkFile($pathname);
 		}
 
-		$f = false;
-		try {
-			$result = false;
-
-			if (false !== ($f = fopen($this->basepath . $pathname->local(), 'ab'))) {
-				$result = fwrite($f, $content);
-				fclose($f);
-			}
-		}
-		catch (\ErrorException $e) {
-			if (is_resource($f)) {
-				fclose($f);
-			}
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($result === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not append contents to %s.', $pathname)
-			);
-		}
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $content, $self) {
+				$result = false;
+				if (false !== ($f = fopen($this->basepath . $pathname->local(), 'ab'))) {
+					$result = fwrite($f, $content);
+					fclose($f);
+				}
+				return $result;
+			},
+			0,
+			'Could not append contents to %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -1289,31 +1099,21 @@ class LocalAdapter
 	{
 		$this->checkFile($pathname);
 
-		$f = false;
-		try {
-			$result = false;
-
-			if (false !== ($f = fopen($this->basepath . $pathname->local(), 'ab'))) {
-				$result = ftruncate($f, $size);
-				fclose($f);
-			}
-		}
-		catch (\ErrorException $e) {
-			if (is_resource($f)) {
-				fclose($f);
-			}
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($result === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not truncate file %s to %s.', $pathname, $size)
-			);
-		}
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $size, $self) {
+				$result = false;
+				if (false !== ($f = fopen($this->basepath . $pathname->local(), 'ab'))) {
+					$result = ftruncate($f, $size);
+					fclose($f);
+				}
+				return $result;
+			},
+			0,
+			'Could not truncate file %s to %s.',
+			$pathname,
+			$size
+		);
 	}
 
 	/**
@@ -1341,24 +1141,19 @@ class LocalAdapter
 	{
 		$this->checkFile($pathname);
 
-		try {
-			$finfo = finfo_file(FS::getFileInfo(), $this->basepath . $pathname->local(), FILEINFO_NONE);
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($finfo === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not get mime name of %s.', $pathname)
-			);
-		}
-
-		return $finfo;
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $self) {
+				return finfo_file(
+					FS::getFileInfo(),
+					$this->basepath . $pathname->local(),
+					FILEINFO_NONE
+				);
+			},
+			0,
+			'Could not get mime name of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -1368,24 +1163,19 @@ class LocalAdapter
 	{
 		$this->checkFile($pathname);
 
-		try {
-			$finfo = finfo_file(FS::getFileInfo(), $this->basepath . $pathname->local(), FILEINFO_MIME_TYPE);
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($finfo === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not get mime name of %s.', $pathname)
-			);
-		}
-
-		return $finfo;
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $self) {
+				return finfo_file(
+					FS::getFileInfo(),
+					$this->basepath . $pathname->local(),
+					FILEINFO_MIME_TYPE
+				);
+			},
+			0,
+			'Could not get mime type of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -1395,24 +1185,19 @@ class LocalAdapter
 	{
 		$this->checkFile($pathname);
 
-		try {
-			$finfo = finfo_file(FS::getFileInfo(), $this->basepath . $pathname->local(), FILEINFO_MIME_ENCODING);
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($finfo === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not get mime name of %s.', $pathname)
-			);
-		}
-
-		return $finfo;
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $self) {
+				return finfo_file(
+					FS::getFileInfo(),
+					$this->basepath . $pathname->local(),
+					FILEINFO_MIME_ENCODING
+				);
+			},
+			0,
+			'Could not get mime encoding of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -1422,24 +1207,18 @@ class LocalAdapter
 	{
 		$this->checkFile($pathname);
 
-		try {
-			$md5 = md5_file($this->basepath . $pathname->local(), $binary);
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($md5 === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not calculate md5 sum of %s.', $pathname)
-			);
-		}
-
-		return $md5;
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $binary, $self) {
+				return md5_file(
+					$this->basepath . $pathname->local(),
+					$binary
+				);
+			},
+			0,
+			'Could not calculate md5 sum of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -1449,24 +1228,18 @@ class LocalAdapter
 	{
 		$this->checkFile($pathname);
 
-		try {
-			$md5 = sha1_file($this->basepath . $pathname->local(), $binary);
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($md5 === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not calculate md5 sum of %s.', $pathname)
-			);
-		}
-
-		return $md5;
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $binary, $self) {
+				return sha1_file(
+					$this->basepath . $pathname->local(),
+					$binary
+				);
+			},
+			0,
+			'Could not calculate sha1 sum of %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -1476,22 +1249,17 @@ class LocalAdapter
 	{
 		$this->checkDirectory($pathname);
 
-		try {
-			$files = scandir($this->basepath . $pathname->local());
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($files === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not list contents of %s.', $pathname)
-			);
-		}
+		$self = $this;
+		$files = $this->execute(
+			function() use ($pathname, $self) {
+				return scandir(
+					$this->basepath . $pathname->local()
+				);
+			},
+			0,
+			'Could not list contents of %s.',
+			$pathname
+		);
 
 		return array_values(
 			array_filter(
@@ -1515,24 +1283,17 @@ class LocalAdapter
 			return $parentAdapter->getFreeSpace($parentPathname);
 		}
 
-		try {
-			$diskFreeSpace = disk_free_space($this->basepath . $pathname->local());
-		}
-		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
-				$e
-			);
-		}
-
-		if ($diskFreeSpace === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not get free space for %s.', $pathname)
-			);
-		}
-
-		return $diskFreeSpace;
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $self) {
+				return disk_free_space(
+					$this->basepath . $pathname->local()
+				);
+			},
+			0,
+			'Could not get free space for %s.',
+			$pathname
+		);
 	}
 
 	/**
@@ -1547,23 +1308,43 @@ class LocalAdapter
 			return $parentAdapter->getTotalSpace($parentPathname);
 		}
 
+		$self = $this;
+		return $this->execute(
+			function() use ($pathname, $self) {
+				return disk_total_space(
+					$this->basepath . $pathname->local()
+				);
+			},
+			0,
+			'Could not get total space for %s.',
+			$pathname
+		);
+	}
+
+	protected function execute($callback, $errorCode, $errorMessage) {
+		$error = null;
+
 		try {
-			$diskTotalSpace = disk_total_space($this->basepath . $pathname->local());
+			$result = $callback();
 		}
 		catch (\ErrorException $e) {
-			throw new FilesystemOperationException(
-				$e->getMessage(),
-				$e->getCode(),
+			$error = $e;
+		}
+
+		if ($error !== null || $result === false) {
+			throw new AdapterException(
+				sprintf(
+					$errorMessage,
+					array_slice(
+						func_get_args(),
+						3
+					)
+				),
+				$errorCode,
 				$e
 			);
 		}
 
-		if ($diskTotalSpace === false) {
-			throw new FilesystemOperationException(
-				sprintf('Could not get total space for %s.', $pathname)
-			);
-		}
-
-		return $diskTotalSpace;
+		return $error;
 	}
 }

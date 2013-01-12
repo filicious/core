@@ -23,4 +23,12 @@ namespace Filicious\Exception;
 class FilesystemOperationException
 	extends FilesystemException
 {
+
+	function __construct($message = '', $code = 0, \Exception $previous = null)
+	{
+		if ($code === 0) {
+			$code = static::OPERATION_EXCEPTION;
+		}
+		parent::__construct($message, $code, $previous);
+	}
 }

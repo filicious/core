@@ -32,6 +32,9 @@ class NotAFileException
 	protected $local;
 
 	public function __construct(Pathname $pathname, $code = 0, $previous = null) {
+		if ($code === 0) {
+			$code = FilesystemException::NOT_A_FILE;
+		}
 		parent::__construct(
 			sprintf('Pathname %s is not a file!', $pathname->full()),
 			$code,

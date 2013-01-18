@@ -13,6 +13,7 @@
 
 namespace Filicious\Internals;
 
+use Filicious\Filesystem;
 
 if(DIRECTORY_SEPARATOR !== '/') {
 	/**
@@ -41,6 +42,19 @@ if(DIRECTORY_SEPARATOR !== '/') {
  */
 interface Adapter
 {
+	/**
+	 * Return the configuration of this adapter.
+	 *
+	 * @return \Filicious\FilesystemConfig
+	 */
+	public function getConfig();
+
+	/**
+	 * Set the filesystem this adapter belongs to.
+	 *
+	 * @param Filicious\Filesystem $fs The filesystem this adapter belongs to
+	 */
+	public function setFilesystem(Filesystem $fs);
 	
 	/**
 	 * Returns the filesystem this adapter belongs to.
@@ -48,6 +62,13 @@ interface Adapter
 	 * @return Filicious\Filesystem The filesystem this adapter belongs to
 	 */
 	public function getFilesystem();
+
+	/**
+	 * Set the root adapter of the filesystem this adapter belongs to.
+	 *
+	 * @param Adapter $root The filesystems root adapter
+	 */
+	public function setRootAdapter(Adapter $root);
 	
 	/**
 	 * Returns the root adapter of the filesystem this adapter belongs to.
@@ -55,6 +76,13 @@ interface Adapter
 	 * @return Adapter The filesystems root adapter
 	 */
 	public function getRootAdapter();
+
+	/**
+	 * Set the parent adapter for this adapter.
+	 *
+	 * @param Adapter|null $parent The parent adapter
+	 */
+	public function setParentAdapter(Adapter $parent);
 	
 	/**
 	 * Returns the parent adapter of this adapter, if any.
@@ -689,4 +717,9 @@ interface Adapter
 	 * @throws Filicious\Exception\NotADirectoryException
 	 */
 	public function checkDirectory(Pathname $pathname);
+
+	/**
+	 * Notify about config changes.
+	 */
+	public function notifyConfigChange();
 }

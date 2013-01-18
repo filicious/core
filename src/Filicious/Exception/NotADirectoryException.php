@@ -29,7 +29,10 @@ class NotADirectoryException
 	 */
 	protected $pathname;
 
-	public function __construct(Pathname $pathname, $code = 0, $previous = null) {
+	public function __construct(Pathname $pathname, $code = 0, \Exception $previous = null) {
+		if ($code === 0) {
+			$code = FilesystemException::NOT_A_DIRECTORY;
+		}
 		parent::__construct(
 			sprintf('Pathname %s is not a directory!', $pathname->full()),
 			$code,

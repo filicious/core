@@ -23,4 +23,21 @@ namespace Filicious\Exception;
 class FilesystemException
 	extends \Exception
 {
+	const FILESYSTEM_EXCEPTION = 1;
+
+	const OPERATION_EXCEPTION = 2;
+
+	const FILE_NOT_FOUND = 3;
+
+	const NOT_A_DIRECTORY = 4;
+
+	const NOT_A_FILE = 5;
+
+	function __construct($message = '', $code = 0, \Exception $previous = null)
+	{
+		if ($code === 0) {
+			$code = static::FILESYSTEM_EXCEPTION;
+		}
+		parent::__construct($message, $code, $previous);
+	}
 }

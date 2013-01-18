@@ -77,29 +77,33 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 	 */
 	protected function setUp()
 	{
-		$this->environment = $this->setUpEnvironment();
-		$this->adapter     = $this->environment->getAdapter();
-		$this->fs          = $this->environment->getFilesystem();
+		try {
+			$this->environment = $this->setUpEnvironment();
+			$this->adapter     = $this->environment->getAdapter();
+			$this->fs          = $this->environment->getFilesystem();
 
-		// create directory <path>/foo/bar/
-		$this->adapter->createDirectory('/foo');
-		$this->adapter->createDirectory('/foo/bar');
+			// create directory <path>/foo/bar/
+			$this->adapter->createDirectory('/foo');
+			$this->adapter->createDirectory('/foo/bar');
 
-		// create directory <path>/zap
-		$this->adapter->createDirectory('/zap');
+			// create directory <path>/zap
+			$this->adapter->createDirectory('/zap');
 
-		// create file <path>/example.txt
-		$this->adapter->putContents('/example.txt', $this->contents['example.txt']);
+			// create file <path>/example.txt
+			$this->adapter->putContents('/example.txt', $this->contents['example.txt']);
 
-		// create file <path>/zap/file.txt
-		$this->adapter->putContents('/zap/file.txt', $this->contents['zap/file.txt']);
+			// create file <path>/zap/file.txt
+			$this->adapter->putContents('/zap/file.txt', $this->contents['zap/file.txt']);
 
-		if ($this->adapter->isSymlinkSupported()) {
-			// create link <path>/foo/zap.lnk -> ../zap/file.txt
-			$this->adapter->symlink('../zap/file.txt', '/foo/file.lnk');
+			if ($this->adapter->isSymlinkSupported()) {
+				// create link <path>/foo/zap.lnk -> ../zap/file.txt
+				$this->adapter->symlink('../zap/file.txt', '/foo/file.lnk');
 
-			// create link <path>/zap/bar.lnk -> ../foo/bar/
-			$this->adapter->symlink('../foo/bar/', '/zap/bar.lnk');
+				// create link <path>/zap/bar.lnk -> ../foo/bar/
+				$this->adapter->symlink('../foo/bar/', '/zap/bar.lnk');
+			}
+		} catch(\Exception $e) {
+			throw $e;
 		}
 	}
 

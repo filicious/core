@@ -94,19 +94,19 @@ class LocalTestAdapter implements TestAdapter
 	public function getATime($path)
 	{
 		clearstatcache();
-		return fileatime($this->basepath . $path);
+		return new \DateTime('@' . fileatime($this->basepath . $path));
 	}
 
 	public function getCTime($path)
 	{
 		clearstatcache();
-		return filectime($this->basepath . $path);
+		return new \DateTime('@' . filectime($this->basepath . $path));
 	}
 
 	public function getMTime($path)
 	{
 		clearstatcache();
-		return filemtime($this->basepath . $path);
+		return new \DateTime('@' . filemtime($this->basepath . $path));
 	}
 
 	public function getFileSize($path)

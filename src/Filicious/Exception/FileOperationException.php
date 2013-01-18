@@ -21,7 +21,7 @@ use Filicious\Internals\Pathname;
  * @package filicious-core
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
-class FileNotFoundException
+class FileOperationException
 	extends FilesystemException
 {
 	/**
@@ -29,12 +29,12 @@ class FileNotFoundException
 	 */
 	protected $pathname;
 
-	public function __construct(Pathname $pathname, $code = 0, $previous = null) {
+	public function __construct(Pathname $pathname, $code = 0, \Exception $previous = null) {
 		if ($code === 0) {
-			$code = FilesystemException::FILE_NOT_FOUND;
+			$code = FilesystemException::NOT_A_DIRECTORY;
 		}
 		parent::__construct(
-			sprintf('File %s not found!', $pathname->full()),
+			sprintf('Pathname %s is not a directory!', $pathname->full()),
 			$code,
 			$previous
 		);

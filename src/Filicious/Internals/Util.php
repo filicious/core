@@ -45,7 +45,7 @@ class Util
 		$parts = array();
 
 		foreach (explode('/', $path) as $part) {
-			if($part === '.' || $part === '..' && array_pop($parts) || $abs) {
+			if($part === '.' || $part === '..' && array_pop($parts) || $part == $abs) {
 				continue;
 			}
 			$parts[] = $part;

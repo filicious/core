@@ -13,7 +13,8 @@
 
 namespace Filicious;
 
-function is_traversable($thingee) {
+function is_traversable($thingee)
+{
 	return is_array($thingee) || $thingee instanceof \Traversable;
 }
 
@@ -26,294 +27,298 @@ function is_traversable($thingee) {
 class FilesystemConfig
 	implements \Serializable, \IteratorAggregate
 {
-	
 	/**
 	 * @var string Configuration parameter for Filesystem implementation to be used
 	 */
-	const IMPLEMENTATION	= 'impl';
-	
+	const IMPLEMENTATION = 'IMPL';
+
 	/**
 	 * @var string Configuration parameter for base path to use
 	 */
-	const BASEPATH			= 'base';
-	
+	const BASEPATH = 'BASEPATH';
+
+	/**
+	 * @var string Configuration parameter for base path to use
+	 */
+	const CREATE_BASEPATH = 'CREATE_BASEPATH';
+
 	/**
 	 * @var string Configuration parameter for default mode to use when creating
-	 * 		new files
+	 *         new files
 	 */
-	const DEFAULTMODE		= 'mode';
-		
+	const DEFAULTMODE = 'DEFAULTMODE';
+
 	/**
 	 * @var string Configuration parameter for username to use
 	 */
-	const USERNAME			= 'user';
-	
+	const USERNAME = 'USERNAME';
+
 	/**
 	 * @var string Configuration parameter for password to use
 	 */
-	const PASSWORD			= 'pass';
-	
+	const PASSWORD = 'PASSWORD';
+
 	/**
 	 * Create a new filesystem config.
 	 *
 	 * @param \Traversable|array $base
-	 * @param callable $handler
+	 * @param callable           $handler
+	 *
 	 * @return FilesystemConfig
 	 */
-	public static function newConfig($data = null, Filesystem $fs = null) {
-		if($data !== null) {
-			if(!is_traversable($data)) {
-				throw new \InvalidArgumentException(); // TODO
-			}
-			if($fs === null && is_array($data)) { // cheap forking
-				$config = new static();
-				$config->data = $data;
-				return $config;
-			}
+	public static function newConfig($data = null)
+	{
+		// cheap forking
+		if (is_array($data)) {
+			// do not use static here!
+			$config       = new self();
+			$config->data = $data;
+			return $config;
 		}
-		return new static($data, $fs);
+		// do not use static here!
+		return new self($data);
 	}
-	
+
 	/**
 	 * @var array The configuration data
 	 */
 	protected $data = array();
-	
-	/**
-	 * @var Filesystem|null The filesystem this config is bound to
-	 */
-	protected $fs;
-	
+
 	/**
 	 * Create a new filesytem config.
-	 * 
-	 * @param \Traversable|array $data Initial parameters to use
-	 * @param Filesystem $fs The filesystem this config will be bound to
-	 */
-	protected function __construct($data = null, Filesystem $fs = null) {
-		if(!$fs) {
-			$this->merge($data);
-		}
-		elseif($fs->getConfig()) {
-			throw new \Exception(); //ConfigurationException(); // TODO
-		}
-		else {
-			$this->merge($data);
-			$this->set(static::IMPLEMENTATION, get_class($fs));
-			$this->fs = $fs;
-		}
-	}
-	
-	/**
-	 * You should use <em>FilesystemConfig::fork()</em>.
-	 * 
-	 * @return void
-	 */
-	private final function __clone() {
-	}
-	
-	/**
-	 * Return serialized string representation of this configuration.
-	 * 
-	 * @return string Serialized representation
-	 */
-	public function __toString() {
-		return $this->serialize();
-	}
-	
-	/**
-	 * Add all configuration parameter from given traversable.
 	 *
-	 * @param \Traversable|array $data The parameters to merge
-	 * @return FilesystemConfig This config object
-	 * @throws InvalidStateException When the bound filesystem denies the update
-	 * 		of the given parameter
-	 * @throws ConfigurationException When the bound filesystem decides that the
-	 * 		parameter value set is not a valid setting
+	 * @param \Traversable|array $data Initial parameters to use
+	 * @param Filesystem         $fs   The filesystem this config will be bound to
 	 */
-	public function merge($data = null) {
-		if($data !== null) {
-			if(!is_traversable($data)) {
-				throw new \InvalidArgumentException(); // TODO
-			}
-			foreach($data as $param => $value) {
-				$this->set($param, $value);
-			}
-		}
+	public function __construct($data = null)
+	{
+		$this->merge($data);
+	}
+
+	/**
+	 * Check if this config is mutable.
+	 *
+	 * @return bool
+	 */
+	public function isMutable()
+	{
+		return true;
+	}
+
+	/**
+	 * Check if this config is immutable.
+	 *
+	 * @return bool
+	 */
+	public function isImmutable()
+	{
+		return false;
+	}
+
+	/**
+	 * Open this config for changes.
+	 *
+	 * @return bool
+	 */
+	public function open() {
 		return $this;
 	}
-	
+
 	/**
-	 * Fork this configuration and merge in the given parameters.
+	 * Commit changes to the bound filesystem/adapter.
 	 *
-	 * @param \Traversable|array $data The config to merge in
-	 * @param Filesystem The filesystem this config is bound to
-	 * @return FilesystemConfig The forked config instance
+	 * @return bool
 	 */
-	public function fork($data = null) {
-		return static::newConfig($this->data)->merge($data);
+	public function commit() {
+		return false;
 	}
-	
-	/**
-	 * Create a new configuration instance with the exact same settings of this
-	 * config and bind it to the given Filesystem.
-	 *
-	 * @param Filesystem The filesystem the new config will be bound to
-	 * @return FilesystemConfig The new bound config instance
-	 */
-	public function bind(Filesystem $fs) {
-		return static::newConfig($this->data, $fs);
-	}
-	
-	/**
-	 * Test whether this config is bound to a filesystem.
-	 * 
-	 * @return bool True if this config is bound to a filesystem; otherwise false
-	 */
-	public function isBound() {
-		return isset($this->fs);
-	}
-	
-	/**
-	 * Get the filesystem this config is bound to.
-	 * 
-	 * @throws InvalidStateException When this config is not bound to filesystem
-	 */
-	public function getFilesystem() {
-		if(!$this->isBound()) {
-			throw new \Exception(); // TODO
-		}
-		return $this->fs;
-	}
-	
+
 	/**
 	 * Set a configuration parameter.
 	 *
 	 * @param string $param The parameter to change
-	 * @param mixed $value The parameter value to set
+	 * @param mixed  $value The parameter value to set
+	 *
 	 * @return FilesystemConfig This config object
 	 * @throws InvalidStateException When the bound filesystem denies the update
-	 * 		of the given parameter
+	 *         of the given parameter
 	 * @throws ConfigurationException When the bound filesystem decides that the
-	 * 		parameter value set is not a valid setting
+	 *         parameter value set is not a valid setting
 	 */
-	public function set($param, $value = null) {
-		if(!$this->isBound()) {
-			$this->data[$param] = $value;
-		}
-		elseif($param == static::IMPLEMENTATION) {
-			throw new \Exception(); //InvalidStateException(); // TODO
-		}
-		else {
-			$this->getFilesystem()->notify($this->data, $param, $value);
-		} 
+	public function set($param, $value = null, $path = 'global')
+	{
+		$this->data[$path][$param] = $value;
 		return $this;
 	}
-	
+
 	/**
 	 * Get a configuration parameter, if it exists, otherwise return the passed
 	 * default value.
 	 *
 	 * @param string $param
-	 * @param mixed $default
+	 * @param mixed  $default
+	 *
 	 * @return mixed
 	 */
-	public function get($param, $default = null) {
-		return $this->has($param) ? $this->data[$param] : $default;
+	public function get($param, $default = null, $path = 'global')
+	{
+		if ($this->has($param, $path)) {
+			return $this->data[$path][$param];
+		}
+		if ($path != 'global' && $this->has($param, 'global')) {
+			return $this->data['global'][$param];
+		}
+		return $default;
 	}
-	
+
 	/**
 	 * Test whether a configuration parameter exists.
 	 *
 	 * @param string $param
+	 *
 	 * @return bool
 	 */
-	public function has($param) {
-		return isset($this->data[$param]);
+	public function has($param, $path = 'global')
+	{
+		return isset($this->data[$path][$param]);
 	}
-	
+
+	/**
+	 * Add all configuration parameter from given traversable.
+	 *
+	 * @param \Traversable|array $data The parameters to merge
+	 *
+	 * @return FilesystemConfig This config object
+	 * @throws InvalidStateException When the bound filesystem denies the update
+	 *         of the given parameter
+	 * @throws ConfigurationException When the bound filesystem decides that the
+	 *         parameter value set is not a valid setting
+	 */
+	public function merge($data = null, $path = null)
+	{
+		if ($data !== null) {
+			if (!is_traversable($data)) {
+				throw new \InvalidArgumentException();
+			}
+			foreach ($data as $param => $values) {
+				if (is_traversable($values)) {
+					$path = $path ?: $param;
+					foreach ($values as $param => $value) {
+						$this->set($param, $value, $path);
+					}
+				}
+				else {
+					$this->set($param, $value, $path ?: 'global');
+				}
+			}
+		}
+		return $this;
+	}
+
+	/**
+	 * Fork this configuration and merge in the given parameters.
+	 *
+	 * @param \Traversable|array $data      The config to merge in
+	 * @param                    Filesystem The filesystem this config is bound to
+	 *
+	 * @return FilesystemConfig The forked config instance
+	 */
+	public function fork($data = null)
+	{
+		// do not use static here!
+		return self::newConfig($this->data)
+			->merge($data);
+	}
+
+	/**
+	 * Get the bound filesystem.
+	 *
+	 * @return Filesystem
+	 */
+	public function getFilesystem()
+	{
+		return null;
+	}
+
+	/**
+	 * Test whether this config is bound to a filesystem.
+	 *
+	 * @return bool True if this config is bound to a filesystem; otherwise false
+	 */
+	public function isBound()
+	{
+		return false;
+	}
+
 	/**
 	 * Create a new filesystem with this configuration.
-	 * 
-	 * @param string $impl The filesystem implementation to use 
+	 *
+	 * @param string $impl The filesystem implementation to use
+	 *
 	 * @return Filesystem The created filesystem
 	 * @throws ConfigurationException If the implementation is missing or the
-	 * 		creation of the filesystem fails due to misconfiguration
+	 *         creation of the filesystem fails due to misconfiguration
 	 */
-	public function create($impl = null) {
-		if($impl === null && $this->has(static::IMPLEMENTATION)) {
+	/*
+	public function create($impl = null)
+	{
+		if ($impl === null && $this->has(static::IMPLEMENTATION)) {
 			$impl = $this->get(static::IMPLEMENTATION);
 		}
-		
+
 		try {
 			$clazz = new \ReflectionClass(strval($impl));
 			return $clazz->newInstance($this->fork());
 		}
-		catch(Exception $e) {
+		catch (Exception $e) {
 			throw new \Exception('', 0, $e); //ConfigurationException(); // TODO
 		}
 	}
-	
+	*/
+
 	/**
 	 * @return \ArrayIterator The iterator over this configs params
 	 */
-	public function getIterator() {
+	public function getIterator()
+	{
 		return new \ArrayIterator($this->data);
 	}
-	
+
 	/**
 	 * @return string The serialized config data
 	 */
-	public function serialize() {
-		return serialize($this->data);
+	public function serialize()
+	{
+		return json_encode($this->data);
 	}
-	
+
 	/**
 	 * @param string $str The serialized config data
+	 *
 	 * @return void
 	 */
-	public function unserialize($str) {
-		$this->data = unserialize($str);
+	public function unserialize($str)
+	{
+		$this->data = json_decode($str);
 	}
-	
-	public function setImplementation($impl) {
-		return $this->set(static::IMPLEMENTATION, $impl);
+
+	/**
+	 * You should use <em>FilesystemConfig::fork()</em>.
+	 *
+	 * @return void
+	 */
+	public function __clone()
+	{
+		return $this->fork();
 	}
-	
-	public function getImplementation($default = null) {
-		return $this->get(static::IMPLEMENTATION, $default);
+
+	/**
+	 * Return serialized string representation of this configuration.
+	 *
+	 * @return string Serialized representation
+	 */
+	public function __toString()
+	{
+		return $this->serialize();
 	}
-	
-	public function setBasePath($path) {
-		return $this->set(static::BASEPATH, $path);
-	}
-	
-	public function getBasePath($default = null) {
-		return $this->get(static::BASEPATH, $default);
-	}
-	
-	public function setDefaultMode($mode) {
-		return $this->set(static::DEFAULTMODE, $path);
-	}
-	
-	public function getDefaultMode($default = null) {
-		return $this->get(static::DEFAULTMODE, $default);
-	}
-	
-	public function setUsername($user) {
-		return $this->set(static::USERNAME, $user);
-	}
-	
-	public function getUsername($default = null) {
-		return $this->get(static::USERNAME, $default);
-	}
-	
-	public function setPassword($pass) {
-		return $this->set(static::PASSWORD, $pass);
-	}
-	
-	public function getPassword($default = null) {
-		return $this->get(static::PASSWORD, $default);
-	}
-	
 }

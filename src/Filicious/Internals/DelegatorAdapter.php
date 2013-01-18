@@ -11,7 +11,7 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Filicious\Local;
+namespace Filicious\Internals;
 
 use Filicious\File;
 use Filicious\Filesystem;
@@ -64,8 +64,16 @@ class DelegatorAdapter
 	 *
 	 * @return \Filicious\Internals\Adapter
 	 */
-	protected function selectDelegate(Pathname $pathname) {
+	protected function selectDelegate(Pathname $pathname = null) {
 		return $this->delegate;
+	}
+
+	/**
+	 * @see Filicious\Internals\Adapter::getConfig()
+	 */
+	public function getConfig()
+	{
+		return $this->selectDelegate()->getConfig();
 	}
 
 	/**
@@ -507,5 +515,13 @@ class DelegatorAdapter
 	public function checkDirectory(Pathname $pathname)
 	{
 		return $this->selectDelegate($pathname)->checkDirectory($pathname);
+	}
+
+	/**
+	 * Notify about config changes.
+	 */
+	public function notifyConfigChange()
+	{
+		return $this->selectDelegate()->notifyConfigChange();
 	}
 }

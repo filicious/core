@@ -13,21 +13,13 @@
 
 namespace Filicious\Exception;
 
-
 /**
- * Filesystem exception
+ *
  *
  * @package filicious-core
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
-class AdapterException
-	extends FilesystemException
+class ConfigurationException extends FilesystemException
 {
-	function __construct($message = '', $code = 0, \Exception $previous = null)
-	{
-		if ($code === 0) {
-			$code = static::OPERATION_EXCEPTION;
-		}
-		parent::__construct($message, $code, $previous);
-	}
+
 }

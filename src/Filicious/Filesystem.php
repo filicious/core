@@ -13,6 +13,10 @@
 
 namespace Filicious;
 
+use Filicious\Internals\Adapter;
+use Filicious\Internals\BoundFilesystemConfig;
+use Filicious\Internals\RootAdapter;
+use Filicious\Internals\Pathname;
 
 /**
  * Virtual filesystem structure.
@@ -24,16 +28,34 @@ namespace Filicious;
 class Filesystem
 {
 	/**
-	 * @var FilesystemConfig
+	 * @var BoundFilesystemConfig
 	 */
 	protected $config;
 	
 	protected $adapter;
 
-	public function __construct(FilesystemConfig $config)
+	/**
+	 * @param FilesystemConfig|Adapter $root
+	 */
+	public function __construct($root)
 	{
-		$this->config		= $config->bind($this);
-		$this->adapter		= $this->config->getRootAdapter();
+		$this->adapter = new RootAdapter($this);
+		$this->config = new BoundFilesystemConfig($this->adapter);
+		$this->config->open();
+
+		if ($root instanceof FilesystemConfig) {
+			$this->config->merge($root);
+		}
+		else if ($root instanceof Adapter) {
+			$this->adapter->setDelegate($root);
+
+			$this->config->linkConfig('/', $root->getConfig());
+		}
+		else {
+			throw new \InvalidArgumentException(); // TODO
+		}
+
+		$this->config->commit();
 	}
 
 	public function getConfig()
@@ -62,7 +84,7 @@ class Filesystem
 	{
 		$pathname = implode('/', static::getPathnameParts($path));
 		strlen($pathname) && $pathname = '/' . $pathname;
-		return new File($this, $pathname, $this->adapter);
+		return new File($this, new Pathname($this->adapter, $pathname));
 	}
 	
 	public static function getPathnameParts($path)

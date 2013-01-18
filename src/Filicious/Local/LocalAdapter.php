@@ -17,9 +17,12 @@ use Filicious\File;
 use Filicious\FilesystemConfig;
 use Filicious\Internals\Adapter;
 use Filicious\Internals\AbstractAdapter;
+use Filicious\Internals\BoundFilesystemConfig;
 use Filicious\Internals\Pathname;
+use Filicious\Internals\Util;
 use Filicious\Exception\FilesystemException;
 use Filicious\Exception\AdapterException;
+use Filicious\Exception\ConfigurationException;
 use Filicious\Exception\DirectoryOverwriteDirectoryException;
 use Filicious\Exception\DirectoryOverwriteFileException;
 use Filicious\Exception\FileOverwriteDirectoryException;
@@ -35,8 +38,7 @@ Use Filicious\Stream\BuildInStream;
 class LocalAdapter
 	extends AbstractAdapter
 {
-
-	protected $basepath;
+	protected $basepath = null;
 
 	/**
 	 * @param string|FilesystemConfig $basepath
@@ -44,22 +46,28 @@ class LocalAdapter
 	public function __construct($basepath)
 	{
 		if ($basepath instanceof FilesystemConfig) {
-			$this->config = $basepath;
-			$basepath = $basepath->get(FilesystemConfig::BASEPATH);
-		}
-		else {
-			$this->config = new FilesystemConfig();
+			$this->config = new BoundFilesystemConfig($this, $basepath);
 			$this->config
+				->open()
 				->set(FilesystemConfig::IMPLEMENTATION, __CLASS__)
-				->set(FilesystemConfig::BASEPATH, $basepath);
+				->commit();
 		}
-
-		$this->basepath = $basepath;
-
-		if (!is_dir($this->basepath)) {
-			// TODO
-			throw new \InvalidArgumentException();
+		else if (is_string($basepath)) {
+			$this->config = new BoundFilesystemConfig($this);
+			$this->config
+				->open()
+				->set(FilesystemConfig::IMPLEMENTATION, __CLASS__)
+				->set(FilesystemConfig::BASEPATH, $basepath)
+				->commit();
 		}
+	}
+
+	public function getBasepath()
+	{
+		if ($this->basepath === null) {
+			throw new ConfigurationException('basepath is not configured for local adapter.'); // TODO
+		}
+		return $this->basepath;
 	}
 
 	/**
@@ -67,9 +75,11 @@ class LocalAdapter
 	 */
 	public function isFile(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		if (!$this->exists($pathname)) {
+			return false;
+		}
 
-		return is_file($this->basepath . $pathname->local());
+		return is_file($this->getBasepath() . $pathname->local());
 	}
 
 	/**
@@ -81,7 +91,7 @@ class LocalAdapter
 			return false;
 		}
 
-		return is_dir($this->basepath . $pathname->local());
+		return is_dir($this->getBasepath() . $pathname->local());
 	}
 
 	/**
@@ -93,7 +103,7 @@ class LocalAdapter
 			return false;
 		}
 
-		return is_link($this->basepath . $pathname->local());
+		return is_link($this->getBasepath() . $pathname->local());
 	}
 
 	/**
@@ -105,10 +115,10 @@ class LocalAdapter
 
 		$self = $this;
 		return new \DateTime(
-			$this->execute(
+			'@' . $this->execute(
 				function() use ($pathname, $self) {
 					return fileatime(
-						$this->basepath . $pathname->local()
+						$this->getBasepath() . $pathname->local()
 					);
 				},
 				0,
@@ -149,10 +159,10 @@ class LocalAdapter
 
 		$self = $this;
 		return new \DateTime(
-			$this->execute(
+			'@' . $this->execute(
 				function() use ($pathname, $self) {
 					return filectime(
-						$this->basepath . $pathname->local()
+						$this->getBasepath() . $pathname->local()
 					);
 				},
 				0,
@@ -171,10 +181,10 @@ class LocalAdapter
 
 		$self = $this;
 		return new \DateTime(
-			$this->execute(
+			'@' . $this->execute(
 				function() use ($pathname, $self) {
 					return filemtime(
-						$this->basepath . $pathname->local()
+						$this->getBasepath() . $pathname->local()
 					);
 				},
 				0,
@@ -195,7 +205,7 @@ class LocalAdapter
 		$this->execute(
 			function() use ($pathname, $time, $self) {
 				return touch(
-					$this->basepath . $pathname->local(),
+					$this->getBasepath() . $pathname->local(),
 					$time->getTimestamp(),
 					$this->getAccessTime($pathname)
 				);
@@ -219,7 +229,7 @@ class LocalAdapter
 		$this->execute(
 			function() use ($pathname, $time, $atime, $self) {
 				return touch(
-					$this->basepath . $pathname->local(),
+					$this->getBasepath() . $pathname->local(),
 					$time->getTimestamp(),
 					$atime->getTimestamp()
 				);
@@ -266,7 +276,7 @@ class LocalAdapter
 			return $this->execute(
 				function() use ($pathname, $self) {
 					return filesize(
-						$this->basepath . $pathname->local()
+						$this->getBasepath() . $pathname->local()
 					);
 				},
 				0,
@@ -287,7 +297,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $self) {
 				return fileowner(
-					$this->basepath . $pathname->local()
+					$this->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -307,7 +317,7 @@ class LocalAdapter
 		$this->execute(
 			function() use ($pathname, $user, $self) {
 				return chown(
-					$this->basepath . $pathname->local(),
+					$this->getBasepath() . $pathname->local(),
 					$user
 				);
 			},
@@ -328,7 +338,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $self) {
 				return filegroup(
-					$this->basepath . $pathname->local()
+					$this->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -348,7 +358,7 @@ class LocalAdapter
 		$this->execute(
 			function() use ($pathname, $group, $self) {
 				return chgrp(
-					$this->basepath . $pathname->local(),
+					$this->getBasepath() . $pathname->local(),
 					$group
 				);
 			},
@@ -369,7 +379,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $self) {
 				return fileperms(
-					$this->basepath . $pathname->local()
+					$this->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -389,7 +399,7 @@ class LocalAdapter
 		$this->execute(
 			function() use ($pathname, $mode, $self) {
 				return chmod(
-					$this->basepath . $pathname->local(),
+					$this->getBasepath() . $pathname->local(),
 					$mode
 				);
 			},
@@ -410,7 +420,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $self) {
 				return is_readable(
-					$this->basepath . $pathname->local()
+					$this->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -430,7 +440,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $self) {
 				return is_writable(
-					$this->basepath . $pathname->local()
+					$this->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -446,17 +456,18 @@ class LocalAdapter
 	{
 		$this->requireExists($pathname);
 
-		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $self) {
-				return is_executable(
-					$this->basepath . $pathname->local()
-				);
-			},
-			0,
-			'Could not get executable state of %s.',
-			$pathname
-		);
+		try {
+			$executable = is_executable($this->getBasepath() . $pathname->local());
+		}
+		catch (\ErrorException $e) {
+			throw new AdapterException(
+				sprintf('Could not get executable state of %s', $pathname),
+				$e->getCode(),
+				$e
+			);
+		}
+
+		return $executable;
 	}
 
 	/**
@@ -465,7 +476,7 @@ class LocalAdapter
 	public function exists(Pathname $pathname)
 	{
 		try {
-			$exists = file_exists($this->basepath . $pathname->local());
+			$exists = file_exists($this->getBasepath() . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new AdapterException(
@@ -506,7 +517,7 @@ class LocalAdapter
 			$this->execute(
 				function() use ($pathname, $self) {
 					return rmdir(
-						$this->basepath . $pathname->local()
+						$this->getBasepath() . $pathname->local()
 					);
 				},
 				0,
@@ -529,7 +540,7 @@ class LocalAdapter
 			return $this->execute(
 				function() use ($pathname, $self) {
 					return unlink(
-						$this->basepath . $pathname->local()
+						$this->getBasepath() . $pathname->local()
 					);
 				},
 				0,
@@ -683,7 +694,7 @@ class LocalAdapter
 						function() use ($srcPathname, $dstPathname, $self) {
 							return copy(
 								$srcPathname->localAdapter()->basepath . $srcPathname->local(),
-								$this->basepath . $dstPathname->local()
+								$this->getBasepath() . $dstPathname->local()
 							);
 						},
 						0,
@@ -850,7 +861,7 @@ class LocalAdapter
 						function() use ($srcPathname, $dstPathname, $self) {
 							return rename(
 								$srcPathname->localAdapter()->basepath . $srcPathname->local(),
-								$this->basepath . $dstPathname->local()
+								$this->getBasepath() . $dstPathname->local()
 							);
 						},
 						0,
@@ -892,7 +903,7 @@ class LocalAdapter
 						function() use ($srcPathname, $dstPathname, $self) {
 							return rename(
 								$srcPathname->localAdapter()->basepath . $srcPathname->local(),
-								$this->basepath . $dstPathname->local()
+								$this->getBasepath() . $dstPathname->local()
 							);
 						},
 						0,
@@ -953,7 +964,7 @@ class LocalAdapter
 				// create with parents
 				if ($parents) {
 					// TODO: apply umask.
-					return mkdir($this->basepath . $pathname->local(), 0777, true);
+					return mkdir($this->getBasepath() . $pathname->local(), 0777, true);
 				}
 				else {
 					$parentAdapter = $parentPathname = null;
@@ -961,7 +972,7 @@ class LocalAdapter
 
 					$parentAdapter->requireExists($parentPathname);
 
-					return mkdir($this->basepath . $pathname->local());
+					return mkdir($this->getBasepath() . $pathname->local());
 				}
 			},
 			0,
@@ -1007,7 +1018,7 @@ class LocalAdapter
 		$this->execute(
 			function() use ($pathname, $self) {
 				return touch(
-					$this->basepath . $pathname->local()
+					$this->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -1027,7 +1038,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $self) {
 				return file_get_contents(
-					$this->basepath . $pathname->local()
+					$this->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -1053,7 +1064,7 @@ class LocalAdapter
 		$this->execute(
 			function() use ($pathname, $content, $self) {
 				return file_put_contents(
-					$this->basepath . $pathname->local(),
+					$this->getBasepath() . $pathname->local(),
 					$content
 				);
 			},
@@ -1080,7 +1091,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $content, $self) {
 				$result = false;
-				if (false !== ($f = fopen($this->basepath . $pathname->local(), 'ab'))) {
+				if (false !== ($f = fopen($this->getBasepath() . $pathname->local(), 'ab'))) {
 					$result = fwrite($f, $content);
 					fclose($f);
 				}
@@ -1103,7 +1114,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $size, $self) {
 				$result = false;
-				if (false !== ($f = fopen($this->basepath . $pathname->local(), 'ab'))) {
+				if (false !== ($f = fopen($this->getBasepath() . $pathname->local(), 'ab'))) {
 					$result = ftruncate($f, $size);
 					fclose($f);
 				}
@@ -1123,7 +1134,7 @@ class LocalAdapter
 	{
 		$this->checkFile($pathname);
 
-		return new BuildInStream('file://' . $this->basepath . $pathname->local(), $mode);
+		return new BuildInStream('file://' . $this->getBasepath() . $pathname->local(), $mode);
 	}
 
 	/**
@@ -1146,7 +1157,7 @@ class LocalAdapter
 			function() use ($pathname, $self) {
 				return finfo_file(
 					FS::getFileInfo(),
-					$this->basepath . $pathname->local(),
+					$this->getBasepath() . $pathname->local(),
 					FILEINFO_NONE
 				);
 			},
@@ -1168,7 +1179,7 @@ class LocalAdapter
 			function() use ($pathname, $self) {
 				return finfo_file(
 					FS::getFileInfo(),
-					$this->basepath . $pathname->local(),
+					$this->getBasepath() . $pathname->local(),
 					FILEINFO_MIME_TYPE
 				);
 			},
@@ -1190,7 +1201,7 @@ class LocalAdapter
 			function() use ($pathname, $self) {
 				return finfo_file(
 					FS::getFileInfo(),
-					$this->basepath . $pathname->local(),
+					$this->getBasepath() . $pathname->local(),
 					FILEINFO_MIME_ENCODING
 				);
 			},
@@ -1211,7 +1222,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $binary, $self) {
 				return md5_file(
-					$this->basepath . $pathname->local(),
+					$this->getBasepath() . $pathname->local(),
 					$binary
 				);
 			},
@@ -1232,7 +1243,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $binary, $self) {
 				return sha1_file(
-					$this->basepath . $pathname->local(),
+					$this->getBasepath() . $pathname->local(),
 					$binary
 				);
 			},
@@ -1252,9 +1263,10 @@ class LocalAdapter
 		$self = $this;
 		$files = $this->execute(
 			function() use ($pathname, $self) {
-				return scandir(
-					$this->basepath . $pathname->local()
+				$temp = scandir(
+					$this->getBasepath() . $pathname->local()
 				);
+				return $temp;
 			},
 			0,
 			'Could not list contents of %s.',
@@ -1287,7 +1299,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $self) {
 				return disk_free_space(
-					$this->basepath . $pathname->local()
+					$this->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -1312,7 +1324,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $self) {
 				return disk_total_space(
-					$this->basepath . $pathname->local()
+					$this->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -1333,7 +1345,7 @@ class LocalAdapter
 
 		if ($error !== null || $result === false) {
 			throw new AdapterException(
-				sprintf(
+				vsprintf(
 					$errorMessage,
 					array_slice(
 						func_get_args(),
@@ -1345,6 +1357,37 @@ class LocalAdapter
 			);
 		}
 
-		return $error;
+		return $result;
+	}
+
+	/**
+	 * Notify about config changes.
+	 */
+	public function notifyConfigChange()
+	{
+		$basepath = $this->config->get(FilesystemConfig::BASEPATH);
+
+		if ($basepath) {
+			$basepath = Util::normalizePath($basepath);
+
+			if (!is_dir($basepath) && $this->config->get(FilesystemConfig::CREATE_BASEPATH)) {
+					$this->execute(
+						function() use ($basepath) {
+							// second is_dir is required, because mkdir may return true even if only one,
+							// but not all directories of the path are created!
+							return mkdir($basepath, 0777, true) && is_dir($basepath);
+						},
+						0, // TODO,
+						'Could not create basepath %s',
+						$basepath
+					);
+			}
+
+			$this->basepath = $basepath;
+			return;
+		}
+
+		// TODO Logging missing basepath?
+		$this->basepath = null;
 	}
 }

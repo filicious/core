@@ -14,6 +14,7 @@
 namespace Filicious\Internals;
 
 use Filicious\Filesystem;
+use Filicious\FilesystemConfig;
 use Filicious\Internals\Pathname;
 use Filicious\Exception\FileNotFoundException;
 use Filicious\Exception\NotAFileException;
@@ -30,6 +31,10 @@ use Filicious\Exception\NotADirectoryException;
 abstract class AbstractAdapter
 	implements Adapter
 {
+	/**
+	 * @var FilesystemConfig
+	 */
+	protected $config;
 
 	protected $fs;
 
@@ -37,11 +42,21 @@ abstract class AbstractAdapter
 
 	protected $parent;
 
-	protected function __construct(Filesystem $fs, Adapter $root, Adapter $parent)
+	/**
+	 * @see Filicious\Internals\Adapter::getConfig()
+	 */
+	public function getConfig()
 	{
-		$this->fs     = $fs;
-		$this->root   = $root;
-		$this->parent = $parent;
+		return $this->config;
+	}
+
+	/**
+	 * @see Filicious\Internals\Adapter::setFilesystem()
+	 */
+	public function setFilesystem(Filesystem $fs)
+	{
+		$this->fs = $fs;
+		return $this;
 	}
 
 	/**
@@ -53,11 +68,29 @@ abstract class AbstractAdapter
 	}
 
 	/**
+	 * @see Filicious\Internals\Adapter::setRootAdapter()
+	 */
+	public function setRootAdapter(Adapter $root)
+	{
+		$this->root = $root;
+		return $this;
+	}
+
+	/**
 	 * @see Filicious\Internals\Adapter::getRootAdapter()
 	 */
 	public function getRootAdapter()
 	{
 		return $this->root;
+	}
+
+	/**
+	 * @see Filicious\Internals\Adapter::setParentAdapter()
+	 */
+	public function setParentAdapter(Adapter $parent)
+	{
+		$this->parent = $parent;
+		return $this;
 	}
 
 	/**
@@ -74,7 +107,7 @@ abstract class AbstractAdapter
 	public function resolveLocal(Pathname $pathname, &$localAdapter, &$local)
 	{
 		$localAdapter = $this;
-		$local = $pathname;
+		$local = $pathname->full();
 	}
 
 	/**
@@ -142,5 +175,4 @@ abstract class AbstractAdapter
 			throw new NotADirectoryException($pathname);
 		}
 	}
-
 }

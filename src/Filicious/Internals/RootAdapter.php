@@ -11,21 +11,12 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Filicious\Local;
+namespace Filicious\Internals;
 
 use Filicious\File;
 use Filicious\Filesystem;
 use Filicious\FilesystemConfig;
 use Filicious\Internals\Adapter;
-use Filicious\Internals\AbstractAdapter;
-use Filicious\Internals\Pathname;
-use Filicious\Exception\FilesystemException;
-use Filicious\Exception\FilesystemOperationException;
-use Filicious\Exception\DirectoryOverwriteDirectoryException;
-use Filicious\Exception\DirectoryOverwriteFileException;
-use Filicious\Exception\FileOverwriteDirectoryException;
-use Filicious\Exception\FileOverwriteFileException;
-Use Filicious\Stream\BuildInStream;
 
 /**
  * Local filesystem adapter.
@@ -42,7 +33,6 @@ class RootAdapter
 	public function __construct(Filesystem $fs)
 	{
 		$this->fs = $fs;
-		$this->root = $this;
 	}
 
 	/**
@@ -60,5 +50,11 @@ class RootAdapter
 	public function getDelegate()
 	{
 		return $this->delegate;
+	}
+
+	public function notifyConfigChange()
+	{
+
+		return parent::notifyConfigChange();
 	}
 }

@@ -26,7 +26,7 @@ final class Pathname
 	/**
 	 * The root adapter
 	 *
-	 * @var Adapter
+	 * @var RootAdapter
 	 */
 	protected $adapter;
 
@@ -54,14 +54,20 @@ final class Pathname
 	/**
 	 * @param Adapter $adapter The root adapter
 	 * @param string $full  The full abstracted pathname
-	 * @param string $local The adapter local path
 	 */
-	public function __construct(Adapter $adapter, $full)
+	public function __construct(RootAdapter $adapter, $full)
 	{
 		$this->adapter = $adapter;
-		$this->full  = $full;
+		$this->full  = Util::normalizePath('/' . $full);
 		$this->localAdapter = null;
 		$this->local = null;
+	}
+
+	/**
+	 * @return RootAdapter
+	 */
+	public function rootAdapter() {
+		return $this->adapter;
 	}
 
 	/**
@@ -132,5 +138,10 @@ final class Pathname
 			$this->adapter,
 			$this->full() . '/' . $basename
 		);
+	}
+
+	function __toString()
+	{
+		return $this->full();
 	}
 }

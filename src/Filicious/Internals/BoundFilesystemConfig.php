@@ -47,7 +47,14 @@ final class BoundFilesystemConfig
 	/**
 	 * @var boolean
 	 */
-	protected $opened;
+	protected $opened = true;
+
+	/**
+	 * Previous data, before opening.
+	 *
+	 * @var array
+	 */
+	protected $previous = null;
 
 	/**
 	 * @param Adapter $adapter The root adapter
@@ -57,6 +64,7 @@ final class BoundFilesystemConfig
 	{
 		$this->adapter = $adapter;
 		parent::merge($data);
+		$this->opened = false;
 	}
 
 	/**
@@ -132,6 +140,7 @@ final class BoundFilesystemConfig
 			throw new ConfigurationException('Already opened configuration!');
 		}
 
+		$this->previous = $this->data;
 		$this->opened = true;
 		return $this;
 	}
@@ -142,6 +151,13 @@ final class BoundFilesystemConfig
 			throw new ConfigurationException('Cannot commit closed configuration!');
 		}
 		$this->adapter->notifyConfigChange();
+		$this->previous = null;
+		$this->opened = false;
+	}
+
+	public function revert()
+	{
+		$this->data = $this->previous;
 		$this->opened = false;
 	}
 

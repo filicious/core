@@ -195,7 +195,7 @@ class FilesystemConfig
 	 */
 	public function has($param, $path = 'global')
 	{
-		return isset($this->data[$path][$param]);
+		return array_key_exists($path, $this->data) && array_key_exists($param, $this->data[$path]);
 	}
 
 	/**

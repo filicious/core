@@ -57,6 +57,11 @@ class RootAdapter
 		return $this->delegate;
 	}
 
+	public function getConfig()
+	{
+		return $this->fs->getConfig();
+	}
+
 	public function getStreamURL(Pathname $pathname)
 	{
 		return $this->streamScheme . '://' . $this->streamHost . $pathname->full();

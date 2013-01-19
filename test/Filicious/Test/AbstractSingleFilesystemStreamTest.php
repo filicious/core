@@ -410,17 +410,24 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 			);
 
 			// test truncate
-			$this->assertEquals(
-				2 * $length + 5,
-				$this->adapter->getFileSize($pathname)
-			);
-			ftruncate($resource, $length);
-			fflush($resource);
-			fclose($resource);
-			$this->assertEquals(
-				$length,
-				$this->adapter->getFileSize($pathname)
-			);
+			if (version_compare(phpversion(), '5.4', '<')) {
+				$this->markTestSkipped(
+					'ftruncate on custom wrappers not supported in PHP 5.3, see https://bugs.php.net/bug.php?id=53888'
+				);
+			}
+			else {
+				$this->assertEquals(
+					2 * $length + 5,
+					$this->adapter->getFileSize($pathname)
+				);
+				ftruncate($resource, $length);
+				fflush($resource);
+				fclose($resource);
+				$this->assertEquals(
+					$length,
+					$this->adapter->getFileSize($pathname)
+				);
+			}
 		}
 	}
 

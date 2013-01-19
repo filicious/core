@@ -262,7 +262,7 @@ class DelegatorAdapter
 	 */
 	public function setMode(Pathname $pathname, $mode)
 	{
-		$this->selectDelegate($pathname)->setModifyTime($pathname, $mode);
+		$this->selectDelegate($pathname)->setMode($pathname, $mode);
 	}
 
 	/**

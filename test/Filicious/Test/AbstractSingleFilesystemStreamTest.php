@@ -443,7 +443,7 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 
 		// test create directory
 		$this->assertTrue(
-			mkdir($rootURL . '/' . $directory1)
+			mkdir($rootURL . $directory1)
 		);
 		$this->assertTrue(
 			$this->adapter->isDirectory($directory1)
@@ -455,8 +455,8 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 		// test rename directory
 		$this->assertTrue(
 			rename(
-				$rootURL . '/' . $directory1,
-				$rootURL . '/' . $directory2
+				$rootURL . $directory1,
+				$rootURL . $directory2
 			)
 		);
 		$this->assertFalse(
@@ -468,7 +468,7 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 
 		// test touch file
 		$this->assertTrue(
-			touch($rootURL . '/' . $file1)
+			touch($rootURL . $file1)
 		);
 		$this->assertTrue(
 			$this->adapter->exists($file1)
@@ -480,8 +480,8 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 		// test rename file
 		$this->assertTrue(
 			rename(
-				$rootURL . '/' . $file1,
-				$rootURL . '/' . $file2
+				$rootURL . $file1,
+				$rootURL . $file2
 			)
 		);
 		$this->assertFalse(
@@ -504,7 +504,7 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 
 		// test rmdir directory
 		$this->assertTrue(
-			rmdir($rootURL . '/' . $directory2)
+			rmdir($rootURL . $directory2)
 		);
 		$this->assertFalse(
 			$this->adapter->exists($directory2)

@@ -223,7 +223,7 @@ class FilesystemConfig
 					}
 				}
 				else {
-					$this->set($param, $value, $path ?: 'global');
+					$this->set($param, $values, $path ?: 'global');
 				}
 			}
 		}

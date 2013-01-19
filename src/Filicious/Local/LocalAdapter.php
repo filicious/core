@@ -692,7 +692,7 @@ class LocalAdapter
 					return $this->execute(
 						function() use ($srcPathname, $dstPathname, $self) {
 							return copy(
-								$srcPathname->localAdapter()->basepath . $srcPathname->local(),
+								$self->getBasepath() . $srcPathname->local(),
 								$self->getBasepath() . $dstPathname->local()
 							);
 						},
@@ -860,7 +860,7 @@ class LocalAdapter
 					return $this->execute(
 						function() use ($srcPathname, $dstPathname, $self) {
 							return rename(
-								$srcPathname->localAdapter()->basepath . $srcPathname->local(),
+								$self->getBasepath() . $srcPathname->local(),
 								$self->getBasepath() . $dstPathname->local()
 							);
 						},
@@ -902,7 +902,7 @@ class LocalAdapter
 					return $this->execute(
 						function() use ($srcPathname, $dstPathname, $self) {
 							return rename(
-								$srcPathname->localAdapter()->basepath . $srcPathname->local(),
+								$self->getBasepath() . $srcPathname->local(),
 								$self->getBasepath() . $dstPathname->local()
 							);
 						},

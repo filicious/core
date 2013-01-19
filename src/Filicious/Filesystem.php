@@ -37,11 +37,15 @@ class Filesystem
 	/**
 	 * @param FilesystemConfig|Adapter $root
 	 */
-	public function __construct($root)
+	public function __construct($root, $config = null)
 	{
 		$this->adapter = new RootAdapter($this);
 		$this->config = new BoundFilesystemConfig($this->adapter);
 		$this->config->open();
+
+		if (is_traversable($config)) {
+			$this->config->merge($config);
+		}
 
 		if ($root instanceof FilesystemConfig) {
 			$this->config->merge($root);

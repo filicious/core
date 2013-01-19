@@ -71,22 +71,29 @@ class RootAdapter
 			$this->streamScheme = null;
 		}
 
-		// register stream wrapper
-		$host = $this->fs->getConfig()->get(FilesystemConfig::STREAM_HOST);
-		$scheme = $this->fs->getConfig()->get(FilesystemConfig::STREAM_SCHEME);
-
-		if ($host) {
-			StreamManager::registerFilesystem($this->fs, $host, $scheme);
+		// streaming disabled
+		if (!$this->getConfig()->get(FilesystemConfig::STREAM_SUPPORTED, true)) {
+			$this->streamHost = null;
+			$this->streamScheme = null;
 		}
 		else {
-			list($host, $scheme) = StreamManager::autoregisterFilesystem($this->fs);
+			// register stream wrapper
+			$host = $this->fs->getConfig()->get(FilesystemConfig::STREAM_HOST);
+			$scheme = $this->fs->getConfig()->get(FilesystemConfig::STREAM_SCHEME);
+
+			if ($host) {
+				StreamManager::registerFilesystem($this->fs, $host, $scheme);
+			}
+			else {
+				list($host, $scheme) = StreamManager::autoregisterFilesystem($this->fs);
+			}
+
+			$this->streamHost = $host;
+			$this->streamScheme = $scheme;
+
+			$this->fs->getConfig()->set(FilesystemConfig::STREAM_HOST, $host);
+			$this->fs->getConfig()->set(FilesystemConfig::STREAM_SCHEME, $scheme);
 		}
-
-		$this->streamHost = $host;
-		$this->streamScheme = $scheme;
-
-		$this->fs->getConfig()->set(FilesystemConfig::STREAM_HOST, $host);
-		$this->fs->getConfig()->set(FilesystemConfig::STREAM_SCHEME, $scheme);
 
 		// release unused stream wrappers
 		StreamManager::free();

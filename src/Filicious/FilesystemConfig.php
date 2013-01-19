@@ -61,6 +61,11 @@ class FilesystemConfig
 	/**
 	 * @var string
 	 */
+	const STREAM_SUPPORTED = 'STREAM_SUPPORTED';
+
+	/**
+	 * @var string
+	 */
 	const STREAM_SCHEME = 'STREAM_SCHEME';
 
 	/**

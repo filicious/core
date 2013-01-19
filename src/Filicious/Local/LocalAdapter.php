@@ -119,7 +119,7 @@ class LocalAdapter
 			'@' . $this->execute(
 				function() use ($pathname, $self) {
 					return fileatime(
-						$this->getBasepath() . $pathname->local()
+						$self->getBasepath() . $pathname->local()
 					);
 				},
 				0,
@@ -163,7 +163,7 @@ class LocalAdapter
 			'@' . $this->execute(
 				function() use ($pathname, $self) {
 					return filectime(
-						$this->getBasepath() . $pathname->local()
+						$self->getBasepath() . $pathname->local()
 					);
 				},
 				0,
@@ -185,7 +185,7 @@ class LocalAdapter
 			'@' . $this->execute(
 				function() use ($pathname, $self) {
 					return filemtime(
-						$this->getBasepath() . $pathname->local()
+						$self->getBasepath() . $pathname->local()
 					);
 				},
 				0,
@@ -206,7 +206,7 @@ class LocalAdapter
 		$this->execute(
 			function() use ($pathname, $time, $self) {
 				return touch(
-					$this->getBasepath() . $pathname->local(),
+					$self->getBasepath() . $pathname->local(),
 					$time->getTimestamp(),
 					$this->getAccessTime($pathname)
 				);
@@ -230,7 +230,7 @@ class LocalAdapter
 		$this->execute(
 			function() use ($pathname, $time, $atime, $self) {
 				return touch(
-					$this->getBasepath() . $pathname->local(),
+					$self->getBasepath() . $pathname->local(),
 					$time->getTimestamp(),
 					$atime->getTimestamp()
 				);
@@ -277,7 +277,7 @@ class LocalAdapter
 			return $this->execute(
 				function() use ($pathname, $self) {
 					return filesize(
-						$this->getBasepath() . $pathname->local()
+						$self->getBasepath() . $pathname->local()
 					);
 				},
 				0,
@@ -298,7 +298,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $self) {
 				return fileowner(
-					$this->getBasepath() . $pathname->local()
+					$self->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -318,7 +318,7 @@ class LocalAdapter
 		$this->execute(
 			function() use ($pathname, $user, $self) {
 				return chown(
-					$this->getBasepath() . $pathname->local(),
+					$self->getBasepath() . $pathname->local(),
 					$user
 				);
 			},
@@ -339,7 +339,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $self) {
 				return filegroup(
-					$this->getBasepath() . $pathname->local()
+					$self->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -359,7 +359,7 @@ class LocalAdapter
 		$this->execute(
 			function() use ($pathname, $group, $self) {
 				return chgrp(
-					$this->getBasepath() . $pathname->local(),
+					$self->getBasepath() . $pathname->local(),
 					$group
 				);
 			},
@@ -380,7 +380,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $self) {
 				return fileperms(
-					$this->getBasepath() . $pathname->local()
+					$self->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -400,7 +400,7 @@ class LocalAdapter
 		$this->execute(
 			function() use ($pathname, $mode, $self) {
 				return chmod(
-					$this->getBasepath() . $pathname->local(),
+					$self->getBasepath() . $pathname->local(),
 					$mode
 				);
 			},
@@ -421,7 +421,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $self) {
 				return is_readable(
-					$this->getBasepath() . $pathname->local()
+					$self->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -441,7 +441,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $self) {
 				return is_writable(
-					$this->getBasepath() . $pathname->local()
+					$self->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -518,7 +518,7 @@ class LocalAdapter
 			$this->execute(
 				function() use ($pathname, $self) {
 					return rmdir(
-						$this->getBasepath() . $pathname->local()
+						$self->getBasepath() . $pathname->local()
 					);
 				},
 				0,
@@ -541,7 +541,7 @@ class LocalAdapter
 			return $this->execute(
 				function() use ($pathname, $self) {
 					return unlink(
-						$this->getBasepath() . $pathname->local()
+						$self->getBasepath() . $pathname->local()
 					);
 				},
 				0,
@@ -693,7 +693,7 @@ class LocalAdapter
 						function() use ($srcPathname, $dstPathname, $self) {
 							return copy(
 								$srcPathname->localAdapter()->basepath . $srcPathname->local(),
-								$this->getBasepath() . $dstPathname->local()
+								$self->getBasepath() . $dstPathname->local()
 							);
 						},
 						0,
@@ -861,7 +861,7 @@ class LocalAdapter
 						function() use ($srcPathname, $dstPathname, $self) {
 							return rename(
 								$srcPathname->localAdapter()->basepath . $srcPathname->local(),
-								$this->getBasepath() . $dstPathname->local()
+								$self->getBasepath() . $dstPathname->local()
 							);
 						},
 						0,
@@ -903,7 +903,7 @@ class LocalAdapter
 						function() use ($srcPathname, $dstPathname, $self) {
 							return rename(
 								$srcPathname->localAdapter()->basepath . $srcPathname->local(),
-								$this->getBasepath() . $dstPathname->local()
+								$self->getBasepath() . $dstPathname->local()
 							);
 						},
 						0,
@@ -965,14 +965,14 @@ class LocalAdapter
 				// create with parents
 				if ($parents) {
 					// TODO: apply umask.
-					return mkdir($this->getBasepath() . $pathname->local(), 0777, true);
+					return mkdir($self->getBasepath() . $pathname->local(), 0777, true);
 				}
 				else {
 					$parentPathname = $pathname->parent();
 
 					$parentPathname->localAdapter()->requireExists($parentPathname);
 
-					return mkdir($this->getBasepath() . $pathname->local());
+					return mkdir($self->getBasepath() . $pathname->local());
 				}
 			},
 			0,
@@ -1017,7 +1017,7 @@ class LocalAdapter
 		$this->execute(
 			function() use ($pathname, $self) {
 				return touch(
-					$this->getBasepath() . $pathname->local()
+					$self->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -1037,7 +1037,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $self) {
 				return file_get_contents(
-					$this->getBasepath() . $pathname->local()
+					$self->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -1063,7 +1063,7 @@ class LocalAdapter
 		$this->execute(
 			function() use ($pathname, $content, $self) {
 				return file_put_contents(
-					$this->getBasepath() . $pathname->local(),
+					$self->getBasepath() . $pathname->local(),
 					$content
 				);
 			},
@@ -1090,7 +1090,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $content, $self) {
 				$result = false;
-				if (false !== ($f = fopen($this->getBasepath() . $pathname->local(), 'ab'))) {
+				if (false !== ($f = fopen($self->getBasepath() . $pathname->local(), 'ab'))) {
 					$result = fwrite($f, $content);
 					fclose($f);
 				}
@@ -1113,7 +1113,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $size, $self) {
 				$result = false;
-				if (false !== ($f = fopen($this->getBasepath() . $pathname->local(), 'ab'))) {
+				if (false !== ($f = fopen($self->getBasepath() . $pathname->local(), 'ab'))) {
 					$result = ftruncate($f, $size);
 					fclose($f);
 				}
@@ -1156,7 +1156,7 @@ class LocalAdapter
 			function() use ($pathname, $self) {
 				return finfo_file(
 					FS::getFileInfo(),
-					$this->getBasepath() . $pathname->local(),
+					$self->getBasepath() . $pathname->local(),
 					FILEINFO_NONE
 				);
 			},
@@ -1178,7 +1178,7 @@ class LocalAdapter
 			function() use ($pathname, $self) {
 				return finfo_file(
 					FS::getFileInfo(),
-					$this->getBasepath() . $pathname->local(),
+					$self->getBasepath() . $pathname->local(),
 					FILEINFO_MIME_TYPE
 				);
 			},
@@ -1200,7 +1200,7 @@ class LocalAdapter
 			function() use ($pathname, $self) {
 				return finfo_file(
 					FS::getFileInfo(),
-					$this->getBasepath() . $pathname->local(),
+					$self->getBasepath() . $pathname->local(),
 					FILEINFO_MIME_ENCODING
 				);
 			},
@@ -1221,7 +1221,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $binary, $self) {
 				return md5_file(
-					$this->getBasepath() . $pathname->local(),
+					$self->getBasepath() . $pathname->local(),
 					$binary
 				);
 			},
@@ -1242,7 +1242,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $binary, $self) {
 				return sha1_file(
-					$this->getBasepath() . $pathname->local(),
+					$self->getBasepath() . $pathname->local(),
 					$binary
 				);
 			},
@@ -1263,7 +1263,7 @@ class LocalAdapter
 		$files = $this->execute(
 			function() use ($pathname, $self) {
 				$temp = scandir(
-					$this->getBasepath() . $pathname->local()
+					$self->getBasepath() . $pathname->local()
 				);
 				return $temp;
 			},
@@ -1297,7 +1297,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $self) {
 				return disk_free_space(
-					$this->getBasepath() . $pathname->local()
+					$self->getBasepath() . $pathname->local()
 				);
 			},
 			0,
@@ -1321,7 +1321,7 @@ class LocalAdapter
 		return $this->execute(
 			function() use ($pathname, $self) {
 				return disk_total_space(
-					$this->getBasepath() . $pathname->local()
+					$self->getBasepath() . $pathname->local()
 				);
 			},
 			0,

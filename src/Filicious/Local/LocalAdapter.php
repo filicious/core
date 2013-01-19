@@ -44,23 +44,23 @@ class LocalAdapter
 	/**
 	 * @param string|FilesystemConfig $basepath
 	 */
-	public function __construct($basepath)
+	public function __construct($basepath = null)
 	{
+		$this->config = new BoundFilesystemConfig($this);
+		$this->config
+			->open()
+			->set(FilesystemConfig::BASEPATH, null);
+
 		if ($basepath instanceof FilesystemConfig) {
-			$this->config = new BoundFilesystemConfig($this, $basepath);
-			$this->config
-				->open()
-				->set(FilesystemConfig::IMPLEMENTATION, __CLASS__)
-				->commit();
+			$this->config->merge($basepath);
 		}
 		else if (is_string($basepath)) {
-			$this->config = new BoundFilesystemConfig($this);
-			$this->config
-				->open()
-				->set(FilesystemConfig::IMPLEMENTATION, __CLASS__)
-				->set(FilesystemConfig::BASEPATH, $basepath)
-				->commit();
+			$this->config->set(FilesystemConfig::BASEPATH, $basepath);
 		}
+
+		$this->config
+			->set(FilesystemConfig::IMPLEMENTATION, __CLASS__)
+			->commit();
 	}
 
 	public function getBasepath()

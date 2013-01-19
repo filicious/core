@@ -128,7 +128,7 @@ class FilesystemConfig
 	/**
 	 * Open this config for changes.
 	 *
-	 * @return bool
+	 * @return FilesystemConfig
 	 */
 	public function open() {
 		return $this;

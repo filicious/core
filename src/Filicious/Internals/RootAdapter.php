@@ -17,6 +17,7 @@ use Filicious\File;
 use Filicious\Filesystem;
 use Filicious\FilesystemConfig;
 use Filicious\Internals\Adapter;
+use Filicious\Stream\StreamManager;
 
 /**
  * Local filesystem adapter.
@@ -27,6 +28,10 @@ use Filicious\Internals\Adapter;
 class RootAdapter
 	extends DelegatorAdapter
 {
+	protected $streamScheme;
+
+	protected $streamHost;
+
 	/**
 	 * @param string|FilesystemConfig $basepath
 	 */
@@ -52,9 +57,40 @@ class RootAdapter
 		return $this->delegate;
 	}
 
+	public function getStreamURL(Pathname $pathname)
+	{
+		return $this->streamScheme . '://' . $this->streamHost . $pathname->full();
+	}
+
 	public function notifyConfigChange()
 	{
+		// unregister previous registered stream wrapper
+		if ($this->streamHost && $this->streamScheme) {
+			StreamManager::unregisterFilesystem($this->streamHost, $this->streamScheme);
+			$this->streamHost = null;
+			$this->streamScheme = null;
+		}
 
-		return parent::notifyConfigChange();
+		// register stream wrapper
+		$host = $this->fs->getConfig()->get(FilesystemConfig::STREAM_HOST);
+		$scheme = $this->fs->getConfig()->get(FilesystemConfig::STREAM_SCHEME);
+
+		if ($host) {
+			StreamManager::registerFilesystem($this->fs, $host, $scheme);
+		}
+		else {
+			list($host, $scheme) = StreamManager::autoregisterFilesystem($this->fs);
+		}
+
+		$this->streamHost = $host;
+		$this->streamScheme = $scheme;
+
+		$this->fs->getConfig()->set(FilesystemConfig::STREAM_HOST, $host);
+		$this->fs->getConfig()->set(FilesystemConfig::STREAM_SCHEME, $scheme);
+
+		// release unused stream wrappers
+		StreamManager::free();
+
+		parent::notifyConfigChange();
 	}
 }

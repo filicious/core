@@ -59,6 +59,16 @@ class FilesystemConfig
 	const PASSWORD = 'PASSWORD';
 
 	/**
+	 * @var string
+	 */
+	const STREAM_SCHEME = 'STREAM_SCHEME';
+
+	/**
+	 * @var string
+	 */
+	const STREAM_HOST = 'STREAM_HOST';
+
+	/**
 	 * Create a new filesystem config.
 	 *
 	 * @param \Traversable|array $base

@@ -16,6 +16,7 @@ namespace Filicious\Stream;
 use Filicious\File;
 use Filicious\Stream;
 use Filicious\Stream\StreamMode;
+use Filicious\Internals\Pathname;
 
 /**
  * A file stream object.
@@ -23,7 +24,7 @@ use Filicious\Stream\StreamMode;
  * @package filicious-core
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
-class BuildInStream implements Stream
+class BuildInStream extends ObservableStream
 {
 	/**
 	 * @var string
@@ -31,22 +32,59 @@ class BuildInStream implements Stream
 	protected $url;
 
 	/**
-	 * @var File
+	 * @var Pathname
 	 */
-	protected $file;
+	protected $pathname;
+
+	/**
+	 * @var StreamMode
+	 */
+	protected $mode = null;
 
 	/**
 	 * @var resource
 	 */
-	protected $resource;
+	protected $resource = null;
+
+	/**
+	 * @var null|int
+	 */
+	protected $streamIndex = null;
+
+	/**
+	 * @var resource
+	 */
+	protected $selfResource = null;
 
 	/**
 	 * @param string $url
 	 */
-	public function __construct($url, File $file)
+	public function __construct($url, Pathname $file)
 	{
 		$this->url  = $url;
-		$this->file = $file;
+		$this->pathname = $file;
+	}
+
+	/**
+	 * @return \Filicious\File
+	 */
+	public function getFile()
+	{
+		return $this->pathname->rootAdapter()->getFilesystem()->getFile($this->pathname);
+	}
+
+	/**
+	 * @return resource
+	 */
+	public function getResource()
+	{
+		if (!$this->mode) {
+			throw new \Filicious\Exception\StreamException('Stream not open!'); // TODO
+		}
+		if ($this->streamIndex === null) {
+			$this->streamIndex = StreamManager::registerStream($this);
+		}
+		return $this->selfResource = fopen('filicious-streams://' . $this->streamIndex, $this->mode->getMode());
 	}
 
 	/**
@@ -54,7 +92,10 @@ class BuildInStream implements Stream
 	 */
 	public function open(StreamMode $mode)
 	{
+		$this->mode = $mode;
 		$this->resource = fopen($this->url, $mode->getMode());
+
+		$this->notifyOpened($mode);
 
 		return (bool) $this->resource;
 	}
@@ -64,6 +105,9 @@ class BuildInStream implements Stream
 	 */
 	public function close()
 	{
+		if ($this->selfResource !== null) {
+			fclose($this->selfResource);
+		}
 		return fclose($this->resource);
 	}
 
@@ -86,7 +130,8 @@ class BuildInStream implements Stream
 	 */
 	public function stat()
 	{
-		return $this->file->getStat();
+		throw new \Exception('Unimplemented');
+		// TODO return $this->pathname->localAdapter()->getStat();
 	}
 
 	/**

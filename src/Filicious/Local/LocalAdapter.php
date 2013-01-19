@@ -28,6 +28,7 @@ use Filicious\Exception\DirectoryOverwriteFileException;
 use Filicious\Exception\FileOverwriteDirectoryException;
 use Filicious\Exception\FileOverwriteFileException;
 Use Filicious\Stream\BuildInStream;
+use Filicious\Stream\StreamMode;
 
 /**
  * Local filesystem adapter.
@@ -573,18 +574,16 @@ class LocalAdapter
 		Pathname $srcPathname,
 		$flags
 	) {
-		/** @var Adapter $dstParentAdapter */
-		$dstParentAdapter = $dstParentPathname = null;
-		$this->getParent($dstPathname, $dstParentAdapter, $dstParentPathname);
+		$dstParentPathname = $dstPathname->parent();
 
 		if ($flags & File::OPERATION_PARENTS) {
-			$dstParentAdapter->createDirectory(
+			$dstParentPathname->localAdapter()->createDirectory(
 				$dstParentPathname,
 				true
 			);
 		}
 		else {
-			$dstParentAdapter->checkDirectory($dstParentPathname);
+			$dstParentPathname->localAdapter()->checkDirectory($dstParentPathname);
 		}
 
 		$dstExists      = $this->exists($dstPathname);
@@ -709,16 +708,19 @@ class LocalAdapter
 					$self = $this;
 					return $this->execute(
 						function() use ($srcPathname, $dstPathname, $self) {
-							$srcStream = $srcPathname->localAdapter()->open($srcPathname, 'rb');
-							$dstStream = $this->open($dstPathname, 'wb');
+							$srcStream = $srcPathname->localAdapter()->getStream($srcPathname);
+							$srcStream->open(new StreamMode('rb'));
+
+							$dstStream = $this->getStream($dstPathname);
+							$dstStream->open(new StreamMode('wb'));
 
 							$result = stream_copy_to_stream(
-								$srcStream,
-								$dstStream
+								$srcStream->getRessource(),
+								$dstStream->getRessource()
 							);
 
-							fclose($srcStream);
-							fclose($dstStream);
+							$srcStream->close();
+							$dstStream->close();
 
 							return $result;
 						},
@@ -767,18 +769,16 @@ class LocalAdapter
 		Pathname $srcPathname,
 		$flags
 	) {
-		/** @var Adapter $dstParentAdapter */
-		$dstParentAdapter = $dstParentPathname = null;
-		$this->getParent($dstPathname, $dstParentAdapter, $dstParentPathname);
+		$dstParentPathname = $dstPathname->parent();
 
 		if ($flags & File::OPERATION_PARENTS) {
-			$dstParentAdapter->createDirectory(
+			$dstParentPathname->localAdapter()->createDirectory(
 				$dstParentPathname,
 				true
 			);
 		}
 		else {
-			$dstParentAdapter->checkDirectory($dstParentPathname);
+			$dstParentPathname->localAdapter()->checkDirectory($dstParentPathname);
 		}
 
 		$dstExists      = $this->exists($dstPathname);
@@ -844,7 +844,7 @@ class LocalAdapter
 		// move directory -> directory
 		if ($srcIsDirectory && $dstIsDirectory) {
 			// replace target directory
-			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+			if (!$dstExists || !($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
 				if ($dstExists) {
 					$this->delete($dstPathname, true, false);
 				}
@@ -895,7 +895,7 @@ class LocalAdapter
 
 		// move file -> file
 		else if (!$srcIsDirectory && !$dstIsDirectory) {
-			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+			if (!$dstExists || !($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
 				// native move
 				if ($srcPathname->localAdapter() instanceof LocalAdapter) {
 					$self = $this;
@@ -918,18 +918,19 @@ class LocalAdapter
 					$self = $this;
 					return $this->execute(
 						function() use ($srcPathname, $dstPathname, $self) {
-							$srcStream = $srcPathname->localAdapter()->open($srcPathname, 'rb');
-							$dstStream = $this->open($dstPathname, 'wb');
+							$srcStream = $srcPathname->localAdapter()->getStream($srcPathname);
+							$srcStream->open(new StreamMode('rb'));
+
+							$dstStream = $this->getStream($dstPathname);
+							$dstStream->open(new StreamMode('wb'));
 
 							$result = stream_copy_to_stream(
-								$srcStream,
-								$dstStream
+								$srcStream->getRessource(),
+								$dstStream->getRessource()
 							);
 
-							$srcPathname->localAdapter()->delete($srcPathname, false, false);
-
-							fclose($srcStream);
-							fclose($dstStream);
+							$srcStream->close();
+							$dstStream->close();
 
 							return $result;
 						},
@@ -967,10 +968,9 @@ class LocalAdapter
 					return mkdir($this->getBasepath() . $pathname->local(), 0777, true);
 				}
 				else {
-					$parentAdapter = $parentPathname = null;
-					$this->getParent($pathname, $parentAdapter, $parentPathname);
+					$parentPathname = $pathname->parent();
 
-					$parentAdapter->requireExists($parentPathname);
+					$parentPathname->localAdapter()->requireExists($parentPathname);
 
 					return mkdir($this->getBasepath() . $pathname->local());
 				}
@@ -986,12 +986,11 @@ class LocalAdapter
 	 */
 	public function createFile(Pathname $pathname, $parents)
 	{
-		$parentAdapter = $parentPathname = null;
-		$this->getParent($pathname, $parentAdapter, $parentPathname);
+		$parentPathname = $pathname->parent();
 
 		if ($parents) {
 			try {
-				$parentAdapter->createDirectory($parentPathname, true);
+				$parentPathname->localAdapter()->createDirectory($parentPathname, true);
 			}
 			catch (FilesystemException $e) {
 				throw new FilesystemException(
@@ -1003,7 +1002,7 @@ class LocalAdapter
 		}
 		else {
 			try {
-				$parentAdapter->checkDirectory($parentPathname);
+				$parentPathname->localAdapter()->checkDirectory($parentPathname);
 			}
 			catch (FilesystemException $e) {
 				throw new FilesystemException(
@@ -1128,13 +1127,13 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::open()
+	 * @see Filicious\Internals\Adapter::getStream()
 	 */
-	public function open(Pathname $pathname, $mode)
+	public function getStream(Pathname $pathname)
 	{
 		$this->checkFile($pathname);
 
-		return new BuildInStream('file://' . $this->getBasepath() . $pathname->local(), $mode);
+		return new BuildInStream('file://' . $this->getBasepath() . $pathname->local(), $pathname);
 	}
 
 	/**
@@ -1289,10 +1288,9 @@ class LocalAdapter
 	public function getFreeSpace(Pathname $pathname)
 	{
 		if (!$this->isDirectory($pathname)) {
-			$parentAdapter = $parentPathname = null;
-			$this->getParent($pathname, $parentAdapter, $parentPathname);
+			$parentPathname = $pathname->parent();
 
-			return $parentAdapter->getFreeSpace($parentPathname);
+			return $parentPathname->localAdapter()->getFreeSpace($parentPathname);
 		}
 
 		$self = $this;
@@ -1314,10 +1312,9 @@ class LocalAdapter
 	public function getTotalSpace(Pathname $pathname)
 	{
 		if (!$this->isDirectory($pathname)) {
-			$parentAdapter = $parentPathname = null;
-			$this->getParent($pathname, $parentAdapter, $parentPathname);
+			$parentPathname = $pathname->parent();
 
-			return $parentAdapter->getTotalSpace($parentPathname);
+			return $parentPathname->localAdapter()->getTotalSpace($parentPathname);
 		}
 
 		$self = $this;

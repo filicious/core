@@ -142,6 +142,7 @@ final class BoundFilesystemConfig
 			throw new ConfigurationException('Cannot commit closed configuration!');
 		}
 		$this->adapter->notifyConfigChange();
+		$this->opened = false;
 	}
 
 	public function set($param, $value = null, $path = 'global')

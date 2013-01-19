@@ -13,6 +13,7 @@
 
 namespace Filicious\Stream;
 
+use Filicious\Stream;
 
 /**
  * An observable file stream object.

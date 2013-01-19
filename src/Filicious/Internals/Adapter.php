@@ -538,13 +538,11 @@ interface Adapter
 	 * Gets an stream for the file. May return <em>null</em> if streaming is not supported.
 	 *
 	 * @param string $pathname The full abstracted pathname
-	 * @param string $local The adapter local path
-	 * @param string $mode
-	 * @return resource TODO return stream object?
+	 * @return Stream
 	 * @throws AdapterException If the access to the underlying filesystem fails
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
-	public function open(Pathname $pathname, $mode);
+	public function getStream(Pathname $pathname);
 	
 	/**
 	 * Get the real url, e.g. file:/real/path/to/file to the pathname.

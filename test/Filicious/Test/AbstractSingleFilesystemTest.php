@@ -562,6 +562,8 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			}
 			catch (FileNotFoundException $e) {
 				// hide
+			} catch (\Exception $e) {
+				$this->fail('File::getAccessTime() on a non existing file does NOT throw a FileNotFoundException, got a ' . get_class($e));
 			}
 		}
 	}
@@ -612,6 +614,8 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			}
 			catch (FileNotFoundException $e) {
 				// hide
+			} catch (\Exception $e) {
+				$this->fail('File::getCreationTime() on a non existing file does NOT throw a FileNotFoundException, got a ' . get_class($e));
 			}
 		}
 	}
@@ -662,6 +666,8 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			}
 			catch (FileNotFoundException $e) {
 				// hide
+			} catch (\Exception $e) {
+				$this->fail('File::getLastModified() on a non existing file does NOT throw a FileNotFoundException, got a ' . get_class($e));
 			}
 		}
 	}
@@ -717,6 +723,8 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			}
 			catch (FileNotFoundException $e) {
 				// hide
+			} catch (\Exception $e) {
+				$this->fail('File::getSize() on a non existing file does NOT throw a FileNotFoundException, got a ' . get_class($e));
 			}
 		}
 	}
@@ -761,6 +769,8 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			}
 			catch (FileNotFoundException $e) {
 				// hide
+			} catch (\Exception $e) {
+				$this->fail('File::getOwner() on a non existing file does NOT throw a FileNotFoundException, got a ' . get_class($e));
 			}
 		}
 	}
@@ -805,6 +815,8 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			}
 			catch (FileNotFoundException $e) {
 				// hide
+			} catch (\Exception $e) {
+				$this->fail('File::getGroup() on a non existing file does NOT throw a FileNotFoundException, got a ' . get_class($e));
 			}
 		}
 	}
@@ -846,6 +858,8 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			}
 			catch (FileNotFoundException $e) {
 				// hide
+			} catch (\Exception $e) {
+				$this->fail('File::getMode() on a non existing file does NOT throw a FileNotFoundException, got a ' . get_class($e));
 			}
 		}
 	}
@@ -883,10 +897,12 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			$file = $this->fs->getFile($pathname);
 			try {
 				$this->assertFalse($file->isReadable());
-				$this->fail('File::isExecutable() on a non existing file does NOT throw a FileNotFoundException!');
+				$this->fail('File::isReadable() on a non existing file does NOT throw a FileNotFoundException!');
 			}
 			catch (FileNotFoundException $e) {
 				// hide
+			} catch (\Exception $e) {
+				$this->fail('File::isReadable() on a non existing file does NOT throw a FileNotFoundException, got a ' . get_class($e));
 			}
 		}
 	}
@@ -928,6 +944,8 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			}
 			catch (FileNotFoundException $e) {
 				// hide
+			} catch (\Exception $e) {
+				$this->fail('File::isWriteable() on a non existing file does NOT throw a FileNotFoundException, got a ' . get_class($e));
 			}
 		}
 	}
@@ -976,6 +994,8 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			}
 			catch (FileNotFoundException $e) {
 				// hide
+			} catch (\Exception $e) {
+				$this->fail('File::isExecutable() on a non existing file does NOT throw a FileNotFoundException, got a ' . get_class($e));
 			}
 		}
 	}

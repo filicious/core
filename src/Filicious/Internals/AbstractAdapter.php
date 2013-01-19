@@ -143,7 +143,7 @@ abstract class AbstractAdapter
 	 */
 	public function getIterator(Pathname $pathname, array $filter)
 	{
-		return new PathnameIterator($this->fs, $this->root, $this, $pathname, $filter);
+		return new PathnameIterator($pathname, 0, $filter);
 	}
 
 	/**
@@ -161,6 +161,7 @@ abstract class AbstractAdapter
 	 */
 	public function checkFile(Pathname $pathname)
 	{
+		$this->requireExists($pathname);
 		if (!$this->isFile($pathname)) {
 			throw new NotAFileException($pathname);
 		}
@@ -171,6 +172,7 @@ abstract class AbstractAdapter
 	 */
 	public function checkDirectory(Pathname $pathname)
 	{
+		$this->requireExists($pathname);
 		if (!$this->isDirectory($pathname)) {
 			throw new NotADirectoryException($pathname);
 		}

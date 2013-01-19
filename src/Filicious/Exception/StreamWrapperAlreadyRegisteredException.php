@@ -11,7 +11,7 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Filicious\Stream;
+namespace Filicious\Exception;
 
 /**
  * Stream wrapper already registered exception.
@@ -19,7 +19,7 @@ namespace Filicious\Stream;
  * @package filicious-core
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
-class StreamWrapperNotRegisteredException extends StreamException
+class StreamWrapperAlreadyRegisteredException extends StreamException
 {
 	protected $scheme;
 
@@ -31,7 +31,7 @@ class StreamWrapperNotRegisteredException extends StreamException
 		$this->host   = $host;
 		parent::__construct(
 			sprintf(
-				'There is no stream wrapper registered for scheme %s://%s!',
+				'There is already a stream wrapper registered for scheme %s://%s!',
 				$scheme,
 				$host
 			)

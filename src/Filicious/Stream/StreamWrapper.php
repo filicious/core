@@ -75,6 +75,16 @@ class StreamWrapper
 			parse_url($url)
 		);
 
+		if ($this->url->scheme == 'filicious-streams') {
+			$stream = StreamManager::searchStream($this->url->host);
+			if (!$stream) {
+				throw new \InvalidArgumentException(); // TODO
+			}
+			$this->file = $stream->getFile();
+			$this->stream = $stream;
+			return $this->file;
+		}
+
 		$host = $this->url->host;
 		if (strlen($this->url->port)) {
 			$host .= ':' . $this->url->port;
@@ -103,7 +113,9 @@ class StreamWrapper
 		$this->openFile($path);
 
 		// TODO handle $mode
-		return $this->file->createDirectory($options & STREAM_MKDIR_RECURSIVE);
+		$this->file->createDirectory($options & STREAM_MKDIR_RECURSIVE);
+
+		return true;
 	}
 
 	/**
@@ -119,7 +131,9 @@ class StreamWrapper
 		$source = $this->openFile($path_from);
 		$target = $this->openFile($path_to);
 
-		return $source->moveTo($target);
+		$source->moveTo($target);
+
+		return true;
 	}
 
 	/**
@@ -134,7 +148,9 @@ class StreamWrapper
 	{
 		$this->openFile($path);
 
-		return $this->file->delete($options & STREAM_MKDIR_RECURSIVE);
+		$this->file->delete($options & STREAM_MKDIR_RECURSIVE);
+
+		return true;
 	}
 
 	/**
@@ -148,7 +164,9 @@ class StreamWrapper
 	{
 		$this->openFile($path);
 
-		return $this->file->delete();
+		$this->file->delete();
+
+		return true;
 	}
 
 	/**
@@ -189,9 +207,10 @@ class StreamWrapper
 	 */
 	public function dir_readdir()
 	{
+		$this->directoryIterator->next();
+
 		if ($this->directoryIterator->valid()) {
 			$value = $this->directoryIterator->current()->getBasename();
-			$this->directoryIterator->next();
 			return $value;
 		}
 
@@ -223,19 +242,23 @@ class StreamWrapper
 	{
 		$this->openFile($path);
 
-		$this->stream = $this->file->getStream();
+		if (!$this->stream) {
+			$this->stream = $this->file->getStream();
 
-		$mode = new StreamMode($mode);
+			$mode = new StreamMode($mode);
 
-		if ($this->stream->open($mode)) {
-			if ($options & STREAM_USE_PATH) {
-				$opened_path = $path;
+			if ($this->stream->open($mode)) {
+				if ($options & STREAM_USE_PATH) {
+					$opened_path = $path;
+				}
+
+				return true;
 			}
 
-			return true;
+			return false;
 		}
 
-		return false;
+		return true;
 	}
 
 	/**
@@ -318,21 +341,25 @@ class StreamWrapper
 
 		switch ($option) {
 			case STREAM_META_TOUCH:
-				return $this->file->touch(
+				$this->file->touch(
 					isset($var[0]) ? $var[0] : null,
 					isset($var[1]) ? $var[1] : null
 				);
+				return true;
 
 			case STREAM_META_OWNER_NAME:
 			case STREAM_META_OWNER:
-				return $this->file->setOwner($var);
+				$this->file->setOwner($var);
+				return true;
 
 			case STREAM_META_GROUP_NAME:
 			case STREAM_META_GROUP:
-				return $this->file->setGroup($var);
+				$this->file->setGroup($var);
+				return true;
 
 			case STREAM_META_ACCESS:
-				return $this->file->setMode($var);
+				$this->file->setMode($var);
+				return true;
 		}
 
 		return false;

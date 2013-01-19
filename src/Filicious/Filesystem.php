@@ -82,6 +82,11 @@ class Filesystem
 	 */
 	public function getFile($path = null)
 	{
+		// cheap recreate of File object
+		if ($path instanceof Pathname && $path->rootAdapter() == $this->adapter) {
+			return new File($this, $path);
+		}
+
 		$pathname = implode('/', static::getPathnameParts($path));
 		strlen($pathname) && $pathname = '/' . $pathname;
 		return new File($this, new Pathname($this->adapter, $pathname));

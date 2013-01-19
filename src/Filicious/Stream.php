@@ -24,6 +24,11 @@ use Filicious\Stream\StreamMode;
 interface Stream
 {
 	/**
+	 * @return resource
+	 */
+	public function getResource();
+
+	/**
 	 * Opens file or URL
 	 *
 	 * @return bool

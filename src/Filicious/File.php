@@ -236,7 +236,8 @@ class File
 	 */
 	public function setAccessTime($atime = 'now')
 	{
-		return $this->pathname->rootAdapter()->setAccessTime($this->pathname, static::getDateTime($atime));
+		$this->pathname->rootAdapter()->setAccessTime($this->pathname, static::getDateTime($atime));
+		return $this;
 	}
 
 	/**
@@ -272,7 +273,8 @@ class File
 	 */
 	public function setModifyTime($mtime = 'now')
 	{
-		return $this->pathname->rootAdapter()->setModifyTime($this->pathname, static::getDateTime($mtime));
+		$this->pathname->rootAdapter()->setModifyTime($this->pathname, static::getDateTime($mtime));
+		return $this;
 	}
 
 	/**
@@ -295,7 +297,7 @@ class File
 	{
 		$time = static::getDateTime($time);
 		$atime = $atime === null ? $time : static::getDateTime($atime);
-		return $this->pathname->rootAdapter()->touch($this->pathname, $time, $atime, $create);
+		$this->pathname->rootAdapter()->touch($this->pathname, $time, $atime, $create);
 	}
 
 	/**
@@ -316,7 +318,8 @@ class File
 
 	public function setOwner($user)
 	{
-		return $this->pathname->rootAdapter()->setOwner($this->pathname, $user);
+		$this->pathname->rootAdapter()->setOwner($this->pathname, $user);
+		return $this;
 	}
 
 	public function getGroup()
@@ -326,7 +329,8 @@ class File
 
 	public function setGroup($group)
 	{
-		return $this->pathname->rootAdapter()->setGroup($this->pathname, $group);
+		$this->pathname->rootAdapter()->setGroup($this->pathname, $group);
+		return $this;
 	}
 
 	public function getMode()
@@ -336,7 +340,8 @@ class File
 
 	public function setMode($mode)
 	{
-		return $this->pathname->rootAdapter()->setMode($this->pathname, $mode);
+		$this->pathname->rootAdapter()->setMode($this->pathname, $mode);
+		return $this;
 	}
 
 	public function isReadable()
@@ -361,27 +366,43 @@ class File
 
 	public function delete($recursive = false, $force = false)
 	{
-		return $this->pathname->rootAdapter()->delete($this->pathname, $recursive, $force);
+		$this->pathname->rootAdapter()->delete($this->pathname, $recursive, $force);
+		return $this;
 	}
 
 	public function copyTo(File $destination, $recursive = false, $overwrite = self::OPERATION_REJECT, $parents = false)
 	{
-		return $this->pathname->rootAdapter()->copyTo($this->pathname, $destination->adapter, $destination->pathname, $destination->pathname, $parents);
+		$this->pathname->rootAdapter()->copyTo(
+			$this->pathname,
+			$destination->pathname,
+			($recursive ? File::OPERATION_RECURSIVE : 0)
+			| ($parents ? File::OPERATION_PARENTS : 0)
+			| ($overwrite ? File::OPERATION_MERGE : 0)
+		);
+		return $this;
 	}
 
 	public function moveTo(File $destination, $overwrite = self::OPERATION_REJECT, $parents = false)
 	{
-		return $this->pathname->rootAdapter()->moveTo($this->pathname, $destination, $parents);
+		$this->pathname->rootAdapter()->moveTo(
+			$this->pathname,
+			$destination->pathname,
+			($parents ? File::OPERATION_PARENTS : 0)
+			| ($overwrite ? File::OPERATION_MERGE : 0)
+		);
+		return $this;
 	}
 
 	public function createDirectory($parents = false)
 	{
-		return $this->pathname->rootAdapter()->createDirectory($this->pathname, $parents);
+		$this->pathname->rootAdapter()->createDirectory($this->pathname, $parents);
+		return $this;
 	}
 
 	public function createFile($parents = false)
 	{
-		return $this->pathname->rootAdapter()->createFile($this->pathname, $parents);
+		$this->pathname->rootAdapter()->createFile($this->pathname, $parents);
+		return $this;
 	}
 
 	public function getContents()
@@ -391,12 +412,14 @@ class File
 
 	public function setContents($content, $create = true)
 	{
-		return $this->pathname->rootAdapter()->setContents($this->pathname, $content, $create);
+		$this->pathname->rootAdapter()->setContents($this->pathname, $content, $create);
+		return $this;
 	}
 
 	public function appendContents($content, $create = true)
 	{
-		return $this->pathname->rootAdapter()->appendContents($this->pathname, $content, $create);
+		$this->pathname->rootAdapter()->appendContents($this->pathname, $content, $create);
+		return $this;
 	}
 
 	public function truncate($size = 0)
@@ -404,9 +427,14 @@ class File
 		return $this->pathname->rootAdapter()->truncate($this->pathname, $size);
 	}
 
-	public function open($mode = 'rb')
+	public function getStream()
 	{
-		return $this->pathname->rootAdapter()->open($this->pathname, $mode);
+		return $this->pathname->rootAdapter()->getStream($this->pathname);
+	}
+
+	public function getStreamURL()
+	{
+		return $this->pathname->rootAdapter()->getStreamURL($this->pathname);
 	}
 
 	public function getMIMEName()
@@ -457,5 +485,10 @@ class File
 	public function getTotalSpace()
 	{
 		return $this->pathname->rootAdapter()->getTotalSpace($this->pathname);
+	}
+
+	public function internalPathname()
+	{
+		return $this->pathname;
 	}
 }

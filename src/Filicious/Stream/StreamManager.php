@@ -14,6 +14,8 @@
 namespace Filicious\Stream;
 
 use Filicious\Filesystem;
+use Filicious\Exception\StreamWrapperAlreadyRegisteredException;
+use Filicious\Exception\StreamWrapperNotRegisteredException;
 
 /**
  * Stream wrapper manager and organizer.
@@ -28,7 +30,7 @@ final class StreamManager
 	 *
 	 * @var array
 	 */
-	protected static $map = array();
+	protected static $filesystems = array();
 
 	/**
 	 * Index for autoregistered filesystems.
@@ -38,17 +40,31 @@ final class StreamManager
 	protected static $autoIndex = 0;
 
 	/**
+	 * Map of registered streams.
+	 *
+	 * @var array
+	 */
+	protected static $streams = array();
+
+	/**
+	 * Index for autoregistered streams.
+	 *
+	 * @var int
+	 */
+	protected static $streamIndex = 0;
+
+	/**
 	 * Automatically register a filesystem.
 	 *
 	 * @param \Filicious\Filesystem $filesystem
 	 *
 	 * @return array($host, $scheme)
 	 */
-	public static function autoregister(Filesystem $filesystem)
+	public static function autoregisterFilesystem(Filesystem $filesystem)
 	{
 		$scheme = 'filicious';
 		$host   = 'automount:' . ++static::$autoIndex;
-		static::register($filesystem, $host, $scheme);
+		static::registerFilesystem($filesystem, $host, $scheme);
 		return array($host, $scheme);
 	}
 
@@ -61,7 +77,7 @@ final class StreamManager
 	 *
 	 * @throws StreamWrapperAlreadyRegisteredException
 	 */
-	public static function register(Filesystem $filesystem, $host, $scheme = null)
+	public static function registerFilesystem(Filesystem $filesystem, $host, $scheme = null)
 	{
 		if (!$scheme) {
 			$scheme = 'filicious';
@@ -70,8 +86,8 @@ final class StreamManager
 		$registeredWrappers = stream_get_wrappers();
 
 		// protect existing build in and third party wrappers
-		if (isset(static::$map[$scheme]) && isset(static::$map[$scheme][$host]) ||
-			!isset(static::$map[$scheme]) && in_array($scheme, $registeredWrappers)
+		if (isset(static::$filesystems[$scheme]) && isset(static::$filesystems[$scheme][$host]) ||
+			!isset(static::$filesystems[$scheme]) && in_array($scheme, $registeredWrappers)
 		) {
 			throw new StreamWrapperAlreadyRegisteredException(
 				$scheme,
@@ -80,23 +96,23 @@ final class StreamManager
 		}
 
 		// register a stream wrapper if not already done
-		if (!isset(static::$map[$scheme])) {
-			static::$map[$scheme] = array();
+		if (!isset(static::$filesystems[$scheme])) {
+			static::$filesystems[$scheme] = array();
 			stream_register_wrapper($scheme, 'Filicious\Stream\StreamWrapper', STREAM_IS_URL);
 		}
 
 		// register the filesystem in the map
-		static::$map[$scheme][$host] = $filesystem;
+		static::$filesystems[$scheme][$host] = $filesystem;
 	}
 
-	public static function unregister($host, $scheme, $silent = false)
+	public static function unregisterFilesystem($host, $scheme, $silent = false)
 	{
 		if (!$scheme) {
 			$scheme = 'filicious';
 		}
 
 		// throw exception, if no wrapper/filesystem is registered
-		if (!isset(static::$map[$scheme]) || !isset(static::$map[$scheme][$host])) {
+		if (!isset(static::$filesystems[$scheme]) || !isset(static::$filesystems[$scheme][$host])) {
 			if ($silent) {
 				return;
 			}
@@ -108,12 +124,7 @@ final class StreamManager
 		}
 
 		// remove the filesystem from the map
-		unset(static::$map[$scheme][$host]);
-
-		// if no filesystem is mapped to the scheme, remove the wrapper
-		if (empty(static::$map[$scheme])) {
-			stream_wrapper_unregister($scheme);
-		}
+		unset(static::$filesystems[$scheme][$host]);
 	}
 
 	public static function searchFilesystem($host, $scheme = null)
@@ -123,14 +134,59 @@ final class StreamManager
 		}
 
 		// throw exception, if no wrapper/filesystem is registered
-		if (!isset(static::$map[$scheme]) || !isset(static::$map[$scheme][$host])) {
+		if (!isset(static::$filesystems[$scheme]) || !isset(static::$filesystems[$scheme][$host])) {
 			throw new StreamWrapperAlreadyRegisteredException(
 				$scheme,
 				$host
 			);
 		}
 
-		return static::$map[$scheme][$host];
+		return static::$filesystems[$scheme][$host];
+	}
+
+	/**
+	 * Register a stream.
+	 *
+	 * @return int
+	 */
+	public static function registerStream(Stream $stream)
+	{
+		if (empty(static::$streams)) {
+			stream_register_wrapper('filicious-streams', 'Filicious\Stream\StreamWrapper', STREAM_IS_URL);
+		}
+		static::$streams[++static::$streamIndex] = $stream;
+		return static::$streamIndex;
+	}
+
+	/**
+	 * Unregister a stream.
+	 */
+	public static function unregisterStream(Stream $stream)
+	{
+		foreach (static::$streams as $index => $registeredStream) {
+			if ($registeredStream == $stream) {
+				unset(static::$streams[$index]);
+			}
+		}
+	}
+
+	public static function searchStream($index)
+	{
+		return static::$streams[$index];
+	}
+
+	/**
+	 * Release unused stream wrappers.
+	 */
+	public static function free()
+	{
+		foreach (static::$filesystems as $scheme => $map) {
+			// if no filesystem is mapped to the scheme, remove the wrapper
+			if (empty($map)) {
+				stream_wrapper_unregister($scheme);
+				unset(static::$filesystems[$scheme]);
+			}
+		}
 	}
 
 	private function __construct()

@@ -398,11 +398,11 @@ class DelegatorAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::open()
+	 * @see Filicious\Internals\Adapter::getStream()
 	 */
-	public function open(Pathname $pathname, $mode)
+	public function getStream(Pathname $pathname)
 	{
-		return $this->selectDelegate($pathname)->open($pathname, $mode);
+		return $this->selectDelegate($pathname)->getStream($pathname);
 	}
 
 	/**

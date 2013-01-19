@@ -29,23 +29,74 @@ use SeekableIterator;
 class PathnameIterator
 	implements Iterator, SeekableIterator
 {
+	/**
+	 * Makes FilesystemIterator::current() return the pathname.
+	 */
+	const CURRENT_AS_PATHNAME = 32;
+
+	/**
+	 * Makes FilesystemIterator::current() return the filename.
+	 */
+	const CURRENT_AS_BASENAME = 64;
+
+	/**
+	 * Makes FilesystemIterator::current() return an File instance.
+	 */
+	const CURRENT_AS_FILE = 0;
+
+	/**
+	 * Makes FilesystemIterator::current() return $this (the FilesystemIterator).
+	 */
+	const CURRENT_AS_SELF = 16;
+
+	/**
+	 * Makes FilesystemIterator::key() return the pathname.
+	 */
+	const KEY_AS_PATHNAME = 0;
+
+	/**
+	 * Makes FilesystemIterator::key() return the filename.
+	 */
+	const KEY_AS_FILENAME = 256;
+
+	/**
+	 * @var Pathname
+	 */
+	protected $pathname;
+
+	/**
+	 * @var array
+	 */
+	protected $keys;
+
+	/**
+	 * @var int
+	 */
+	protected $index;
+
+	/**
+	 * @var int
+	 */
+	protected $flags;
+
 	public function __construct(
-		Filesystem $fs,
-		Adapter $rootAdapter,
-		Adapter $adapter,
 		Pathname $pathname,
+		$flags,
 		$filter
 	) {
-		// TODO rework filtering
+		if (!$pathname->localAdapter()->isDirectory($pathname)) {
+			throw new FilesystemException('Path ' . $pathname->full() . ' is not a directory.');
+		}
 
-		list($recursive, $bitmask, $globs, $callables, $globSearchPatterns) = Util::buildFilters($pathname->local, $filter);
+		list($recursive, $bitmask, $globs, $callables, $globSearchPatterns) = Util::buildFilters($pathname, $filter);
 
 		$files = array();
 
-		$currentFiles = scandir($this->basepath . $pathname);
+		$currentFiles = $pathname->localAdapter()->ls($pathname);
 
 		foreach ($currentFiles as $path) {
-			$file = new SimpleFile($pathname . '/' . $path, $this);
+			$childPathname = $pathname->child($path);
+			$file = $childPathname->rootAdapter()->getFilesystem()->getFile($childPathname);
 
 			$files[] = $file;
 
@@ -67,7 +118,11 @@ class PathnameIterator
 
 		$files = Util::applyFilters($files, $bitmask, $globs, $callables);
 
-		return $files;
+		$this->pathname  = $pathname;
+		$this->files = $files;
+		$this->keys  = array_keys($this->files);
+		$this->index = -1;
+		$this->flags = $flags;
 	}
 
 	/**

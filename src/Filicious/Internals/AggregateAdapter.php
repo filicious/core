@@ -217,8 +217,8 @@ abstract class AggregateAdapter
 		return $this->getAdapter($pathname, $local)->truncate($local, $size);
 	}
 	
-	public function open($pathname, $mode) {
-		return $this->getAdapter($pathname, $local)->open($local, $mode);
+	public function getStream($pathname) {
+		return $this->getAdapter($pathname, $local)->getStream($local);
 	}
 	
 	public function getMIMEName($pathname) {

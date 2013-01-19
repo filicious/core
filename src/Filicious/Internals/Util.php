@@ -13,8 +13,10 @@
 
 namespace Filicious\Internals;
 
+use Filicious\File;
+use Filicious\Stream\StreamMode;
+use Filicious\Internals\Pathname;
 use \Exception;
-
 
 /**
  * Utility class
@@ -194,10 +196,15 @@ class Util
 
 	static public function streamCopy(File $source, File $target)
 	{
-		$sourceStream = $source->open('rb');
-		$targetStream = $target->open('wb');
+		$sourceStream = $source->getStream();
+		$sourceStream->open(new StreamMode('rb'));
+		$targetStream = $target->getStream();
+		$targetStream->open(new StreamMode('wb'));
 
-		return (bool) stream_copy_to_stream($sourceStream, $targetStream);
+		return (bool) stream_copy_to_stream(
+			$sourceStream->getRessource(),
+			$targetStream->getRessource()
+		);
 	}
 
 	static public function string2bitMode($string)
@@ -280,7 +287,7 @@ class Util
 	}
 
 	static public function buildFilters(
-		File $parent,
+		Pathname $parent,
 		array $args,
 		&$recursive = false,
 		&$bitmask = null,
@@ -358,11 +365,11 @@ class Util
 					for ($i = 0; $i < $max; $i++) {
 						$path .= ($path ? '/' : '') . $parts[$i];
 
-						$globSearchPatterns[] = static::normalizePath('*/' . $parent->getPathname() . '/' . $path);
+						$globSearchPatterns[] = static::normalizePath('*/' . $parent->full() . '/' . $path);
 					}
 				}
 
-				$globs[$index] = static::normalizePath('*/' . $parent->getPathname() . '/' . $glob);
+				$globs[$index] = static::normalizePath('*/' . $parent->full() . '/' . $glob);
 			}
 		}
 

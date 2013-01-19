@@ -502,8 +502,8 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 				chmod($rootURL . $file1, 0700)
 			);
 			$this->assertEquals(
-				0700,
-				$this->adapter->getMode($file1)
+				'0700',
+				substr(sprintf('%o', $this->adapter->getMode($file1)), -4)
 			);
 		}
 

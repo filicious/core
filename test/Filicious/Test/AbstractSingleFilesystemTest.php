@@ -101,7 +101,7 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 
 	protected function tearDown()
 	{
-		// $this->environment->cleanup();
+		$this->environment->cleanup();
 	}
 
 	/**

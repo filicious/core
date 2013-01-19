@@ -412,7 +412,7 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 			// test truncate
 			if (version_compare(phpversion(), '5.4', '<')) {
 				$this->markTestSkipped(
-					'ftruncate on custom wrappers not supported in PHP 5.3, see https://bugs.php.net/bug.php?id=53888'
+					'ftruncate() on custom wrappers not supported in PHP 5.3, see https://bugs.php.net/bug.php?id=53888'
 				);
 			}
 			else {
@@ -474,15 +474,44 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 		);
 
 		// test touch file
-		$this->assertTrue(
-			touch($rootURL . $file1)
-		);
-		$this->assertTrue(
-			$this->adapter->exists($file1)
-		);
-		$this->assertTrue(
-			$this->adapter->isFile($file1)
-		);
+		if (version_compare(phpversion(), '5.4', '<')) {
+			$this->markTestSkipped(
+				'touch() on custom wrappers not supported in PHP 5.3, see http://php.net/manual/en/streamwrapper.stream-metadata.php'
+			);
+		}
+		else {
+			$this->assertTrue(
+				touch($rootURL . $file1)
+			);
+			$this->assertTrue(
+				$this->adapter->exists($file1)
+			);
+			$this->assertTrue(
+				$this->adapter->isFile($file1)
+			);
+		}
+
+		// test chmod file
+		if (version_compare(phpversion(), '5.4', '<')) {
+			$this->markTestSkipped(
+				'chmod() on custom wrappers not supported in PHP 5.3, see http://php.net/manual/en/streamwrapper.stream-metadata.php'
+			);
+		}
+		else {
+			$this->assertTrue(
+				chmod($rootURL . $file1, 0700)
+			);
+			$this->assertEquals(
+				0700,
+				$this->adapter->getMode($file1)
+			);
+		}
+
+		// test chown file
+		// TODO
+
+		// test chmod file
+		// TODO
 
 		// test rename file
 		$this->assertTrue(

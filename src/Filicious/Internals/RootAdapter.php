@@ -64,7 +64,10 @@ class RootAdapter
 
 	public function getStreamURL(Pathname $pathname)
 	{
-		return $this->streamScheme . '://' . $this->streamHost . $pathname->full();
+		if ($this->streamScheme && $this->streamHost) {
+			return $this->streamScheme . '://' . $this->streamHost . $pathname->full();
+		}
+		return $pathname->full();
 	}
 
 	public function notifyConfigChange()

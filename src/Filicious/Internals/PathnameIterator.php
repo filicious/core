@@ -242,4 +242,12 @@ class PathnameIterator
 			}
 		}
 	}
+
+	/**
+	 * @return array
+	 */
+	public function toArray()
+	{
+		return $this->files;
+	}
 }

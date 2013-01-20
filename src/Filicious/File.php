@@ -123,15 +123,6 @@ class File
 		$this->pathname = $pathname;
 	}
 
-	public function __toString()
-	{
-		try {
-			return $this->pathname->rootAdapter()->getStreamURL($this->pathname);
-		} catch(\Exception $e) { // TODO catch correct exception
-			return '';
-		}
-	}
-
 	/**
 	 * Returns the full abstracted pathname of this file within the containing
 	 * filesystem.
@@ -160,6 +151,12 @@ class File
 		return basename($this->pathname, $suffix);
 	}
 
+	/**
+	 * Return the extension of the filename.
+	 * May return an empty string, if filename has no extension.
+	 *
+	 * @return string
+	 */
 	public function getExtension()
 	{
 		$basename = $this->getBasename();
@@ -167,10 +164,21 @@ class File
 		return $pos === false ? '' : substr($basename, $pos + 1);
 	}
 
+	/**
+	 * Return the dirname or parent name.
+	 *
+	 * @return string
+	 */
 	public function getDirname() {
-		return dirname($this->pathname);
+		return $this->pathname->parent()->full();
 	}
 
+	/**
+	 * Return the parent file object.
+	 * May return null if called on the root "/" node.
+	 *
+	 * @return File|null
+	 */
 	public function getParent()
 	{
 		if ($this->pathname->full() != '/') {
@@ -190,6 +198,8 @@ class File
 	}
 
 	/**
+	 * TODO PROPOSED TO BE REMOVED
+	 *
 	 * Checks if the file is a (symbolic) link.
 	 *
 	 * @return bool True if the file exists and is a link; otherwise false
@@ -209,6 +219,10 @@ class File
 		return $this->pathname->rootAdapter()->isDirectory($this->pathname);
 	}
 
+	/**
+	 * TODO PROPOSED TO BE REMOVED
+	 * @return mixed
+	 */
 	public function getLinkTarget()
 	{
 		return $this->pathname->rootAdapter()->getLinkTarget($this->pathname);
@@ -311,65 +325,139 @@ class File
 		return $this->pathname->rootAdapter()->getSize($this->pathname, $recursive);
 	}
 
+	/**
+	 * Return the owner of the file.
+	 *
+	 * @return int|string
+	 */
 	public function getOwner()
 	{
 		return $this->pathname->rootAdapter()->getOwner($this->pathname);
 	}
 
+	/**
+	 * Set the owner of the file.
+	 *
+	 * @param $user
+	 *
+	 * @return File
+	 */
 	public function setOwner($user)
 	{
 		$this->pathname->rootAdapter()->setOwner($this->pathname, $user);
 		return $this;
 	}
 
+	/**
+	 * Return the group of the file.
+	 *
+	 * @return int|string
+	 */
 	public function getGroup()
 	{
 		return $this->pathname->rootAdapter()->getGroup($this->pathname);
 	}
 
+	/**
+	 * Set the group of the file.
+	 *
+	 * @param $group
+	 *
+	 * @return File
+	 */
 	public function setGroup($group)
 	{
 		$this->pathname->rootAdapter()->setGroup($this->pathname, $group);
 		return $this;
 	}
 
+	/**
+	 * Return the permission mode of the file.
+	 *
+	 * @return int
+	 */
 	public function getMode()
 	{
 		return $this->pathname->rootAdapter()->getMode($this->pathname);
 	}
 
+	/**
+	 * Set the permission mode of the file.
+	 *
+	 * @param $mode
+	 *
+	 * @return File
+	 */
 	public function setMode($mode)
 	{
 		$this->pathname->rootAdapter()->setMode($this->pathname, $mode);
 		return $this;
 	}
 
+	/**
+	 * Check if file is readable.
+	 *
+	 * @return bool
+	 */
 	public function isReadable()
 	{
 		return $this->pathname->rootAdapter()->isReadable($this->pathname);
 	}
 
+	/**
+	 * Check if file is writable.
+	 *
+	 * @return bool
+	 */
 	public function isWritable()
 	{
 		return $this->pathname->rootAdapter()->isWritable($this->pathname);
 	}
 
+	/**
+	 * Check if file is executable.
+	 *
+	 * @return bool
+	 */
 	public function isExecutable()
 	{
 		return $this->pathname->rootAdapter()->isExecutable($this->pathname);
 	}
 
+	/**
+	 * Check if file exists.
+	 *
+	 * @return bool
+	 */
 	public function exists()
 	{
 		return $this->pathname->rootAdapter()->exists($this->pathname);
 	}
 
+	/**
+	 * Delete a file or directory.
+	 *
+	 * @param bool $recursive
+	 * @param bool $force
+	 *
+	 * @return File
+	 */
 	public function delete($recursive = false, $force = false)
 	{
 		$this->pathname->rootAdapter()->delete($this->pathname, $recursive, $force);
 		return $this;
 	}
 
+	/**
+	 * Copy this file to another destination.
+	 *
+	 * @param File $destination The target destination.
+	 * @param bool $recursive
+	 * @param int  $overwrite
+	 * @param bool $parents
+	 *
+	 * @return File
+	 */
 	public function copyTo(File $destination, $recursive = false, $overwrite = self::OPERATION_REJECT, $parents = false)
 	{
 		$this->pathname->rootAdapter()->copyTo(
@@ -382,6 +470,15 @@ class File
 		return $this;
 	}
 
+	/**
+	 * Move this file to another destination.
+	 *
+	 * @param File $destination The target destination.
+	 * @param int  $overwrite
+	 * @param bool $parents
+	 *
+	 * @return File
+	 */
 	public function moveTo(File $destination, $overwrite = self::OPERATION_REJECT, $parents = false)
 	{
 		$this->pathname->rootAdapter()->moveTo(
@@ -393,102 +490,235 @@ class File
 		return $this;
 	}
 
+	/**
+	 * Create a new directory.
+	 *
+	 * @param bool $parents
+	 *
+	 * @return File
+	 */
 	public function createDirectory($parents = false)
 	{
 		$this->pathname->rootAdapter()->createDirectory($this->pathname, $parents);
 		return $this;
 	}
 
+	/**
+	 * Create an empty file.
+	 *
+	 * @param bool $parents
+	 *
+	 * @return File
+	 */
 	public function createFile($parents = false)
 	{
 		$this->pathname->rootAdapter()->createFile($this->pathname, $parents);
 		return $this;
 	}
 
+	/**
+	 * Get contents of the file.
+	 *
+	 * @return string
+	 */
 	public function getContents()
 	{
 		return $this->pathname->rootAdapter()->getContents($this->pathname);
 	}
 
+	/**
+	 * Set contents of the file.
+	 *
+	 * @param      $content
+	 * @param bool $create
+	 *
+	 * @return File
+	 */
 	public function setContents($content, $create = true)
 	{
 		$this->pathname->rootAdapter()->setContents($this->pathname, $content, $create);
 		return $this;
 	}
 
+	/**
+	 * Append contents to the file.
+	 *
+	 * @param      $content
+	 * @param bool $create
+	 *
+	 * @return File
+	 */
 	public function appendContents($content, $create = true)
 	{
 		$this->pathname->rootAdapter()->appendContents($this->pathname, $content, $create);
 		return $this;
 	}
 
+	/**
+	 * Truncate file to a given size.
+	 *
+	 * @param int $size
+	 */
 	public function truncate($size = 0)
 	{
 		return $this->pathname->rootAdapter()->truncate($this->pathname, $size);
 	}
 
+	/**
+	 * Get a stream object to the file.
+	 *
+	 * @return Stream
+	 */
 	public function getStream()
 	{
 		return $this->pathname->rootAdapter()->getStream($this->pathname);
 	}
 
+	/**
+	 * Get a streaming url to the file.
+	 *
+	 * @return string
+	 */
 	public function getStreamURL()
 	{
 		return $this->pathname->rootAdapter()->getStreamURL($this->pathname);
 	}
 
+	/**
+	 * Get the mime name (e.g. "OpenDocument Text") of the file.
+	 *
+	 * @return string
+	 */
 	public function getMIMEName()
 	{
 		return $this->pathname->rootAdapter()->getMIMEName($this->pathname);
 	}
 
+	/**
+	 * Get the mime type (e.g. "application/vnd.oasis.opendocument.text") of the file.
+	 *
+	 * @return string
+	 */
 	public function getMIMEType()
 	{
 		return $this->pathname->rootAdapter()->getMIMEType($this->pathname);
 	}
 
+	/**
+	 * Get the mime encoding (e.g. "binary" or "us-ascii" or "utf-8") of the file.
+	 *
+	 * @return string
+	 */
 	public function getMIMEEncoding()
 	{
 		return $this->pathname->rootAdapter()->getMIMEEncoding($this->pathname);
 	}
 
+	/**
+	 * Get the md5 hash of the file.
+	 *
+	 * @param bool $raw
+	 *
+	 * @return string
+	 */
 	public function getMD5($raw = false)
 	{
 		return $this->pathname->rootAdapter()->getMD5($this->pathname, $raw);
 	}
 
+	/**
+	 * Get the sha1 hash of the file.
+	 *
+	 * @param bool $raw
+	 *
+	 * @return string
+	 */
 	public function getSHA1($raw = false)
 	{
 		return $this->pathname->rootAdapter()->getSHA1($this->pathname, $raw);
 	}
 
-	public function ls()
+	/**
+	 * List all children of this directory.
+	 *
+	 * @param Variable list of filters.
+	 * - Flags File::LIST_*
+	 * - Glob pattern
+	 * - Callables
+	 * @return array
+	 * @throws \Filicious\Exception\NotADirectoryException
+	 */
+	public function ls($filter = null, $_ = null)
 	{
-		return $this->pathname->rootAdapter()->ls($this->pathname, func_get_args());
+		return $this->pathname->rootAdapter()->getIterator($this->pathname, func_get_args())->toArray();
 	}
 
-	public function count()
+	/**
+	 * Count all children of this directory.
+	 *
+	 * @param Variable list of filters.
+	 * - Flags File::LIST_*
+	 * - Glob pattern
+	 * - Callables
+	 * @return int
+	 * @throws \Filicious\Exception\NotADirectoryException
+	 */
+	public function count($filter = null, $_ = null)
 	{
 		return $this->pathname->rootAdapter()->count($this->pathname, func_get_args());
 	}
 
-	public function getIterator()
+	/**
+	 * Get an iterator for this directory.
+	 *
+	 * @param Variable list of filters.
+	 * - Flags File::LIST_*
+	 * - Glob pattern
+	 * - Callables
+	 * @return \Iterator|\Traversable
+	 */
+	public function getIterator($filter = null, $_ = null)
 	{
 		return $this->pathname->rootAdapter()->getIterator($this->pathname, func_get_args());
 	}
 
+	/**
+	 * Get the free space.
+	 *
+	 * @return float
+	 */
 	public function getFreeSpace()
 	{
 		return $this->pathname->rootAdapter()->getFreeSpace($this->pathname);
 	}
 
+	/**
+	 * Get the total space.
+	 *
+	 * @return float
+	 */
 	public function getTotalSpace()
 	{
 		return $this->pathname->rootAdapter()->getTotalSpace($this->pathname);
 	}
 
+	/**
+	 * INTERNAL USE ONLY
+	 *
+	 * @return Internals\Pathname|string
+	 */
 	public function internalPathname()
 	{
 		return $this->pathname;
+	}
+
+	/**
+	 * Return a stream url or pathname, if streaming is not supported.
+	 *
+	 * @return string
+	 */
+	public function __toString()
+	{
+		return $this->pathname->rootAdapter()->getStreamURL($this->pathname);
 	}
 }

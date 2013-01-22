@@ -194,6 +194,22 @@ class Util
 		return '#^(' . $regex . ')#';
 	}
 
+	static public function hasBit($haystack, $bit)
+	{
+		if (\Filicious\is_traversable($haystack)) {
+			foreach ($haystack as $temp) {
+				if (static::hasBit($temp, $bit)) {
+					return true;
+				}
+			}
+		}
+		else if (is_int($haystack) && $haystack & $bit) {
+			return true;
+		}
+
+		return false;
+	}
+
 	static public function streamCopy(File $source, File $target)
 	{
 		$sourceStream = $source->getStream();
@@ -224,164 +240,6 @@ class Util
 		return null;
 	}
 
-	static public function applyFilters(array $files, $bitmask, array $globs, array $callables)
-	{
-		/** @var File $file */
-		foreach ($files as $index => $file) {
-			if (!static::applyBitmaskFilters($file, $bitmask) ||
-				!static::applyGlobFilters($file, $globs) ||
-				!static::applyCallablesFilters($file, $callables)
-			) {
-				unset($files[$index]);
-			}
-		}
-
-		return array_values($files);
-	}
-
-	static public function applyBitmaskFilters(File $file, $bitmask)
-	{
-		$basename = $file->getBasename();
-
-		if (!($bitmask & File::LIST_ALL) &&
-			($basename == '.' || $basename == '..') ||
-			!($bitmask & File::LIST_HIDDEN) &&
-				$basename[0] == '.' ||
-			!($bitmask & File::LIST_VISIBLE) &&
-				$basename[0] != '.' ||
-			!($bitmask & File::LIST_FILES) &&
-				$file->isFile() ||
-			!($bitmask & File::LIST_DIRECTORIES) &&
-				$file->isDirectory() ||
-			!($bitmask & File::LIST_LINKS) &&
-				$file->isLink() ||
-			!($bitmask & File::LIST_OPAQUE) &&
-				!$file->isLink()
-		) {
-			return false;
-		}
-
-		return true;
-	}
-
-	static public function applyGlobFilters(File $file, array $globs)
-	{
-		foreach ($globs as $glob) {
-			if (!fnmatch($glob, $file->getPathname())) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	static public function applyCallablesFilters(File $file, array $callables)
-	{
-		foreach ($callables as $callable) {
-			if (!$callable($file->getPathname(), $file)) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	static public function buildFilters(
-		Pathname $parent,
-		array $args,
-		&$recursive = false,
-		&$bitmask = null,
-		array &$globs = array(),
-		array &$callables = array(),
-		array &$globSearchPatterns = array(),
-		$deep = false
-	) {
-		// search for File::LIST_RECURSIVE
-		foreach ($args as $arg) {
-			if (is_int($arg)) {
-				if ($arg & File::LIST_RECURSIVE) {
-					$recursive = true;
-				}
-				if ($bitmask == null) {
-					$bitmask = $arg;
-				}
-				else {
-					$bitmask |= $arg;
-				}
-			}
-			else if (is_string($arg)) {
-				$globs[] = Util::normalizePath($arg);
-			}
-			else if (is_callable($arg)) {
-				$callables[] = $arg;
-			}
-			else if (is_array($arg)) {
-				static::buildFilters(
-					$parent,
-					$arg,
-					$recursive,
-					$bitmask,
-					$globs,
-					$callables,
-					$globSearchPatterns,
-					true
-				);
-			}
-			else {
-				if (is_object($arg)) {
-					$type = get_class($arg);
-				}
-				else {
-					ob_start();
-					var_dump($arg);
-					$type = ob_get_contents();
-					ob_end_clean();
-				}
-
-				throw new Exception(
-					sprintf(
-						'Can not use %s as list filter.',
-						$type
-					)
-				);
-			}
-		}
-
-		if (!$deep) {
-			if ($bitmask === null) {
-				$bitmask = File::LIST_HIDDEN
-					| File::LIST_VISIBLE
-					| File::LIST_FILES
-					| File::LIST_DIRECTORIES
-					| File::LIST_LINKS
-					| File::LIST_OPAQUE;
-			}
-			foreach ($globs as $index => $glob) {
-				$parts = explode('/', $glob);
-
-				if (count($parts) > 1) {
-					$max  = count($parts) - 2;
-					$path = '';
-					for ($i = 0; $i < $max; $i++) {
-						$path .= ($path ? '/' : '') . $parts[$i];
-
-						$globSearchPatterns[] = static::normalizePath('*/' . $parent->full() . '/' . $path);
-					}
-				}
-
-				$globs[$index] = static::normalizePath('*/' . $parent->full() . '/' . $glob);
-			}
-		}
-
-		return array(
-			$recursive,
-			$bitmask,
-			$globs,
-			$callables,
-			$globSearchPatterns
-		);
-	}
-	
 	/**
 	 * @var resource
 	 */

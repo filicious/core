@@ -11,20 +11,25 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Filicious\Iterator;
+namespace Filicious\Internals;
 
-use RecursiveIterator;
+use Filicious\File;
+use Filicious\Filesystem;
+use Filicious\Internals\Adapter;
+use Filicious\Internals\Pathname;
+use Iterator;
+use SeekableIterator;
 
 /**
- * Recursive filesystem iterator
+ * Filesystem iterator
  *
  * @package filicious-core
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
-class RecursiveFilesystemIterator
-	extends FilesystemIterator
-	implements RecursiveIterator
+class RecursivePathnameIterator extends PathnameIterator
+	implements \RecursiveIterator
 {
+
 	/**
 	 * (PHP 5 &gt;= 5.1.0)<br/>
 	 * Returns if an iterator can be created for the current entry.
@@ -35,25 +40,22 @@ class RecursiveFilesystemIterator
 	public function hasChildren()
 	{
 		return $this->valid() &&
-			$this->currentFile()->isDirectory() &&
+			$this->current()->isDirectory() &&
 			$this->applyGlobSearchPattern();
 	}
 
 	/**
 	 * (PHP 5 &gt;= 5.1.0)<br/>
 	 * Returns an iterator for the current entry.
-	 *
 	 * @link http://php.net/manual/en/recursiveiterator.getchildren.php
 	 * @return RecursiveIterator An iterator for the current entry.
 	 */
 	public function getChildren()
 	{
-		$iterator = new RecursiveFilesystemIterator(
-			$this->files[$this->keys[$this->index]],
-			$this->filters,
-			$this->flags
+		$iterator = new RecursivePathnameIterator(
+			$this->currentFile()->internalPathname(),
+			$this->filters
 		);
 		$iterator->prepareFilters($this);
 		return $iterator;
-	}
-}
+	}}

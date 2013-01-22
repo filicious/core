@@ -70,44 +70,44 @@ class File
 	const OPERATION_REPLACE		= 0x40;
 
 	/**
-	 * List everything (including "." and "..")
+	 * List everything (LIST_HIDDEN | LIST_VISIBLE | LIST_FILES | LIST_DIRECTORIES | LIST_LINKS | LIST_OPAQUE)
 	 */
-	const LIST_ALL = 1;
+	const LIST_ALL = 64512;
 
 	/**
 	 * Return hidden files (starting with ".")
 	 */
-	const LIST_HIDDEN = 2;
+	const LIST_HIDDEN = 1024;
 
 	/**
 	 * Return non-hidden (not starting with ".")
 	 */
-	const LIST_VISIBLE = 4;
+	const LIST_VISIBLE = 2048;
 
 	/**
 	 * Return only files.
 	 */
-	const LIST_FILES = 128;
+	const LIST_FILES = 4096;
 
 	/**
 	 * Return only directories.
 	 */
-	const LIST_DIRECTORIES = 256;
+	const LIST_DIRECTORIES = 8192;
 
 	/**
 	 * Return only links.
 	 */
-	const LIST_LINKS = 512;
+	const LIST_LINKS = 16384;
 
 	/**
 	 * List non-links.
 	 */
-	const LIST_OPAQUE = 1024;
+	const LIST_OPAQUE = 32768;
 
 	/**
 	 * List recursive.
 	 */
-	const LIST_RECURSIVE = 8192;
+	const LIST_RECURSIVE = 65536;
 
 	protected $filesystem;
 
@@ -650,7 +650,18 @@ class File
 	 */
 	public function ls($filter = null, $_ = null)
 	{
-		return $this->pathname->rootAdapter()->getIterator($this->pathname, func_get_args())->toArray();
+		$iterator = $this->pathname->rootAdapter()->getIterator($this->pathname, func_get_args());
+
+		// cheap array creation
+		if (method_exists($iterator, 'toArray')) {
+			return $iterator->toArray();
+		}
+
+		$files = array();
+		foreach ($iterator as $file) {
+			$files[] = $file;
+		}
+		return $files;
 	}
 
 	/**

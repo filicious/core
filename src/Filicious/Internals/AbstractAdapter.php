@@ -13,9 +13,9 @@
 
 namespace Filicious\Internals;
 
+use Filicious\File;
 use Filicious\Filesystem;
 use Filicious\FilesystemConfig;
-use Filicious\Internals\Pathname;
 use Filicious\Exception\FileNotFoundException;
 use Filicious\Exception\NotAFileException;
 use Filicious\Exception\NotADirectoryException;
@@ -143,7 +143,14 @@ abstract class AbstractAdapter
 	 */
 	public function getIterator(Pathname $pathname, array $filter)
 	{
-		return new PathnameIterator($pathname, 0, $filter);
+		if (Util::hasBit($filter, File::LIST_RECURSIVE)) {
+			return new \RecursiveIteratorIterator(
+				new RecursivePathnameIterator($pathname, 0, $filter)
+			);
+		}
+		else {
+			return new PathnameIterator($pathname, 0, $filter);
+		}
 	}
 
 	/**

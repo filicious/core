@@ -10,6 +10,7 @@
 		 strict="true">
 	<testsuites>
 		<testsuite name="FiliciousCoreTestSuite">
+			<directory suffix="Test.php">test/Filicious/Test/Configuration/</directory>
 			<directory suffix="Test.php">test/Filicious/Test/Local/</directory>
 		</testsuite>
 	</testsuites>

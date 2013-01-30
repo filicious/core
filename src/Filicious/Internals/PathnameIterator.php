@@ -163,7 +163,7 @@ class PathnameIterator
 				else if (
 					$this->bitmask === File::LIST_HIDDEN ||
 					$this->bitmask === File::LIST_VISIBLE ||
-					$this->bitmask === File::LIST_HIDDEN | File::LIST_VISIBLE
+					$this->bitmask === (File::LIST_HIDDEN | File::LIST_VISIBLE)
 				) {
 					$this->bitmask |= File::LIST_FILES;
 					$this->bitmask |= File::LIST_DIRECTORIES;
@@ -175,7 +175,7 @@ class PathnameIterator
 				else if (
 					$this->bitmask === File::LIST_FILES ||
 					$this->bitmask === File::LIST_DIRECTORIES ||
-					$this->bitmask === File::LIST_FILES | File::LIST_DIRECTORIES
+					$this->bitmask === (File::LIST_FILES | File::LIST_DIRECTORIES)
 				) {
 					$this->bitmask |= File::LIST_HIDDEN;
 					$this->bitmask |= File::LIST_VISIBLE;
@@ -187,10 +187,17 @@ class PathnameIterator
 				else if (
 					$this->bitmask === File::LIST_LINKS ||
 					$this->bitmask === File::LIST_OPAQUE ||
-					$this->bitmask === File::LIST_LINKS | File::LIST_OPAQUE
+					$this->bitmask === (File::LIST_LINKS | File::LIST_OPAQUE)
 				) {
 					$this->bitmask |= File::LIST_HIDDEN;
 					$this->bitmask |= File::LIST_VISIBLE;
+				}
+
+				// if only recursive, list everything else
+				else if (
+					$this->bitmask === File::LIST_RECURSIVE
+				) {
+					$this->bitmask |= File::LIST_ALL;
 				}
 
 				// prepare globs

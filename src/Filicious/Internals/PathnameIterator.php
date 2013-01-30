@@ -234,10 +234,10 @@ class PathnameIterator
 					}
 				}
 				else if (is_string($arg)) {
-					$globs[] = Util::normalizePath($arg);
+					$this->globs[] = Util::normalizePath($arg);
 				}
 				else if (is_callable($arg)) {
-					$callables[] = $arg;
+					$this->callables[] = $arg;
 				}
 				else if (is_array($arg)) {
 					$this->evaluateFilters($arg);

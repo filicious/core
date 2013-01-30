@@ -145,11 +145,11 @@ abstract class AbstractAdapter
 	{
 		if (Util::hasBit($filter, File::LIST_RECURSIVE)) {
 			return new \RecursiveIteratorIterator(
-				new RecursivePathnameIterator($pathname, 0, $filter)
+				new RecursivePathnameIterator($pathname, $filter)
 			);
 		}
 		else {
-			return new PathnameIterator($pathname, 0, $filter);
+			return new PathnameIterator($pathname, $filter);
 		}
 	}
 

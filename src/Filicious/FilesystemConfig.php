@@ -49,6 +49,11 @@ class FilesystemConfig
 	const DEFAULTMODE = 'DEFAULTMODE';
 
 	/**
+	 * @var string Configuration parameter for hostname to use
+	 */
+	const HOST = 'HOST';
+
+	/**
 	 * @var string Configuration parameter for username to use
 	 */
 	const USERNAME = 'USERNAME';

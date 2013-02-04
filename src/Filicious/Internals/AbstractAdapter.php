@@ -111,6 +111,400 @@ abstract class AbstractAdapter
 	}
 
 	/**
+	 * @see Filicious\Internals\Adapter::copyTo()
+	 */
+	public function copyTo(
+		Pathname $srcPathname,
+		Pathname $dstPathname,
+		$flags
+	) {
+		$dstPathname->localAdapter()->copyFrom(
+			$dstPathname,
+			$srcPathname,
+			$flags
+		);
+	}
+
+	/**
+	 * @see Filicious\Internals\Adapter::copyFrom()
+	 */
+	public function copyFrom(
+		Pathname $dstPathname,
+		Pathname $srcPathname,
+		$flags
+	) {
+		$dstParentPathname = $dstPathname->parent();
+
+		if ($flags & File::OPERATION_PARENTS) {
+			$dstParentPathname->localAdapter()->createDirectory(
+				$dstParentPathname,
+				true
+			);
+		}
+		else {
+			$dstParentPathname->localAdapter()->checkDirectory($dstParentPathname);
+		}
+
+		$dstExists      = $this->exists($dstPathname);
+		$srcIsDirectory = $srcPathname->localAdapter()->isDirectory($srcPathname);
+		$dstIsDirectory = $this->isDirectory($dstPathname);
+
+		// target not exists
+		if (!$dstExists) {
+			if ($srcIsDirectory) {
+				$dstIsDirectory = true;
+			}
+			else {
+				$dstIsDirectory = false;
+			}
+			// continue copy operation
+		}
+
+		// copy file -> directory
+		else if (!$srcIsDirectory && $dstIsDirectory) {
+			// replace directory with file
+			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+				$this->delete($dstPathname, true, false);
+				$dstIsDirectory = false;
+				// continue copy operation
+			}
+
+			// merge file into directory
+			else if ($flags & File::OPERATION_MERGE) {
+				$dstInsidePathname = $dstPathname->child($srcPathname);
+
+				$srcPathname->localAdapter()->copyTo(
+					$srcPathname,
+					$dstInsidePathname->localAdapter(),
+					$dstInsidePathname,
+					$flags
+				);
+				return;
+			}
+
+			else {
+				throw new FileOverwriteDirectoryException(
+					$srcPathname,
+					$dstPathname
+				);
+			}
+		}
+		// copy directory -> file
+		else if ($srcIsDirectory && !$dstIsDirectory) {
+			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+				$this->delete($dstPathname, false, false);
+				$this->createDirectory($dstPathname, false);
+				$dstIsDirectory = true;
+				// continue copy operation
+			}
+
+			else {
+				throw new DirectoryOverwriteFileException(
+					$srcPathname,
+					$dstPathname
+				);
+			}
+		}
+
+		// copy directory -> directory
+		if ($srcIsDirectory && $dstIsDirectory) {
+			// replace target directory
+			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+				if ($dstExists) {
+					$this->delete($dstPathname, true, false);
+				}
+				$this->createDirectory($dstPathname, false);
+
+				$flags |= File::OPERATION_RECURSIVE;
+				// continue recursive copy
+			}
+
+			// recursive merge directories
+			if ($flags & File::OPERATION_RECURSIVE) {
+				$iterator = $srcPathname->localAdapter()->getIterator($srcPathname, array());
+
+				/** @var Pathname $srcChildPathname */
+				foreach ($iterator as $srcChildPathname) {
+					$srcPathname->localAdapter()->getRootAdapter()->copyTo(
+						$srcChildPathname,
+						$this,
+						$dstPathname->child($srcChildPathname),
+						$flags
+					);
+				}
+			}
+
+			else {
+				throw new DirectoryOverwriteDirectoryException(
+					$srcPathname,
+					$dstPathname
+				);
+			}
+		}
+
+		// copy file -> file
+		else if (!$srcIsDirectory && !$dstIsDirectory) {
+			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+				// native copy if supported
+				$dstClass = new \ReflectionClass($this);
+				$srcClass = new \ReflectionClass($srcPathname->localAdapter());
+
+				if ($dstClass->getName() == $srcClass->getName() ||
+					$dstClass->isSubclassOf($srcClass) ||
+					$srcClass->isSubclassOf($dstClass)
+				) {
+					if ($this->nativeCopy($srcPathname, $dstPathname)) {
+						return;
+					}
+				}
+
+				// stream copy
+				return $this->execute(
+					function() use ($srcPathname, $dstPathname) {
+						$srcStream = $srcPathname->localAdapter()->getStream($srcPathname);
+						$srcStream->open(new StreamMode('rb'));
+
+						$dstStream = $this->getStream($dstPathname);
+						$dstStream->open(new StreamMode('wb'));
+
+						$result = stream_copy_to_stream(
+							$srcStream->getRessource(),
+							$dstStream->getRessource()
+						);
+
+						$srcStream->close();
+						$dstStream->close();
+
+						return $result;
+					},
+					0,
+					'Could not copy %s to %s.',
+					$srcPathname,
+					$dstPathname
+				);
+			}
+
+			else {
+				throw new FileOverwriteFileException(
+					$srcPathname,
+					$dstPathname
+				);
+			}
+		}
+
+		// illegal state
+		else {
+			throw new FilesystemException('Illegal state!');
+		}
+	}
+
+	public function nativeCopy(
+		Pathname $srcPathname,
+		Pathname $dstPathname
+	) {
+		return false;
+	}
+
+	/**
+	 * @see Filicious\Internals\Adapter::moveTo()
+	 */
+	public function moveTo(
+		Pathname $srcPathname,
+		Pathname $dstPathname,
+		$flags
+	) {
+		$dstPathname->localAdapter()->moveFrom(
+			$dstPathname,
+			$srcPathname,
+			$flags
+		);
+	}
+
+	/**
+	 * @see Filicious\Internals\Adapter::moveFrom()
+	 */
+	public function moveFrom(
+		Pathname $dstPathname,
+		Pathname $srcPathname,
+		$flags
+	) {
+		$dstParentPathname = $dstPathname->parent();
+
+		if ($flags & File::OPERATION_PARENTS) {
+			$dstParentPathname->localAdapter()->createDirectory(
+				$dstParentPathname,
+				true
+			);
+		}
+		else {
+			$dstParentPathname->localAdapter()->checkDirectory($dstParentPathname);
+		}
+
+		$dstExists      = $this->exists($dstPathname);
+		$srcIsDirectory = $srcPathname->localAdapter()->isDirectory($srcPathname);
+		$dstIsDirectory = $this->isDirectory($dstPathname);
+
+		// target not exists
+		if (!$dstExists) {
+			if ($srcIsDirectory) {
+				$dstIsDirectory = true;
+			}
+			else {
+				$dstIsDirectory = false;
+			}
+			// continue move operation
+		}
+
+		// move file -> directory
+		else if (!$srcIsDirectory && $dstIsDirectory) {
+			// replace directory with file
+			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+				$this->delete($dstPathname, true, false);
+				$dstIsDirectory = false;
+				// continue move operation
+			}
+
+			// merge file into directory
+			else if ($flags & File::OPERATION_MERGE) {
+				$dstInsidePathname = $dstPathname->child($srcPathname);
+
+				$srcPathname->localAdapter()->moveTo(
+					$srcPathname,
+					$dstInsidePathname,
+					$flags
+				);
+				return;
+			}
+
+			else {
+				throw new FileOverwriteDirectoryException(
+					$srcPathname,
+					$dstPathname
+				);
+			}
+		}
+		// move directory -> file
+		else if ($srcIsDirectory && !$dstIsDirectory) {
+			if (!($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+				$this->delete($dstPathname, false, false);
+				$this->createDirectory($dstPathname, false);
+				$dstIsDirectory = true;
+				// continue move operation
+			}
+
+			else {
+				throw new DirectoryOverwriteFileException(
+					$srcPathname,
+					$dstPathname
+				);
+			}
+		}
+
+		// move directory -> directory
+		if ($srcIsDirectory && $dstIsDirectory) {
+			// replace target directory
+			if (!$dstExists || !($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+				if ($dstExists) {
+					$this->delete($dstPathname, true, false);
+				}
+
+				$flags |= File::OPERATION_RECURSIVE;
+				// continue recursive move
+			}
+
+			// recursive merge directories
+			if ($flags & File::OPERATION_RECURSIVE) {
+				// native move if supported
+				$dstClass = new \ReflectionClass($this);
+				$srcClass = new \ReflectionClass($srcPathname->localAdapter());
+
+				if ($dstClass->getName() == $srcClass->getName() ||
+					$dstClass->isSubclassOf($srcClass) ||
+					$srcClass->isSubclassOf($dstClass)
+				) {
+					if ($this->nativeMove($srcPathname, $dstPathname)) {
+						return;
+					}
+				}
+
+				$iterator = $srcPathname->localAdapter()->getIterator($srcPathname, array());
+
+				/** @var Pathname $srcChildPathname */
+				foreach ($iterator as $srcChildPathname) {
+					$srcPathname->localAdapter()->getRootAdapter()->moveTo(
+						$srcChildPathname,
+						$this,
+						$dstPathname->child($srcChildPathname),
+						$flags
+					);
+				}
+			}
+
+			else {
+				throw new DirectoryOverwriteDirectoryException(
+					$srcPathname,
+					$dstPathname
+				);
+			}
+		}
+
+		// move file -> file
+		else if (!$srcIsDirectory && !$dstIsDirectory) {
+			if (!$dstExists || !($flags & File::OPERATION_REJECT) && $flags & File::OPERATION_REPLACE) {
+				// native move if supported
+				$dstClass = new \ReflectionClass($this);
+				$srcClass = new \ReflectionClass($srcPathname->localAdapter());
+
+				if ($dstClass->getName() == $srcClass->getName() ||
+					$dstClass->isSubclassOf($srcClass) ||
+					$srcClass->isSubclassOf($dstClass)
+				) {
+					if ($this->nativeMove($srcPathname, $dstPathname)) {
+						return;
+					}
+				}
+
+				// stream move
+				return $this->execute(
+					function() use ($srcPathname, $dstPathname) {
+						$srcStream = $srcPathname->localAdapter()->getStream($srcPathname);
+						$srcStream->open(new StreamMode('rb'));
+
+						$dstStream = $this->getStream($dstPathname);
+						$dstStream->open(new StreamMode('wb'));
+
+						$result = stream_copy_to_stream(
+							$srcStream->getRessource(),
+							$dstStream->getRessource()
+						);
+
+						$srcStream->close();
+						$dstStream->close();
+
+						return $result;
+					},
+					0,
+					'Could not move %s to %s.',
+					$srcPathname,
+					$dstPathname
+				);
+			}
+		}
+
+		// illegal state
+		else {
+			throw new FilesystemException('Illegal state!');
+		}
+	}
+
+	public function nativeMove(
+		Pathname $srcPathname,
+		Pathname $dstPathname
+	) {
+		return false;
+	}
+
+	/**
 	 * @see Filicious\Internals\Adapter::getMD5()
 	 */
 	public function getMD5(Pathname $pathname, $binary)

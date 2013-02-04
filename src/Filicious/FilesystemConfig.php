@@ -54,6 +54,11 @@ class FilesystemConfig
 	const HOST = 'HOST';
 
 	/**
+	 * @var string Configuration parameter for port to use
+	 */
+	const PORT = 'PORT';
+
+	/**
 	 * @var string Configuration parameter for username to use
 	 */
 	const USERNAME = 'USERNAME';

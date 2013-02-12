@@ -910,6 +910,8 @@ class LocalAdapter
 			$pathname
 		);
 
+		natcasesort($files);
+
 		return array_values(
 			array_filter(
 				$files,

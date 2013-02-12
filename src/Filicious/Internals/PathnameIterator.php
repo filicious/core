@@ -17,6 +17,7 @@ use Filicious\File;
 use Filicious\Filesystem;
 use Filicious\Internals\Adapter;
 use Filicious\Internals\Pathname;
+use Filicious\Exception\FilesystemException;
 use Iterator;
 use SeekableIterator;
 

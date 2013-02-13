@@ -95,7 +95,7 @@ Getting basic information about a file
 
 ```php
 /** @var File $file */
-// get the passname INSIDE of the filesystem (this may not be the real pathname)
+// get the pathname INSIDE of the filesystem (this may not be the real pathname)
 $pathname = $file->getPathname();
 
 // get the basename

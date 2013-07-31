@@ -484,8 +484,8 @@ class File
 		$this->pathname->rootAdapter()->moveTo(
 			$this->pathname,
 			$destination->pathname,
-			($parents ? File::OPERATION_PARENTS : 0)
-			| ($overwrite ? File::OPERATION_MERGE : 0)
+			($parents ? $parents : File::OPERATION_PARENTS)
+			| ($overwrite ? $overwrite : File::OPERATION_MERGE)
 		);
 		return $this;
 	}

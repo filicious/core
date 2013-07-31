@@ -40,8 +40,14 @@ class Util
 	{
 		$path = str_replace('\\', '/', strval($path));
 		preg_match('@^((?>[a-zA-Z]:)?/)?@', $path, $match);
-		$abs = $match[1];
-		$abs && $path = substr($path, strlen($abs));
+
+		if (empty($match[1])) {
+			$abs = '';
+		}
+		else {
+			$abs = $match[1];
+			$path = substr($path, strlen($abs));
+		}
 		$path = preg_replace('@^[/\s]+|[/\s]+$@', '', $path);
 		$path = preg_replace('@/+@', '/', $path);
 		$parts = array();

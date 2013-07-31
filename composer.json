@@ -1,46 +1,53 @@
 {
-	"name":"filicious/filicious",
-	"description":"Filicious is a high level object oriented filesystem abstraction for PHP.",
-	"version":"1.0-dev",
-	"keywords":["filesystem","file","vfs"],
-	"homepage":"http://filicious.org",
-	"license":"LGPL-3.0+",
-	"authors":[
+	"name": "filicious/core",
+	"description": "filicious is a high level object oriented filesystem abstraction for PHP.",
+	"keywords": ["filesystem", "file", "vfs"],
+	"homepage": "http://filicious.org",
+	"license": "LGPL-3.0+",
+	"authors": [
 		{
-			"name":"Tristan Lins",
-			"email":"tristan.lins@bit3.de",
-			"homepage":"http://bit3.de",
-			"role":"Developer"
+			"name": "Tristan Lins",
+			"email": "tristan.lins@bit3.de",
+			"homepage": "http://bit3.de",
+			"role": "Developer"
 		},
 		{
-			"name":"Christian Schiffler",
-			"email":"c.schiffler@cyberspectrum.de",
-			"homepage":"http://www.cyberspectrum.de",
-			"role":"Developer"
+			"name": "Christian Schiffler",
+			"email": "c.schiffler@cyberspectrum.de",
+			"homepage": "http://www.cyberspectrum.de",
+			"role": "Developer"
 		},
 		{
-			"name":"Oliver Hoff",
-			"email":"oliver@hofff.com",
-			"homepage":"http://www.hofff.com",
-			"role":"Developer"
+			"name": "Oliver Hoff",
+			"email": "oliver@hofff.com",
+			"homepage": "http://www.hofff.com",
+			"role": "Developer"
 		}
 	],
-	"support":{
+	"support": {
 		"irc": "irc://irc.freenode.org/filicious"
 	},
-	"require-dev":{
+	"require": {
+		"php": ">=5.3"
+	},
+	"require-dev": {
 		"phpunit/phpunit": "3.*"
 	},
-	"suggest":{
-		"filicious/filicious-ftp": "Adds ftp support to Filicious.",
-		"filicious/filicious-sftp": "Adds sftp support to Filicious.",
-		"filicious/filicious-dropbox": "Adds dropbox support to Filicious.",
-		"filicious/filicious-amazon-s3": "Adds amazon S3 support to Filicious."
+	"minimum-stability": "dev",
+	"prefer-stable": true,
+	"suggest": {
+		"filicious/ftp": "Adds ftp support to Filicious.",
+		"filicious/sftp": "Adds sftp support to Filicious."
 	},
-	"autoload":{
-		"psr-0":{
-			"Filicious":"src/",
-			"Filicious\\Test":"test/"
+	"autoload": {
+		"psr-0": {
+			"Filicious": "src/",
+			"Filicious\\Test": "test/"
+		}
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-master": "1.0.x-dev"
 		}
 	}
 }

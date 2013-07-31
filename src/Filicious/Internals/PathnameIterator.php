@@ -214,6 +214,7 @@ class PathnameIterator
 				foreach ($this->globs as $index => $glob) {
 					$parts = explode('/', $glob);
 
+					// path based globs
 					if (count($parts) > 1) {
 						$max  = count($parts) - 2;
 						$path = '';
@@ -222,9 +223,14 @@ class PathnameIterator
 
 							$globSearchPatterns[] = Util::normalizePath('*/' . $this->pathname->full() . '/' . $path);
 						}
+
+						$this->globs[$index] = Util::normalizePath('*/' . $this->pathname->full() . '/' . $glob);
 					}
 
-					$globs[$index] = Util::normalizePath('*/' . $this->pathname->full() . '/' . $glob);
+					// file name globs
+					else {
+						$this->globs[$index] = $glob;
+					}
 				}
 			}
 		}

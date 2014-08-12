@@ -120,7 +120,7 @@ final class Pathname
 	 * @return Pathname
 	 */
 	public function parent() {
-		return new Pathname($this->adapter, dirname($this->full()));
+		return new Pathname($this->adapter, Util::dirname($this->full()));
 	}
 
 	/**

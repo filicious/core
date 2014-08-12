@@ -15,19 +15,6 @@ namespace Filicious\Internals;
 
 use Filicious\Filesystem;
 
-if(DIRECTORY_SEPARATOR !== '/') {
-	/**
-	 * A fast dirname function, which only accepts non-zero-length strings
-	 * with at least one "/" in it.
-	 * Only this type of path strings is used within adapter.
-	 *
-	 * @param string $path
-	 */
-	function dirname($path) {
-		return substr($path, 0, strrpos($path, '/'));
-	}
-}
-
 /**
  * 
  * 

@@ -265,4 +265,22 @@ class Util
 		return static::$finfo;
 	}
 	
+
+	/**
+	 * Dirname function that only split on "/", required because we use UNIX path names all the time, even on windows!
+	 *
+	 * @param string $path
+	 *
+	 * @return string
+	 */
+	public static function dirname($path)
+	{
+		$index = strrpos($path, '/');
+
+		if ($index > 0) {
+			return substr($path, 0, $index);
+		}
+
+		return '/';
+	}
 }

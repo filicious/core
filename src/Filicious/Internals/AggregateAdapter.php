@@ -97,7 +97,7 @@ abstract class AggregateAdapter
 	public function resolvePathname($pathname) {
 		do if(isset($this->map[$pathname])) {
 			return $this->map[$pathname];
-		} while('' !== $pathname = dirname($pathname));
+		} while('' !== $pathname = Util::dirname($pathname));
 		return $this->default;
 	}
 	

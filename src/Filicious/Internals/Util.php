@@ -344,4 +344,27 @@ class Util
 
 		return $result;
 	}
+
+	/**
+	 * Create a date time object.
+	 *
+	 * @param \DateTime|int|string $time A \DateTime object, a timestamp or a time format string.
+	 *
+	 * @return \DateTime
+	 */
+	public static function createDateTime($time)
+	{
+		if ($time instanceof \DateTime) {
+			return $time;
+		}
+
+		if (is_int($time) || is_float($time)) {
+			$date = new \DateTime();
+			$date->setTimestamp($time);
+			return $date;
+		}
+
+		return new \DateTime($time);
+	}
+
 }

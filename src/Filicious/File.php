@@ -29,6 +29,7 @@ use Filicious\Event\WriteEvent;
 use Filicious\Exception\FileNotFoundException;
 use Filicious\Exception\NotAFileException;
 use Filicious\Internals\Pathname;
+use Filicious\Internals\Util;
 use Filicious\Iterator\FilesystemIterator;
 use Filicious\Plugin\FilePluginInterface;
 
@@ -43,17 +44,6 @@ use Filicious\Plugin\FilePluginInterface;
 class File
 	implements \IteratorAggregate, \Countable
 {
-
-	public static function getDateTime($time)
-	{
-		if ($time instanceof \DateTime) {
-			return $time;
-		}
-		if (is_int($time) || is_float($time)) {
-			return new \DateTime('@' . intval($time));
-		}
-		return new \DateTime($time);
-	}
 
 	/**
 	 * @var int Flag for file operations, which involve a file target
@@ -254,7 +244,7 @@ class File
 	/**
 	 * Set the date and time at which the file was accessed last time.
 	 * The given $atime parameter is converted to a \DateTime object via
-	 * File::getDateTime.
+	 * Util::createDateTime.
 	 *
 	 * @param mixed $atime The new access time
 	 *
@@ -263,7 +253,7 @@ class File
 	 */
 	public function setAccessTime($atime = 'now')
 	{
-		$this->pathname->rootAdapter()->setAccessTime($this->pathname, static::getDateTime($atime));
+		$this->pathname->rootAdapter()->setAccessTime($this->pathname, Util::createDateTime($atime));
 		return $this;
 	}
 
@@ -292,7 +282,7 @@ class File
 	/**
 	 * Set the date and time at which the file was modified last time.
 	 * The given $mtime parameter is converted to a \DateTime object via
-	 * File::getDateTime.
+	 * Util::createDateTime.
 	 *
 	 * @param mixed $atime The new modify time
 	 *
@@ -301,7 +291,7 @@ class File
 	 */
 	public function setModifyTime($mtime = 'now')
 	{
-		$this->pathname->rootAdapter()->setModifyTime($this->pathname, static::getDateTime($mtime));
+		$this->pathname->rootAdapter()->setModifyTime($this->pathname, Util::createDateTime($mtime));
 		return $this;
 	}
 
@@ -309,7 +299,7 @@ class File
 	 * Set the date and time at which the file was modified and / or accessed
 	 * last time.
 	 * The given $time and $atime parameters are converted to \DateTime objects
-	 * via File::getDateTime, with the one exception, that if $atime parameter
+	 * via Util::createDateTime, with the one exception, that if $atime parameter
 	 * is set to null, then the date and time given in the $time parameter will
 	 * be used for $atime.
 	 *
@@ -333,8 +323,8 @@ class File
 			$exists = null;
 		}
 
-		$modifyTime = static::getDateTime($modifyTime);
-		$accessTime = $accessTime === null ? $modifyTime : static::getDateTime($accessTime);
+		$modifyTime = Util::createDateTime($modifyTime);
+		$accessTime = $accessTime === null ? $modifyTime : Util::createDateTime($accessTime);
 		$this->pathname->rootAdapter()->touch($this->pathname, $modifyTime, $accessTime, $create);
 
 		if ($eventDispatcher) {

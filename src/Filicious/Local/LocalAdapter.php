@@ -94,19 +94,7 @@ class LocalAdapter
 			return false;
 		}
 
-		return is_dir($this->getBasepath() . $pathname->local());
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function isLink(Pathname $pathname)
-	{
-		if (!$this->exists($pathname)) {
-			return false;
-		}
-
-		return is_link($this->getBasepath() . $pathname->local());
+		return is_dir($this->getBasePath() . $pathname->local());
 	}
 
 	/**

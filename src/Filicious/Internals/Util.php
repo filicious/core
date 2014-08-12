@@ -13,6 +13,7 @@
 
 namespace Filicious\Internals;
 
+use Filicious\Exception\AdapterException;
 use Filicious\File;
 use Filicious\Stream\StreamMode;
 use Filicious\Internals\Pathname;
@@ -305,5 +306,43 @@ class Util
 		}
 
 		return '/';
+	}
+
+	/**
+	 * Execute a php function, throw an AdapterException if the function failed.
+	 *
+	 * @param $callback
+	 * @param $errorCode
+	 * @param $errorMessage
+	 *
+	 * @return mixed
+	 * @throws AdapterException
+	 */
+	public static function executeFunction($callback, $exceptionClass, $errorCode, $errorMessage) {
+		$error = null;
+
+		try {
+			$result = $callback();
+		}
+		catch (\ErrorException $exception) {
+			$result = false;
+			$error = $exception;
+		}
+
+		if ($error !== null || $result === false) {
+			throw new $exceptionClass(
+				vsprintf(
+					$errorMessage,
+					array_slice(
+						func_get_args(),
+						3
+					)
+				),
+				$errorCode,
+				$error
+			);
+		}
+
+		return $result;
 	}
 }

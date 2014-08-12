@@ -13,6 +13,10 @@
 
 namespace Filicious\Internals;
 
+use Filicious\Exception\AdapterException;
+use Filicious\Exception\FileNotFoundException;
+use Filicious\Exception\NotADirectoryException;
+use Filicious\Exception\NotAFileException;
 use Filicious\Filesystem;
 
 /**
@@ -32,14 +36,14 @@ interface Adapter
 	/**
 	 * Set the filesystem this adapter belongs to.
 	 *
-	 * @param Filicious\Filesystem $fs The filesystem this adapter belongs to
+	 * @param Filesystem $fs The filesystem this adapter belongs to
 	 */
 	public function setFilesystem(Filesystem $fs);
 	
 	/**
 	 * Returns the filesystem this adapter belongs to.
 	 * 
-	 * @return Filicious\Filesystem The filesystem this adapter belongs to
+	 * @return Filesystem The filesystem this adapter belongs to
 	 */
 	public function getFilesystem();
 
@@ -672,7 +676,7 @@ interface Adapter
 	 * @param string $pathname The full abstracted pathname
 	 * @param string $local The adapter local path
 	 * @return void
-	 * @throws Filicious\Exception\FileNotFoundException
+	 * @throws FileNotFoundException
 	 */
 	public function requireExists(Pathname $pathname);
 
@@ -682,7 +686,7 @@ interface Adapter
 	 * @param string $pathname The full abstracted pathname
 	 * @param string $local The adapter local path
 	 * @return void
-	 * @throws Filicious\Exception\NotAFileException
+	 * @throws NotAFileException
 	 */
 	public function checkFile(Pathname $pathname);
 
@@ -692,7 +696,7 @@ interface Adapter
 	 * @param string $pathname The full abstracted pathname
 	 * @param string $local The adapter local path
 	 * @return void
-	 * @throws Filicious\Exception\NotADirectoryException
+	 * @throws NotADirectoryException
 	 */
 	public function checkDirectory(Pathname $pathname);
 }

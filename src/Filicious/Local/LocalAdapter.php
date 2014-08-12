@@ -72,7 +72,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::isFile()
+	 * {@inheritdoc}
 	 */
 	public function isFile(Pathname $pathname)
 	{
@@ -84,7 +84,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::isDirectory()
+	 * {@inheritdoc}
 	 */
 	public function isDirectory(Pathname $pathname)
 	{
@@ -96,7 +96,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::isLink()
+	 * {@inheritdoc}
 	 */
 	public function isLink(Pathname $pathname)
 	{
@@ -108,7 +108,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getAccessTime()
+	 * {@inheritdoc}
 	 */
 	public function getAccessTime(Pathname $pathname)
 	{
@@ -130,7 +130,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::setAccessTime()
+	 * {@inheritdoc}
 	 */
 	public function setAccessTime(Pathname $pathname, \DateTime $time)
 	{
@@ -152,7 +152,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getCreationTime()
+	 * {@inheritdoc}
 	 */
 	public function getCreationTime(Pathname $pathname)
 	{
@@ -174,7 +174,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getCreationTime()
+	 * {@inheritdoc}
 	 */
 	public function getModifyTime(Pathname $pathname)
 	{
@@ -196,7 +196,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::setModifyTime()
+	 * {@inheritdoc}
 	 */
 	public function setModifyTime(Pathname $pathname, \DateTime $time)
 	{
@@ -218,7 +218,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::touch()
+	 * {@inheritdoc}
 	 */
 	public function touch(Pathname $pathname, \DateTime $time, \DateTime $atime, $create)
 	{
@@ -242,7 +242,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getSize()
+	 * {@inheritdoc}
 	 */
 	public function getSize(Pathname $pathname, $recursive)
 	{
@@ -288,7 +288,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getSize()
+	 * {@inheritdoc}
 	 */
 	public function getOwner(Pathname $pathname)
 	{
@@ -308,7 +308,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::setOwner()
+	 * {@inheritdoc}
 	 */
 	public function setOwner(Pathname $pathname, $user)
 	{
@@ -329,7 +329,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getGroup()
+	 * {@inheritdoc}
 	 */
 	public function getGroup(Pathname $pathname)
 	{
@@ -349,7 +349,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::setGroup()
+	 * {@inheritdoc}
 	 */
 	public function setGroup(Pathname $pathname, $group)
 	{
@@ -370,7 +370,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getMode()
+	 * {@inheritdoc}
 	 */
 	public function getMode(Pathname $pathname)
 	{
@@ -390,7 +390,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::setMode()
+	 * {@inheritdoc}
 	 */
 	public function setMode(Pathname $pathname, $mode)
 	{
@@ -411,7 +411,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::isReadable()
+	 * {@inheritdoc}
 	 */
 	public function isReadable(Pathname $pathname)
 	{
@@ -431,7 +431,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::isWritable()
+	 * {@inheritdoc}
 	 */
 	public function isWritable(Pathname $pathname)
 	{
@@ -451,7 +451,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::isExecutable()
+	 * {@inheritdoc}
 	 */
 	public function isExecutable(Pathname $pathname)
 	{
@@ -472,7 +472,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::exists()
+	 * {@inheritdoc}
 	 */
 	public function exists(Pathname $pathname)
 	{
@@ -491,7 +491,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::delete()
+	 * {@inheritdoc}
 	 */
 	public function delete(Pathname $pathname, $recursive, $force)
 	{
@@ -551,6 +551,9 @@ class LocalAdapter
 		}
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function nativeCopy(
 		Pathname $srcPathname,
 		Pathname $dstPathname
@@ -569,6 +572,9 @@ class LocalAdapter
 		);
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function nativeMove(
 		Pathname $srcPathname,
 		Pathname $dstPathname
@@ -588,7 +594,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::createDirectory()
+	 * {@inheritdoc}
 	 */
 	public function createDirectory(Pathname $pathname, $parents)
 	{
@@ -620,7 +626,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::createFile()
+	 * {@inheritdoc}
 	 */
 	public function createFile(Pathname $pathname, $parents)
 	{
@@ -665,7 +671,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getContents()
+	 * {@inheritdoc}
 	 */
 	public function getContents(Pathname $pathname)
 	{
@@ -685,7 +691,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::setContents()
+	 * {@inheritdoc}
 	 */
 	public function setContents(Pathname $pathname, $content, $create)
 	{
@@ -712,7 +718,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::appendContents()
+	 * {@inheritdoc}
 	 */
 	public function appendContents(Pathname $pathname, $content, $create)
 	{
@@ -741,7 +747,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::truncate()
+	 * {@inheritdoc}
 	 */
 	public function truncate(Pathname $pathname, $size)
 	{
@@ -765,7 +771,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getStream()
+	 * {@inheritdoc}
 	 */
 	public function getStream(Pathname $pathname)
 	{
@@ -775,7 +781,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getStreamURL()
+	 * {@inheritdoc}
 	 */
 	public function getStreamURL(Pathname $pathname)
 	{
@@ -783,7 +789,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getMIMEName()
+	 * {@inheritdoc}
 	 */
 	public function getMIMEName(Pathname $pathname)
 	{
@@ -805,7 +811,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getMIMEType()
+	 * {@inheritdoc}
 	 */
 	public function getMIMEType(Pathname $pathname)
 	{
@@ -827,7 +833,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getMIMEEncoding()
+	 * {@inheritdoc}
 	 */
 	public function getMIMEEncoding(Pathname $pathname)
 	{
@@ -849,7 +855,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getMD5()
+	 * {@inheritdoc}
 	 */
 	public function getMD5(Pathname $pathname, $binary)
 	{
@@ -870,7 +876,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getSHA1()
+	 * {@inheritdoc}
 	 */
 	public function getSHA1(Pathname $pathname, $binary)
 	{
@@ -891,7 +897,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::ls()
+	 * {@inheritdoc}
 	 */
 	public function ls(Pathname $pathname)
 	{
@@ -923,7 +929,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getFreeSpace()
+	 * {@inheritdoc}
 	 */
 	public function getFreeSpace(Pathname $pathname)
 	{
@@ -947,7 +953,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getTotalSpace()
+	 * {@inheritdoc}
 	 */
 	public function getTotalSpace(Pathname $pathname)
 	{

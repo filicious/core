@@ -27,7 +27,10 @@ use Filicious\Event\SetOwnerEvent;
 use Filicious\Event\TouchEvent;
 use Filicious\Event\TruncateEvent;
 use Filicious\Event\WriteEvent;
+use Filicious\Exception\FileNotFoundException;
+use Filicious\Exception\NotAFileException;
 use Filicious\Internals\Pathname;
+use Filicious\Iterator\FilesystemIterator;
 use Filicious\Plugin\FilePluginInterface;
 
 /**
@@ -42,11 +45,12 @@ class File
 	implements \IteratorAggregate, \Countable
 {
 
-	public static function getDateTime($time) {
-		if($time instanceof \DateTime) {
+	public static function getDateTime($time)
+	{
+		if ($time instanceof \DateTime) {
 			return $time;
 		}
-		if(is_int($time) || is_float($time)) {
+		if (is_int($time) || is_float($time)) {
 			return new \DateTime('@' . intval($time));
 		}
 		return new \DateTime($time);
@@ -54,34 +58,34 @@ class File
 
 	/**
 	 * @var int Flag for file operations, which involve a file target
-	 * 		destination, indicating that missing parent directories of the
-	 * 		operations file target destination should be created before the
-	 * 		execution of the operation is done
+	 *      destination, indicating that missing parent directories of the
+	 *      operations file target destination should be created before the
+	 *      execution of the operation is done
 	 */
-	const OPERATION_PARENTS		= 0x01;
+	const OPERATION_PARENTS = 0x01;
 	/**
 	 * @var int Flag for file operations to apply the execution recrusivly, if
-	 * 		the file being operated on is a directory.
+	 *      the file being operated on is a directory.
 	 */
-	const OPERATION_RECURSIVE	= 0x02;
+	const OPERATION_RECURSIVE = 0x02;
 	/**
 	 * @var int Flag for file operations, which involve a file target
-	 * 		destination, to reject the execution of the operation, if the
-	 * 		operations file target destination already exists. This flag
-	 * 		overrules the OPERATION_REPLACE flag.
+	 *      destination, to reject the execution of the operation, if the
+	 *      operations file target destination already exists. This flag
+	 *      overrules the OPERATION_REPLACE flag.
 	 */
-	const OPERATION_REJECT		= 0x10;
+	const OPERATION_REJECT = 0x10;
 	/**
 	 * @var int Flag for file operations, which involve a file target
-	 * 		destination, to merge the operations file source with the operations
-	 * 		file target destination.
+	 *      destination, to merge the operations file source with the operations
+	 *      file target destination.
 	 */
-	const OPERATION_MERGE		= 0x20;
+	const OPERATION_MERGE = 0x20;
 	/**
 	 * @var int Flag for file operations, which involve a file target
-	 * 		destination, to replace the target destination.
+	 *      destination, to replace the target destination.
 	 */
-	const OPERATION_REPLACE		= 0x40;
+	const OPERATION_REPLACE = 0x40;
 
 	/**
 	 * List everything (LIST_HIDDEN | LIST_VISIBLE | LIST_FILES | LIST_DIRECTORIES | LIST_LINKS | LIST_OPAQUE)
@@ -123,8 +127,14 @@ class File
 	 */
 	const LIST_RECURSIVE = 65536;
 
+	/**
+	 * @var Filesystem
+	 */
 	protected $filesystem;
 
+	/**
+	 * @var Pathname
+	 */
 	protected $pathname;
 
 	/**
@@ -165,6 +175,7 @@ class File
 	 * of the end of the basename.
 	 *
 	 * @param string $suffix The suffix to truncate
+	 *
 	 * @return string The basename
 	 */
 	public function getBasename($suffix = null)
@@ -190,7 +201,8 @@ class File
 	 *
 	 * @return string
 	 */
-	public function getDirname() {
+	public function getDirname()
+	{
 		return $this->pathname->parent()->full();
 	}
 
@@ -232,7 +244,7 @@ class File
 	 * Returns the date and time at which the file was accessed last time.
 	 *
 	 * @return \DateTime The last access time
-	 * @throws FileStateException If the file does not exists
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function getAccessTime()
 	{
@@ -245,8 +257,9 @@ class File
 	 * File::getDateTime.
 	 *
 	 * @param mixed $atime The new access time
+	 *
 	 * @return void
-	 * @throws FileStateException If the file does not exists
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function setAccessTime($atime = 'now')
 	{
@@ -258,7 +271,7 @@ class File
 	 * Returns the date and time at which the file was created.
 	 *
 	 * @return \DateTime The creation time
-	 * @throws FileStateException If the file does not exists
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function getCreationTime()
 	{
@@ -269,7 +282,7 @@ class File
 	 * Returns the time at which the file was modified last time.
 	 *
 	 * @return \DateTime The modify time
-	 * @throws FileStateException If the file does not exists
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function getModifyTime()
 	{
@@ -282,8 +295,9 @@ class File
 	 * File::getDateTime.
 	 *
 	 * @param mixed $atime The new modify time
+	 *
 	 * @return void
-	 * @throws FileStateException If the file does not exists
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function setModifyTime($mtime = 'now')
 	{
@@ -299,15 +313,16 @@ class File
 	 * is set to null, then the date and time given in the $time parameter will
 	 * be used for $atime.
 	 *
-	 * @param mixed $time The new modify time
-	 * @param mixed $atime The new access time; If null then $time will be used
-	 * @param bool $create Whether to create the file, if it does not already
-	 * 		exists
+	 * @param mixed $modifyTime   The new modify time
+	 * @param mixed $accessTime  The new access time; If null then $time will be used
+	 * @param bool  $create Whether to create the file, if it does not already
+	 *                      exists
+	 *
 	 * @return void
-	 * @throws FileStateException If the file does not exists and $create is set
-	 * 		to false
+	 * @throws FileNotFoundException If the file does not exists and $create is set
+	 *      to false
 	 */
-	public function touch($time = 'now', $atime = null, $create = true)
+	public function touch($modifyTime = 'now', $accessTime = null, $create = true)
 	{
 		$eventDispatcher = $this->filesystem->getEventDispatcher();
 
@@ -332,7 +347,7 @@ class File
 	 * Returns the size of the file.
 	 *
 	 * @return int The file size
-	 * @throws FileStateException If the file does not exists
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function getSize($recursive = false)
 	{
@@ -343,6 +358,7 @@ class File
 	 * Return the owner of the file.
 	 *
 	 * @return int|string
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function getOwner()
 	{
@@ -355,6 +371,7 @@ class File
 	 * @param $user
 	 *
 	 * @return File
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function setOwner($user)
 	{
@@ -373,6 +390,7 @@ class File
 	 * Return the group of the file.
 	 *
 	 * @return int|string
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function getGroup()
 	{
@@ -385,6 +403,7 @@ class File
 	 * @param $group
 	 *
 	 * @return File
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function setGroup($group)
 	{
@@ -403,6 +422,7 @@ class File
 	 * Return the permission mode of the file.
 	 *
 	 * @return int
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function getMode()
 	{
@@ -415,6 +435,7 @@ class File
 	 * @param $mode
 	 *
 	 * @return File
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function setMode($mode)
 	{
@@ -433,6 +454,7 @@ class File
 	 * Check if file is readable.
 	 *
 	 * @return bool
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function isReadable()
 	{
@@ -443,6 +465,7 @@ class File
 	 * Check if file is writable.
 	 *
 	 * @return bool
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function isWritable()
 	{
@@ -453,6 +476,7 @@ class File
 	 * Check if file is executable.
 	 *
 	 * @return bool
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function isExecutable()
 	{
@@ -476,6 +500,7 @@ class File
 	 * @param bool $force
 	 *
 	 * @return File
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function delete($recursive = false, $force = false)
 	{
@@ -505,6 +530,7 @@ class File
 	 * @param bool $parents
 	 *
 	 * @return File
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function copyTo(File $destination, $recursive = false, $overwrite = self::OPERATION_REJECT, $parents = false)
 	{
@@ -533,6 +559,7 @@ class File
 	 * @param bool $parents
 	 *
 	 * @return File
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function moveTo(File $destination, $overwrite = self::OPERATION_REJECT, $parents = false)
 	{
@@ -596,6 +623,7 @@ class File
 	 * Get contents of the file.
 	 *
 	 * @return string
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function getContents()
 	{
@@ -609,6 +637,7 @@ class File
 	 * @param bool $create
 	 *
 	 * @return File
+	 * @throws NotAFileException If the pathname is not a file.
 	 */
 	public function setContents($content, $create = true)
 	{
@@ -638,6 +667,7 @@ class File
 	 * @param bool $create
 	 *
 	 * @return File
+	 * @throws FileNotFoundException If the file does not exists
 	 */
 	public function appendContents($content, $create = true)
 	{
@@ -664,6 +694,8 @@ class File
 	 * Truncate file to a given size.
 	 *
 	 * @param int $size
+	 * @throws FileNotFoundException If the file does not exists
+	 * @throws NotAFileException If the pathname is not a file.
 	 */
 	public function truncate($size = 0)
 	{
@@ -682,6 +714,8 @@ class File
 	 * Get a stream object to the file.
 	 *
 	 * @return Stream
+	 * @throws FileNotFoundException If the file does not exists
+	 * @throws NotAFileException If the pathname is not a file.
 	 */
 	public function getStream()
 	{
@@ -702,9 +736,10 @@ class File
 	 * List all children of this directory.
 	 *
 	 * @param Variable list of filters.
-	 * - Flags File::LIST_*
-	 * - Glob pattern
-	 * - Callables
+	 *                 - Flags File::LIST_*
+	 *                 - Glob pattern
+	 *                 - Callables
+	 *
 	 * @return array
 	 * @throws \Filicious\Exception\NotADirectoryException
 	 */
@@ -727,10 +762,11 @@ class File
 	/**
 	 * Count all children of this directory.
 	 *
-	 * @param Variable list of filters.
-	 * - Flags File::LIST_*
-	 * - Glob pattern
-	 * - Callables
+	 * @param int|string|\Closure|callable $filter Variable list of filters.
+	 *                 - Flags File::LIST_*
+	 *                 - Glob pattern
+	 *                 - Callables
+	 *
 	 * @return int
 	 * @throws \Filicious\Exception\NotADirectoryException
 	 */
@@ -742,11 +778,12 @@ class File
 	/**
 	 * Get an iterator for this directory.
 	 *
-	 * @param Variable list of filters.
-	 * - Flags File::LIST_*
-	 * - Glob pattern
-	 * - Callables
-	 * @return \Iterator|\Traversable
+	 * @param int|string|\Closure|callable $filter Variable list of filters.
+	 *                 - Flags File::LIST_*
+	 *                 - Glob pattern
+	 *                 - Callables
+	 *
+	 * @return FilesystemIterator
 	 */
 	public function getIterator($filter = null, $_ = null)
 	{
@@ -794,7 +831,7 @@ class File
 	/**
 	 * INTERNAL USE ONLY
 	 *
-	 * @return Internals\Pathname|string
+	 * @return Internals\Pathname
 	 */
 	public function internalPathname()
 	{

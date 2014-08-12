@@ -19,7 +19,9 @@ use Filicious\Internals\Adapter;
  * An object that hold the absolute and the adapter local pathname.
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 final class Pathname
 {

@@ -20,6 +20,8 @@ namespace Filicious\Internals;
  * aggregation rules which are implementation specific.
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
+ * @author  Tristan Lins <tristan.lins@bit3.de>
  * @author  Oliver Hoff <oliver@hofff.com>
  */
 abstract class AggregateAdapter

@@ -29,6 +29,8 @@ use Filicious\Filesystem;
  * calculated by applying the mapping rules of intermediate adapters.
  * 
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
+ * @author  Tristan Lins <tristan.lins@bit3.de>
  * @author  Oliver Hoff <oliver@hofff.com>
  */
 interface Adapter

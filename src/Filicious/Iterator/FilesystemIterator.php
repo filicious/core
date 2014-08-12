@@ -22,7 +22,9 @@ use Filicious\Internals\Util;
  * Filesystem iterator
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 class FilesystemIterator
 	extends PathnameIterator

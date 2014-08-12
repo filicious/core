@@ -18,7 +18,9 @@ namespace Filicious\Stream;
  * A file stream object.
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 abstract class StreamObserver
 {

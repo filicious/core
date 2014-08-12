@@ -21,7 +21,9 @@ use Filicious\Exception\StreamWrapperNotRegisteredException;
  * Stream wrapper manager and organizer.
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 final class StreamManager
 {

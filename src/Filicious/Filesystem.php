@@ -16,6 +16,7 @@ namespace Filicious;
 use Filicious\Internals\Adapter;
 use Filicious\Internals\RootAdapter;
 use Filicious\Internals\Pathname;
+use Filicious\Internals\Util;
 
 /**
  * Virtual filesystem structure.
@@ -62,31 +63,9 @@ class Filesystem
 			return new File($this, $path);
 		}
 
-		$pathname = implode('/', static::getPathnameParts($path));
+		$pathname = implode('/', Util::getPathnameParts($path));
 		strlen($pathname) && $pathname = '/' . $pathname;
 		return new File($this, new Pathname($this->adapter, $pathname));
-	}
-	
-	public static function getPathnameParts($path)
-	{
-		$path = strval($path);
-		if(!strlen($path)) {
-			return array();
-		}
-		$path = str_replace('\\', '/', $path);
-		$path = preg_replace('@^(?>[a-zA-Z]:)?[/\s]+|[/\s]+$@', '', $path); // TODO how to handle win pathnames?
-		$parts = array();
-		
-		foreach (explode('/', $path) as $part) {
-			if($part === '..') {
-				array_pop($parts);
-			}
-			elseif($part !== '.' && strlen($part)) {
-				$parts[] = $part;
-			}
-		}
-		
-		return $parts;
 	}
 
 // 	/**

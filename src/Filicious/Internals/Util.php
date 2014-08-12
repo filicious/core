@@ -264,7 +264,28 @@ class Util
 	
 		return static::$finfo;
 	}
-	
+
+	public static function getPathnameParts($path)
+	{
+		$path = strval($path);
+		if(!strlen($path)) {
+			return array();
+		}
+		$path = str_replace('\\', '/', $path);
+		$path = preg_replace('@^(?>[a-zA-Z]:)?[/\s]+|[/\s]+$@', '', $path); // TODO how to handle win pathnames?
+		$parts = array();
+
+		foreach (explode('/', $path) as $part) {
+			if($part === '..') {
+				array_pop($parts);
+			}
+			elseif($part !== '.' && strlen($part)) {
+				$parts[] = $part;
+			}
+		}
+
+		return $parts;
+	}
 
 	/**
 	 * Dirname function that only split on "/", required because we use UNIX path names all the time, even on windows!

@@ -17,6 +17,7 @@ use Filicious\Exception\FilesystemException;
 
 class PluginManager
 {
+
 	/**
 	 * @var PluginInterface[]
 	 */

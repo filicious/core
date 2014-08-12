@@ -37,7 +37,7 @@ class DiskSpaceFilePlugin extends AbstractFilePlugin
 		$file = $this->getFile();
 
 		return Util::executeFunction(
-			function() use ($algorithm, $file, $binary) {
+			function () use ($algorithm, $file, $binary) {
 				return space(
 					$algorithm,
 					$file->getContents(),

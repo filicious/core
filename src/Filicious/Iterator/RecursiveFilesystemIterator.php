@@ -37,8 +37,8 @@ class RecursiveFilesystemIterator
 	public function hasChildren()
 	{
 		return $this->valid() &&
-			$this->currentFile()->isDirectory() &&
-			$this->applyGlobSearchPattern();
+		$this->currentFile()->isDirectory() &&
+		$this->applyGlobSearchPattern();
 	}
 
 	/**

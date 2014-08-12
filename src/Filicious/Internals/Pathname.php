@@ -23,6 +23,7 @@ namespace Filicious\Internals;
  */
 final class Pathname
 {
+
 	/**
 	 * The root adapter
 	 *
@@ -53,34 +54,37 @@ final class Pathname
 
 	/**
 	 * @param Adapter $adapter The root adapter
-	 * @param string $full  The full abstracted pathname
+	 * @param string  $full    The full abstracted pathname
 	 */
 	public function __construct(RootAdapter $adapter, $full)
 	{
-		$this->adapter = $adapter;
-		$this->full  = Util::normalizePath('/' . $full);
+		$this->adapter      = $adapter;
+		$this->full         = Util::normalizePath('/' . $full);
 		$this->localAdapter = null;
-		$this->local = null;
+		$this->local        = null;
 	}
 
 	/**
 	 * @return RootAdapter
 	 */
-	public function rootAdapter() {
+	public function rootAdapter()
+	{
 		return $this->adapter;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function full() {
+	public function full()
+	{
 		return $this->full;
 	}
 
 	/**
 	 * @return Adapter
 	 */
-	public function localAdapter() {
+	public function localAdapter()
+	{
 		if ($this->localAdapter === null) {
 			$this->adapter->resolveLocal(
 				$this,
@@ -95,7 +99,8 @@ final class Pathname
 	/**
 	 * @return string
 	 */
-	public function local() {
+	public function local()
+	{
 		if ($this->local === null) {
 			$this->adapter->resolveLocal(
 				$this,
@@ -110,7 +115,8 @@ final class Pathname
 	/**
 	 * @return string
 	 */
-	public function basename() {
+	public function basename()
+	{
 		return basename($this->full);
 	}
 
@@ -119,7 +125,8 @@ final class Pathname
 	 *
 	 * @return Pathname
 	 */
-	public function parent() {
+	public function parent()
+	{
 		return new Pathname($this->adapter, Util::dirname($this->full()));
 	}
 
@@ -130,7 +137,8 @@ final class Pathname
 	 *
 	 * @return Pathname
 	 */
-	public function child($basename) {
+	public function child($basename)
+	{
 		if ($basename instanceof Pathname) {
 			$basename = $basename->basename();
 		}

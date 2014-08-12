@@ -141,11 +141,12 @@ class File
 	 */
 	public function __construct(Pathname $pathname)
 	{
-		$this->pathname   = $pathname->rootAdapter()->getFilesystem();
+		$this->pathname = $pathname->rootAdapter()->getFilesystem();
 	}
 
 	/**
 	 * Get the filesystem this
+	 *
 	 * @return Filesystem
 	 */
 	public function getFilesystem()
@@ -312,10 +313,10 @@ class File
 	 * is set to null, then the date and time given in the $time parameter will
 	 * be used for $atime.
 	 *
-	 * @param mixed $modifyTime   The new modify time
-	 * @param mixed $accessTime  The new access time; If null then $time will be used
-	 * @param bool  $create Whether to create the file, if it does not already
-	 *                      exists
+	 * @param mixed $modifyTime The new modify time
+	 * @param mixed $accessTime The new access time; If null then $time will be used
+	 * @param bool  $create     Whether to create the file, if it does not already
+	 *                          exists
 	 *
 	 * @return void
 	 * @throws FileNotFoundException If the file does not exists and $create is set
@@ -332,7 +333,7 @@ class File
 			$exists = null;
 		}
 
-		$modifyTime  = static::getDateTime($modifyTime);
+		$modifyTime = static::getDateTime($modifyTime);
 		$accessTime = $accessTime === null ? $modifyTime : static::getDateTime($accessTime);
 		$this->pathname->rootAdapter()->touch($this->pathname, $modifyTime, $accessTime, $create);
 
@@ -693,6 +694,7 @@ class File
 	 * Truncate file to a given size.
 	 *
 	 * @param int $size
+	 *
 	 * @throws FileNotFoundException If the file does not exists
 	 * @throws NotAFileException If the pathname is not a file.
 	 */
@@ -734,10 +736,10 @@ class File
 	/**
 	 * List all children of this directory.
 	 *
-	 * @param Variable list of filters.
-	 *                 - Flags File::LIST_*
-	 *                 - Glob pattern
-	 *                 - Callables
+	 * @param int|string|\Closure|callable $filter Variable list of filters.
+	 *                                             - Flags File::LIST_*
+	 *                                             - Glob pattern
+	 *                                             - Callables
 	 *
 	 * @return array
 	 * @throws \Filicious\Exception\NotADirectoryException
@@ -762,9 +764,9 @@ class File
 	 * Count all children of this directory.
 	 *
 	 * @param int|string|\Closure|callable $filter Variable list of filters.
-	 *                 - Flags File::LIST_*
-	 *                 - Glob pattern
-	 *                 - Callables
+	 *                                             - Flags File::LIST_*
+	 *                                             - Glob pattern
+	 *                                             - Callables
 	 *
 	 * @return int
 	 * @throws \Filicious\Exception\NotADirectoryException
@@ -778,9 +780,9 @@ class File
 	 * Get an iterator for this directory.
 	 *
 	 * @param int|string|\Closure|callable $filter Variable list of filters.
-	 *                 - Flags File::LIST_*
-	 *                 - Glob pattern
-	 *                 - Callables
+	 *                                             - Flags File::LIST_*
+	 *                                             - Glob pattern
+	 *                                             - Callables
 	 *
 	 * @return FilesystemIterator
 	 */
@@ -801,8 +803,8 @@ class File
 		$pluginManager = $this->filesystem->getPluginManager();
 
 		return $pluginManager &&
-			$pluginManager->hasPlugin($name) &&
-			$pluginManager->getPlugin($name)->providesFilePlugin($this);
+		$pluginManager->hasPlugin($name) &&
+		$pluginManager->getPlugin($name)->providesFilePlugin($this);
 	}
 
 	/**

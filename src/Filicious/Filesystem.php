@@ -112,8 +112,8 @@ class Filesystem
 	public function hasPlugin($name)
 	{
 		return $this->pluginManager &&
-			$this->pluginManager->hasPlugin($name) &&
-			$this->pluginManager->getPlugin($name)->providesFilesystemPlugin($this);
+		$this->pluginManager->hasPlugin($name) &&
+		$this->pluginManager->getPlugin($name)->providesFilesystemPlugin($this);
 	}
 
 	/**

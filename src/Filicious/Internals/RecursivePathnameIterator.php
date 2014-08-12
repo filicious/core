@@ -35,13 +35,14 @@ class RecursivePathnameIterator extends PathnameIterator
 	public function hasChildren()
 	{
 		return $this->valid() &&
-			$this->current()->isDirectory() &&
-			$this->applyGlobSearchPattern();
+		$this->current()->isDirectory() &&
+		$this->applyGlobSearchPattern();
 	}
 
 	/**
 	 * (PHP 5 &gt;= 5.1.0)<br/>
 	 * Returns an iterator for the current entry.
+	 *
 	 * @link http://php.net/manual/en/recursiveiterator.getchildren.php
 	 * @return RecursiveIterator An iterator for the current entry.
 	 */
@@ -53,4 +54,5 @@ class RecursivePathnameIterator extends PathnameIterator
 		);
 		$iterator->prepareFilters($this);
 		return $iterator;
-	}}
+	}
+}

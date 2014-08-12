@@ -33,7 +33,7 @@ class MoveEvent extends SourceDestinationFileEvent
 	{
 		parent::__construct($filesystem, $source, $destination);
 		$this->overwrite = (int) $overwrite;
-		$this->parents = (bool) $parents;
+		$this->parents   = (bool) $parents;
 	}
 
 	/**

@@ -23,6 +23,7 @@ namespace Filicious\Stream;
  */
 class StreamMode
 {
+
 	/**
 	 * The mode.
 	 *
@@ -84,12 +85,12 @@ class StreamMode
 		$this->mode = $mode;
 		$this->keys = str_split($mode);
 
-		$this->read       = in_array('r', $this->keys) || in_array('+', $this->keys);
-		$this->write      = in_array('w', $this->keys) || in_array('+', $this->keys);
-		$this->append     = in_array('a', $this->keys);
-		$this->createOnly = in_array('x', $this->keys);
+		$this->read            = in_array('r', $this->keys) || in_array('+', $this->keys);
+		$this->write           = in_array('w', $this->keys) || in_array('+', $this->keys);
+		$this->append          = in_array('a', $this->keys);
+		$this->createOnly      = in_array('x', $this->keys);
 		$this->noTruncateWrite = in_array('c', $this->keys);
-		$this->binary     = in_array('b', $this->keys);
+		$this->binary          = in_array('b', $this->keys);
 	}
 
 	/**

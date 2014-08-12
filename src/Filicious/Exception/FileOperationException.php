@@ -26,12 +26,14 @@ use Filicious\Internals\Pathname;
 class FileOperationException
 	extends FilesystemException
 {
+
 	/**
 	 * @var \Filicious\Internals\Pathname
 	 */
 	protected $pathname;
 
-	public function __construct(Pathname $pathname, $code = 0, \Exception $previous = null) {
+	public function __construct(Pathname $pathname, $code = 0, \Exception $previous = null)
+	{
 		if ($code === 0) {
 			$code = FilesystemException::NOT_A_DIRECTORY;
 		}

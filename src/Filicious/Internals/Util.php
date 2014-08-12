@@ -46,15 +46,15 @@ class Util
 			$abs = '';
 		}
 		else {
-			$abs = $match[1];
+			$abs  = $match[1];
 			$path = substr($path, strlen($abs));
 		}
-		$path = preg_replace('@^[/\s]+|[/\s]+$@', '', $path);
-		$path = preg_replace('@/+@', '/', $path);
+		$path  = preg_replace('@^[/\s]+|[/\s]+$@', '', $path);
+		$path  = preg_replace('@/+@', '/', $path);
 		$parts = array();
 
 		foreach (explode('/', $path) as $part) {
-			if($part === '.' || $part === '..' && array_pop($parts) || $part == $abs) {
+			if ($part === '.' || $part === '..' && array_pop($parts) || $part == $abs) {
 				continue;
 			}
 			$parts[] = $part;
@@ -237,9 +237,9 @@ class Util
 		}
 		else if (strlen($string) == 9) {
 			return '0' .
-				static::string2bitMode(substr($string, 0, 3)) .
-				static::string2bitMode(substr($string, 3, 3)) .
-				static::string2bitMode(substr($string, 6, 3));
+			static::string2bitMode(substr($string, 0, 3)) .
+			static::string2bitMode(substr($string, 3, 3)) .
+			static::string2bitMode(substr($string, 6, 3));
 		}
 		else if (strlen($string) == 10) {
 			return static::string2bitMode(substr($string, 1));
@@ -251,7 +251,7 @@ class Util
 	 * @var resource
 	 */
 	protected static $finfo = null;
-	
+
 	/**
 	 * Get the FileInfo resource identifier.
 	 *
@@ -262,25 +262,25 @@ class Util
 		if (static::$finfo === null) {
 			static::$finfo = finfo_open();
 		}
-	
+
 		return static::$finfo;
 	}
 
 	public static function getPathnameParts($path)
 	{
 		$path = strval($path);
-		if(!strlen($path)) {
+		if (!strlen($path)) {
 			return array();
 		}
-		$path = str_replace('\\', '/', $path);
-		$path = preg_replace('@^(?>[a-zA-Z]:)?[/\s]+|[/\s]+$@', '', $path); // TODO how to handle win pathnames?
+		$path  = str_replace('\\', '/', $path);
+		$path  = preg_replace('@^(?>[a-zA-Z]:)?[/\s]+|[/\s]+$@', '', $path); // TODO how to handle win pathnames?
 		$parts = array();
 
 		foreach (explode('/', $path) as $part) {
-			if($part === '..') {
+			if ($part === '..') {
 				array_pop($parts);
 			}
-			elseif($part !== '.' && strlen($part)) {
+			elseif ($part !== '.' && strlen($part)) {
 				$parts[] = $part;
 			}
 		}
@@ -316,7 +316,8 @@ class Util
 	 * @return mixed
 	 * @throws AdapterException
 	 */
-	public static function executeFunction($callback, $exceptionClass, $errorCode, $errorMessage) {
+	public static function executeFunction($callback, $exceptionClass, $errorCode, $errorMessage)
+	{
 		$error = null;
 
 		try {
@@ -324,7 +325,7 @@ class Util
 		}
 		catch (\ErrorException $exception) {
 			$result = false;
-			$error = $exception;
+			$error  = $exception;
 		}
 
 		if ($error !== null || $result === false) {

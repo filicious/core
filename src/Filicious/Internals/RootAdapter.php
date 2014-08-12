@@ -26,6 +26,7 @@ use Filicious\Filesystem;
 class RootAdapter
 	extends DelegatorAdapter
 {
+
 	protected $streamScheme;
 
 	protected $streamHost;

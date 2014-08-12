@@ -33,7 +33,7 @@ class MimeFilePlugin extends AbstractFilePlugin
 		}
 
 		return Util::executeFunction(
-			function() {
+			function () {
 				return finfo_buffer(
 					Util::getFileInfo(),
 					$this->file->getContents(),
@@ -60,7 +60,7 @@ class MimeFilePlugin extends AbstractFilePlugin
 		}
 
 		return Util::executeFunction(
-			function() {
+			function () {
 				return finfo_buffer(
 					Util::getFileInfo(),
 					$this->file->getContents(),
@@ -87,7 +87,7 @@ class MimeFilePlugin extends AbstractFilePlugin
 		}
 
 		return Util::executeFunction(
-			function() {
+			function () {
 				return finfo_buffer(
 					Util::getFileInfo(),
 					$this->file->getContents(),

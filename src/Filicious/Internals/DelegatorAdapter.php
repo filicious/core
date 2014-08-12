@@ -26,6 +26,7 @@ use Filicious\Filesystem;
 class DelegatorAdapter
 	implements Adapter
 {
+
 	/**
 	 * @var Filesystem
 	 */
@@ -62,7 +63,8 @@ class DelegatorAdapter
 	 *
 	 * @return \Filicious\Internals\Adapter
 	 */
-	protected function selectDelegate(Pathname $pathname = null) {
+	protected function selectDelegate(Pathname $pathname = null)
+	{
 		return $this->delegate;
 	}
 

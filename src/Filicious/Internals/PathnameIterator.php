@@ -29,6 +29,7 @@ use SeekableIterator;
 class PathnameIterator
 	implements Iterator, SeekableIterator
 {
+
 	/**
 	 * @var Pathname
 	 */
@@ -291,17 +292,17 @@ class PathnameIterator
 		$basename = $file->getBasename();
 
 		if (!($this->bitmask & File::LIST_HIDDEN) &&
-				$basename[0] == '.' ||
+			$basename[0] == '.' ||
 			!($this->bitmask & File::LIST_VISIBLE) &&
-				$basename[0] != '.' ||
+			$basename[0] != '.' ||
 			!($this->bitmask & File::LIST_FILES) &&
-				$file->isFile() ||
+			$file->isFile() ||
 			!($this->bitmask & File::LIST_DIRECTORIES) &&
-				$file->isDirectory() ||
+			$file->isDirectory() ||
 			!($this->bitmask & File::LIST_LINKS) &&
-				$file->isLink() ||
+			$file->isLink() ||
 			!($this->bitmask & File::LIST_OPAQUE) &&
-				!$file->isLink()
+			!$file->isLink()
 		) {
 			return false;
 		}
@@ -453,7 +454,7 @@ class PathnameIterator
 	 *
 	 * @param int $position <p>
 	 *                      The position to seek to.
-	 * </p>
+	 *                      </p>
 	 *
 	 * @return void
 	 */

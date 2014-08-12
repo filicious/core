@@ -25,6 +25,7 @@ use Filicious\Stream;
  */
 abstract class ObservableStream implements Stream
 {
+
 	protected $observers = array();
 
 	/**

@@ -26,6 +26,7 @@ use Filicious\Internals\Pathname;
 class NotAFileException
 	extends FilesystemException
 {
+
 	/**
 	 * @var \Filicious\Internals\Pathname
 	 */
@@ -33,7 +34,8 @@ class NotAFileException
 
 	protected $local;
 
-	public function __construct(Pathname $pathname, $code = 0, $previous = null) {
+	public function __construct(Pathname $pathname, $code = 0, $previous = null)
+	{
 		if ($code === 0) {
 			$code = FilesystemException::NOT_A_FILE;
 		}

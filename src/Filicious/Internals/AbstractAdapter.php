@@ -32,6 +32,7 @@ use Filicious\Filesystem;
 abstract class AbstractAdapter
 	implements Adapter
 {
+
 	protected $fs;
 
 	protected $root;
@@ -95,7 +96,7 @@ abstract class AbstractAdapter
 	public function resolveLocal(Pathname $pathname, &$localAdapter, &$local)
 	{
 		$localAdapter = $this;
-		$local = $pathname->full();
+		$local        = $pathname->full();
 	}
 
 	/**
@@ -248,7 +249,7 @@ abstract class AbstractAdapter
 
 				// stream copy
 				return $this->execute(
-					function() use ($srcPathname, $dstPathname) {
+					function () use ($srcPathname, $dstPathname) {
 						$srcStream = $srcPathname->localAdapter()->getStream($srcPathname);
 						$srcStream->open(new StreamMode('rb'));
 
@@ -454,7 +455,7 @@ abstract class AbstractAdapter
 
 				// stream move
 				return $this->execute(
-					function() use ($srcPathname, $dstPathname) {
+					function () use ($srcPathname, $dstPathname) {
 						$srcStream = $srcPathname->localAdapter()->getStream($srcPathname);
 						$srcStream->open(new StreamMode('rb'));
 

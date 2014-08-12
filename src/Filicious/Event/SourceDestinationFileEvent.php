@@ -32,7 +32,7 @@ class SourceDestinationFileEvent extends FilesystemEvent
 	public function __construct(Filesystem $filesystem, File $source, File $target)
 	{
 		parent::__construct($filesystem);
-		$this->source = $source;
+		$this->source      = $source;
 		$this->destination = $target;
 	}
 

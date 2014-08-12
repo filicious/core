@@ -26,6 +26,7 @@ use Filicious\Internals\Pathname;
 class DirectoryOverwriteFileException
 	extends FilesystemException
 {
+
 	/**
 	 * @var \Filicious\Internals\Pathname
 	 */
@@ -36,7 +37,8 @@ class DirectoryOverwriteFileException
 	 */
 	protected $dstPathname;
 
-	public function __construct(Pathname $srcPathname, Pathname $dstPathname, $code = 0, $previous = null) {
+	public function __construct(Pathname $srcPathname, Pathname $dstPathname, $code = 0, $previous = null)
+	{
 		parent::__construct(
 			sprintf('Could not replace file %s with directory %s!', $dstPathname->full(), $srcPathname->full()),
 			$code,

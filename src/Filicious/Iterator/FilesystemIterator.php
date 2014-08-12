@@ -64,8 +64,8 @@ class FilesystemIterator
 	protected $flags = 0;
 
 	/**
-	 * @param \Filicious\File $path
-	 * @param int|string|callable   $_ List of flags, bitmask filters File::LIST_*, glob patterns or callables function($file) { return true|false; }
+	 * @param \Filicious\File     $path
+	 * @param int|string|callable $_ List of flags, bitmask filters File::LIST_*, glob patterns or callables function($file) { return true|false; }
 	 */
 	public function __construct(File $path, $_ = null)
 	{
@@ -97,79 +97,82 @@ class FilesystemIterator
 		parent::__construct($path->internalPathname(), $filters);
 	}
 
-    /**
-     * (PHP 5 &gt;= 5.0.0)<br/>
-     * Return the current element
-     * @link http://php.net/manual/en/iterator.current.php
-     * @return mixed
+	/**
+	 * (PHP 5 &gt;= 5.0.0)<br/>
+	 * Return the current element
+	 *
+	 * @link http://php.net/manual/en/iterator.current.php
+	 * @return mixed
 	 */
-    public function current()
-    {
-        if ($this->valid()) {
-            if ($this->flags & self::CURRENT_AS_SELF) {
-                return $this;
-            }
-            else if ($this->flags & self::CURRENT_AS_PATHNAME) {
-                return $this->currentFile()->getPathname();
-            }
-            else if ($this->flags & self::CURRENT_AS_BASENAME) {
-                return $this->currentFile()->getBasename();
-            }
-            return $this->currentFile();
-        }
-        else {
-            return null;
-        }
-    }
+	public function current()
+	{
+		if ($this->valid()) {
+			if ($this->flags & self::CURRENT_AS_SELF) {
+				return $this;
+			}
+			else if ($this->flags & self::CURRENT_AS_PATHNAME) {
+				return $this->currentFile()->getPathname();
+			}
+			else if ($this->flags & self::CURRENT_AS_BASENAME) {
+				return $this->currentFile()->getBasename();
+			}
+			return $this->currentFile();
+		}
+		else {
+			return null;
+		}
+	}
 
-    /**
-     * (PHP 5 &gt;= 5.0.0)<br/>
-     * Return the key of the current element
-     * @link http://php.net/manual/en/iterator.key.php
-     * @return int scalar on success, or null on failure.
-     */
-    public function key()
-    {
-        if ($this->flags & self::KEY_AS_FILENAME) {
-            return $this->currentFile()->getFilename();
-        }
-        return $this->currentFile()->getPathname();
-    }
+	/**
+	 * (PHP 5 &gt;= 5.0.0)<br/>
+	 * Return the key of the current element
+	 *
+	 * @link http://php.net/manual/en/iterator.key.php
+	 * @return int scalar on success, or null on failure.
+	 */
+	public function key()
+	{
+		if ($this->flags & self::KEY_AS_FILENAME) {
+			return $this->currentFile()->getFilename();
+		}
+		return $this->currentFile()->getPathname();
+	}
 
-    /**
-     * (PHP 5 &gt;= 5.1.0)<br/>
-     * Seeks to a position
-     * @link http://php.net/manual/en/seekableiterator.seek.php
-     *
-     * @param int $position <p>
-     *                      The position to seek to.
-     * </p>
-     *
-     * @return void
-     */
-    public function seek($position)
-    {
-        if (is_numeric($position)) {
-            $this->index = (int) $position;
-        }
-        else {
-            /** @var int $index */
-            /** @var File $file */
-            foreach ($this->keys as $index => $key) {
-                $file = $this->files[$key];
-                if ($this->flags & self::KEY_AS_FILENAME) {
-                    if ($file->getFilename() == $position) {
-                        $this->index = $index;
-                        return;
-                    }
-                }
-                else {
-                    if ($file->getPathname() == $position) {
-                        $this->index = $index;
-                        return;
-                    }
-                }
-            }
-        }
-    }
+	/**
+	 * (PHP 5 &gt;= 5.1.0)<br/>
+	 * Seeks to a position
+	 *
+	 * @link http://php.net/manual/en/seekableiterator.seek.php
+	 *
+	 * @param int $position <p>
+	 *                      The position to seek to.
+	 *                      </p>
+	 *
+	 * @return void
+	 */
+	public function seek($position)
+	{
+		if (is_numeric($position)) {
+			$this->index = (int) $position;
+		}
+		else {
+			/** @var int $index */
+			/** @var File $file */
+			foreach ($this->keys as $index => $key) {
+				$file = $this->files[$key];
+				if ($this->flags & self::KEY_AS_FILENAME) {
+					if ($file->getFilename() == $position) {
+						$this->index = $index;
+						return;
+					}
+				}
+				else {
+					if ($file->getPathname() == $position) {
+						$this->index = $index;
+						return;
+					}
+				}
+			}
+		}
+	}
 }

@@ -25,6 +25,7 @@ use Exception;
  */
 class StreamNotSupportedException extends StreamException
 {
+
 	protected $pathname;
 
 	public function __construct($srcPathname, Exception $previous = null)

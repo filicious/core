@@ -27,13 +27,15 @@ namespace Filicious\Internals;
 class MountAdapter
 	extends AggregateAdapter
 {
-	
-	public function __construct() {
+
+	public function __construct()
+	{
 		parent::__construct();
 	}
-	
-	public function selectAdapter($pathname, array $entries) {
+
+	public function selectAdapter($pathname, array $entries)
+	{
 		return end($entries);
 	}
-	
+
 }

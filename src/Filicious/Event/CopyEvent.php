@@ -34,12 +34,18 @@ class CopyEvent extends SourceDestinationFileEvent
 	 */
 	protected $parents;
 
-	public function __construct(Filesystem $filesystem, File $source, File $destination, $recursive, $overwrite, $parents)
-	{
+	public function __construct(
+		Filesystem $filesystem,
+		File $source,
+		File $destination,
+		$recursive,
+		$overwrite,
+		$parents
+	) {
 		parent::__construct($filesystem, $source, $destination);
 		$this->recursive = (bool) $recursive;
 		$this->overwrite = (int) $overwrite;
-		$this->parents = (bool) $parents;
+		$this->parents   = (bool) $parents;
 	}
 
 	/**

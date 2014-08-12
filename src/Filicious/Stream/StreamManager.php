@@ -27,6 +27,7 @@ use Filicious\Filesystem;
  */
 final class StreamManager
 {
+
 	/**
 	 * Map of registered wrappers and filesystems.
 	 *

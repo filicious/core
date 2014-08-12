@@ -26,12 +26,14 @@ use Filicious\Internals\Pathname;
 class FileNotFoundException
 	extends FilesystemException
 {
+
 	/**
 	 * @var \Filicious\Internals\Pathname
 	 */
 	protected $pathname;
 
-	public function __construct(Pathname $pathname, $code = 0, $previous = null) {
+	public function __construct(Pathname $pathname, $code = 0, $previous = null)
+	{
 		if ($code === 0) {
 			$code = FilesystemException::FILE_NOT_FOUND;
 		}

@@ -23,6 +23,7 @@ namespace Filicious\Exception;
  */
 class StreamWrapperNotRegisteredException extends StreamException
 {
+
 	protected $scheme;
 
 	protected $host;

@@ -26,6 +26,10 @@ use Filicious\Exception\FileOverwriteDirectoryException;
 use Filicious\Exception\FileOverwriteFileException;
 Use Filicious\Stream\BuildInStream;
 use Filicious\Stream\StreamMode;
+use Filicious\Plugin\DiskSpace\DiskSpaceAwareAdapterInterface;
+use Filicious\Plugin\Hash\HashAwareAdapterInterface;
+use Filicious\Plugin\Link\LinkAwareAdapterInterface;
+use Filicious\Plugin\Mime\MimeAwareAdapterInterface;
 
 /**
  * Local filesystem adapter.
@@ -35,6 +39,8 @@ use Filicious\Stream\StreamMode;
  */
 class LocalAdapter
 	extends AbstractAdapter
+	implements MimeAwareAdapterInterface, HashAwareAdapterInterface, LinkAwareAdapterInterface,
+				  DiskSpaceAwareAdapterInterface
 {
 
 	/**
@@ -773,132 +779,6 @@ class LocalAdapter
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getStream(Pathname $pathname)
-	{
-		$this->checkFile($pathname);
-
-		return new BuildInStream('file://' . $this->getBasepath() . $pathname->local(), $pathname);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getStreamURL(Pathname $pathname)
-	{
-		// TODO get stream protocol from filesystem!
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getMIMEName(Pathname $pathname)
-	{
-		$this->checkFile($pathname);
-
-		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $self) {
-				return finfo_file(
-					FS::getFileInfo(),
-					$self->getBasepath() . $pathname->local(),
-					FILEINFO_NONE
-				);
-			},
-			0,
-			'Could not get mime name of %s.',
-			$pathname
-		);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getMIMEType(Pathname $pathname)
-	{
-		$this->checkFile($pathname);
-
-		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $self) {
-				return finfo_file(
-					FS::getFileInfo(),
-					$self->getBasepath() . $pathname->local(),
-					FILEINFO_MIME_TYPE
-				);
-			},
-			0,
-			'Could not get mime type of %s.',
-			$pathname
-		);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getMIMEEncoding(Pathname $pathname)
-	{
-		$this->checkFile($pathname);
-
-		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $self) {
-				return finfo_file(
-					FS::getFileInfo(),
-					$self->getBasepath() . $pathname->local(),
-					FILEINFO_MIME_ENCODING
-				);
-			},
-			0,
-			'Could not get mime encoding of %s.',
-			$pathname
-		);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getMD5(Pathname $pathname, $binary)
-	{
-		$this->checkFile($pathname);
-
-		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $binary, $self) {
-				return md5_file(
-					$self->getBasepath() . $pathname->local(),
-					$binary
-				);
-			},
-			0,
-			'Could not calculate md5 sum of %s.',
-			$pathname
-		);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getSHA1(Pathname $pathname, $binary)
-	{
-		$this->checkFile($pathname);
-
-		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $binary, $self) {
-				return sha1_file(
-					$self->getBasepath() . $pathname->local(),
-					$binary
-				);
-			},
-			0,
-			'Could not calculate sha1 sum of %s.',
-			$pathname
-		);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
 	public function ls(Pathname $pathname)
 	{
 		$this->checkDirectory($pathname);
@@ -927,6 +807,167 @@ class LocalAdapter
 			)
 		);
 	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getStream(Pathname $pathname)
+	{
+		$this->checkFile($pathname);
+
+		return new BuildInStream('file://' . $this->getBasePath() . $pathname->local(), $pathname);
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getStreamURL(Pathname $pathname)
+	{
+		// TODO get stream protocol from filesystem!
+	}
+
+	/*
+	 * ------------------------------------------------------------
+	 *                          Mime plugin
+	 * ------------------------------------------------------------
+	 */
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getMimeName(Pathname $pathname)
+	{
+		$this->checkFile($pathname);
+
+		$self = $this;
+		return Util::executeFunction(
+			function () use ($pathname, $self) {
+				return finfo_file(
+					Util::getFileInfo(),
+					$self->getBasePath() . $pathname->local(),
+					FILEINFO_NONE
+				);
+			},
+			'Filicious\Exception\AdapterException',
+			0,
+			'Could not get mime name of %s.',
+			$pathname
+		);
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getMimeType(Pathname $pathname)
+	{
+		$this->checkFile($pathname);
+
+		$self = $this;
+		return Util::executeFunction(
+			function () use ($pathname, $self) {
+				return finfo_file(
+					Util::getFileInfo(),
+					$self->getBasePath() . $pathname->local(),
+					FILEINFO_MIME_TYPE
+				);
+			},
+			'Filicious\Exception\AdapterException',
+			0,
+			'Could not get mime type of %s.',
+			$pathname
+		);
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getMimeEncoding(Pathname $pathname)
+	{
+		$this->checkFile($pathname);
+
+		$self = $this;
+		return Util::executeFunction(
+			function () use ($pathname, $self) {
+				return finfo_file(
+					Util::getFileInfo(),
+					$self->getBasePath() . $pathname->local(),
+					FILEINFO_MIME_ENCODING
+				);
+			},
+			'Filicious\Exception\AdapterException',
+			0,
+			'Could not get mime encoding of %s.',
+			$pathname
+		);
+	}
+
+	/*
+	 * ------------------------------------------------------------
+	 *                          Hash plugin
+	 * ------------------------------------------------------------
+	 */
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getHash(Pathname $pathname, $algorithm, $binary)
+	{
+		$this->checkFile($pathname);
+
+		$self = $this;
+		return Util::executeFunction(
+			function () use ($pathname, $algorithm, $binary, $self) {
+				return hash_file(
+					$self->getBasePath() . $pathname->local(),
+					$algorithm,
+					$binary
+				);
+			},
+			'Filicious\Exception\AdapterException',
+			0,
+			'Could not calculate %s hash of %s.',
+			$algorithm,
+			$pathname
+		);
+	}
+
+	/*
+	 * ------------------------------------------------------------
+	 *                          Link plugin
+	 * ------------------------------------------------------------
+	 */
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function isLink(Pathname $pathname)
+	{
+		if (!$this->exists($pathname)) {
+			return false;
+		}
+
+		return is_link($this->getBasePath() . $pathname->local());
+	}
+
+	/**
+	 * Receive the link target from symbolic links.
+	 *
+	 * @return string|null
+	 */
+	public function getLinkTarget(Pathname $pathname)
+	{
+		if (!$this->isLink($pathname)) {
+			return null;
+		}
+
+		return readlink($this->getBasePath() . $pathname->local());
+	}
+
+	/*
+	 * ------------------------------------------------------------
+	 *                       Disk space plugin
+	 * ------------------------------------------------------------
+	 */
 
 	/**
 	 * {@inheritdoc}
@@ -964,42 +1005,17 @@ class LocalAdapter
 		}
 
 		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $self) {
+		return Util::executeFunction(
+			function () use ($pathname, $self) {
 				return disk_total_space(
-					$self->getBasepath() . $pathname->local()
+					$self->getBasePath() . $pathname->local()
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not get total space for %s.',
 			$pathname
 		);
 	}
 
-	protected function execute($callback, $errorCode, $errorMessage) {
-		$error = null;
-
-		try {
-			$result = $callback();
-		}
-		catch (\ErrorException $e) {
-			$error = $e;
-		}
-
-		if ($error !== null || $result === false) {
-			throw new AdapterException(
-				vsprintf(
-					$errorMessage,
-					array_slice(
-						func_get_args(),
-						3
-					)
-				),
-				$errorCode,
-				$e
-			);
-		}
-
-		return $result;
-	}
 }

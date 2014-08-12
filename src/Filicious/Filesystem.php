@@ -17,6 +17,9 @@ use Filicious\Internals\Adapter;
 use Filicious\Internals\RootAdapter;
 use Filicious\Internals\Pathname;
 use Filicious\Internals\Util;
+use Filicious\Plugin\FilesystemPluginInterface;
+use Filicious\Plugin\PluginInterface;
+use Filicious\Plugin\PluginManager;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -38,6 +41,11 @@ class Filesystem
 	 * @var EventDispatcherInterface|null
 	 */
 	protected $eventDispatcher;
+
+	/**
+	 * @var PluginManager|null
+	 */
+	protected $pluginManager;
 
 	/**
 	 * @param Adapter $adapter
@@ -73,6 +81,59 @@ class Filesystem
 	{
 		$this->eventDispatcher = $eventDispatcher;
 		return $this;
+	}
+
+	/**
+	 * @return PluginManager|null
+	 */
+	public function getPluginManager()
+	{
+		return $this->pluginManager;
+	}
+
+	/**
+	 * @param PluginManager|null $pluginManager
+	 *
+	 * @return static
+	 */
+	public function setPluginManager(PluginManager $pluginManager = null)
+	{
+		$this->pluginManager = $pluginManager;
+		return $this;
+	}
+
+	/**
+	 * Return a plugin for the filesystem.
+	 *
+	 * @param $name
+	 *
+	 * @return FilesystemPluginInterface|null
+	 */
+	public function hasPlugin($name)
+	{
+		return $this->pluginManager &&
+			$this->pluginManager->hasPlugin($name) &&
+			$this->pluginManager->getPlugin($name)->providesFilesystemPlugin($this);
+	}
+
+	/**
+	 * Return a plugin for the filesystem.
+	 *
+	 * @param $name
+	 *
+	 * @return FilesystemPluginInterface|null
+	 */
+	public function getPlugin($name)
+	{
+		if ($this->pluginManager && $this->pluginManager->hasPlugin($name)) {
+			$plugin = $this->pluginManager->getPlugin($name);
+
+			if ($plugin->providesFilesystemPlugin($this)) {
+				return $plugin->getFilesystemPlugin($this);
+			}
+		}
+
+		return null;
 	}
 
 	/**

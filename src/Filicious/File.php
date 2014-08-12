@@ -28,6 +28,7 @@ use Filicious\Event\TouchEvent;
 use Filicious\Event\TruncateEvent;
 use Filicious\Event\WriteEvent;
 use Filicious\Internals\Pathname;
+use Filicious\Plugin\FilePluginInterface;
 
 /**
  * A file object
@@ -211,18 +212,6 @@ class File
 	}
 
 	/**
-	 * TODO PROPOSED TO BE REMOVED
-	 *
-	 * Checks if the file is a (symbolic) link.
-	 *
-	 * @return bool True if the file exists and is a link; otherwise false
-	 */
-	public function isLink()
-	{
-		return $this->pathname->rootAdapter()->isLink($this->pathname);
-	}
-
-	/**
 	 * Checks if the file is a directory.
 	 *
 	 * @return bool True if the file exists and is a directory; otherwise false
@@ -230,15 +219,6 @@ class File
 	public function isDirectory()
 	{
 		return $this->pathname->rootAdapter()->isDirectory($this->pathname);
-	}
-
-	/**
-	 * TODO PROPOSED TO BE REMOVED
-	 * @return mixed
-	 */
-	public function getLinkTarget()
-	{
-		return $this->pathname->rootAdapter()->getLinkTarget($this->pathname);
 	}
 
 	/**
@@ -712,60 +692,6 @@ class File
 	}
 
 	/**
-	 * Get the mime name (e.g. "OpenDocument Text") of the file.
-	 *
-	 * @return string
-	 */
-	public function getMIMEName()
-	{
-		return $this->pathname->rootAdapter()->getMIMEName($this->pathname);
-	}
-
-	/**
-	 * Get the mime type (e.g. "application/vnd.oasis.opendocument.text") of the file.
-	 *
-	 * @return string
-	 */
-	public function getMIMEType()
-	{
-		return $this->pathname->rootAdapter()->getMIMEType($this->pathname);
-	}
-
-	/**
-	 * Get the mime encoding (e.g. "binary" or "us-ascii" or "utf-8") of the file.
-	 *
-	 * @return string
-	 */
-	public function getMIMEEncoding()
-	{
-		return $this->pathname->rootAdapter()->getMIMEEncoding($this->pathname);
-	}
-
-	/**
-	 * Get the md5 hash of the file.
-	 *
-	 * @param bool $raw
-	 *
-	 * @return string
-	 */
-	public function getMD5($raw = false)
-	{
-		return $this->pathname->rootAdapter()->getMD5($this->pathname, $raw);
-	}
-
-	/**
-	 * Get the sha1 hash of the file.
-	 *
-	 * @param bool $raw
-	 *
-	 * @return string
-	 */
-	public function getSHA1($raw = false)
-	{
-		return $this->pathname->rootAdapter()->getSHA1($this->pathname, $raw);
-	}
-
-	/**
 	 * List all children of this directory.
 	 *
 	 * @param Variable list of filters.
@@ -821,23 +747,41 @@ class File
 	}
 
 	/**
-	 * Get the free space.
+	 * Return a plugin for the filesystem.
 	 *
-	 * @return float
+	 * @param $name
+	 *
+	 * @return bool
 	 */
-	public function getFreeSpace()
+	public function hasPlugin($name)
 	{
-		return $this->pathname->rootAdapter()->getFreeSpace($this->pathname);
+		$pluginManager = $this->filesystem->getPluginManager();
+
+		return $pluginManager &&
+			$pluginManager->hasPlugin($name) &&
+			$pluginManager->getPlugin($name)->providesFilePlugin($this);
 	}
 
 	/**
-	 * Get the total space.
+	 * Return a plugin for the filesystem.
 	 *
-	 * @return float
+	 * @param $name
+	 *
+	 * @return FilePluginInterface|null
 	 */
-	public function getTotalSpace()
+	public function getPlugin($name)
 	{
-		return $this->pathname->rootAdapter()->getTotalSpace($this->pathname);
+		$pluginManager = $this->filesystem->getPluginManager();
+
+		if ($pluginManager && $pluginManager->hasPlugin($name)) {
+			$plugin = $pluginManager->getPlugin($name);
+
+			if ($plugin->providesFilePlugin($this)) {
+				return $plugin->getFilePlugin($this);
+			}
+		}
+
+		return null;
 	}
 
 	/**

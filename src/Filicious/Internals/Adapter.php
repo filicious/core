@@ -538,71 +538,7 @@ interface Adapter
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
 	public function getStreamURL(Pathname $pathname);
-	
-	/**
-	 * Get mime content type.
-	 *
-	 * @param string $pathname The full abstracted pathname
-	 * @param string $local The adapter local path
-	 * @return string
-	 * @throws FileStateException If the file does not exists
-	 * @throws AdapterException If the access to the underlying filesystem fails
-	 * 		due to technical reasons like connection problems or timeouts
-	 */
-	public function getMIMEName(Pathname $pathname);
-	
-	/**
-	 * Get mime content type.
-	 *
-	 * @param string $pathname The full abstracted pathname
-	 * @param string $local The adapter local path
-	 * @return string
-	 * @throws FileStateException If the file does not exists
-	 * @throws AdapterException If the access to the underlying filesystem fails
-	 * 		due to technical reasons like connection problems or timeouts
-	 */
-	public function getMIMEType(Pathname $pathname);
-	
-	/**
-	 * Get mime content type.
-	 *
-	 * @param string $pathname The full abstracted pathname
-	 * @param string $local The adapter local path
-	 * @return string
-	 * @throws FileStateException If the file does not exists
-	 * @throws AdapterException If the access to the underlying filesystem fails
-	 * 		due to technical reasons like connection problems or timeouts
-	 */
-	public function getMIMEEncoding(Pathname $pathname);
-	
-	/**
-	 * Calculate the md5 hash of this file.
-	 * Returns <em>false</em> on error (e.a. if file is a directory).
-	 *
-	 * @param string $pathname The full abstracted pathname
-	 * @param string $local The adapter local path
-	 * @param bool $binary Return binary hash, instead of string hash
-	 * @return string
-	 * @throws FileStateException If the file does not exists
-	 * @throws AdapterException If the access to the underlying filesystem fails
-	 * 		due to technical reasons like connection problems or timeouts
-	 */
-	public function getMD5(Pathname $pathname, $binary);
-	
-	/**
-	 * Calculate the sha1 hash of this file.
-	 * Returns <em>false</em> on error (e.a. if file is a directory).
-	 *
-	 * @param string $pathname The full abstracted pathname
-	 * @param string $local The adapter local path
-	 * @param bool $binary Return binary hash, instead of string hash
-	 * @return string
-	 * @throws FileStateException If the file does not exists
-	 * @throws AdapterException If the access to the underlying filesystem fails
-	 * 		due to technical reasons like connection problems or timeouts
-	 */
-	public function getSHA1(Pathname $pathname, $binary);
-	
+
 	/**
 	 * Returns all filenames of all (direct) children.
 	 *
@@ -643,32 +579,6 @@ interface Adapter
 	 * 		due to technical reasons like connection problems or timeouts
 	 */
 	public function getIterator(Pathname $pathname, array $filter);
-	
-	/**
-	 * Returns the available space of the disk or partition or system
-	 * the directory denoted by pathname resides on.
-	 *
-	 * @param string $pathname The full abstracted pathname
-	 * @param string $local The adapter local path
-	 * @return float The amount of free space available in bytes
-	 * @throws FileStateException If the file does not exists
-	 * @throws AdapterException If the access to the underlying filesystem fails
-	 * 		due to technical reasons like connection problems or timeouts
-	 */
-	public function getFreeSpace(Pathname $pathname);
-	
-	/**
-	 * Returns the total size of the disk or partition or system the directory
-	 * denoted by pathname resides on.
-	 *
-	 * @param string $pathname The full abstracted pathname
-	 * @param string $local The adapter local path
-	 * @return float The total size in bytes
-	 * @throws FileStateException If the file does not exists
-	 * @throws AdapterException If the access to the underlying filesystem fails
-	 * 		due to technical reasons like connection problems or timeouts
-	 */
-	public function getTotalSpace(Pathname $pathname);
 
 	/**
 	 * Check if the pathname exists and throw an exception if not.

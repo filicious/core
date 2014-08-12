@@ -43,13 +43,6 @@ if(DIRECTORY_SEPARATOR !== '/') {
 interface Adapter
 {
 	/**
-	 * Return the configuration of this adapter.
-	 *
-	 * @return \Filicious\FilesystemConfig
-	 */
-	public function getConfig();
-
-	/**
 	 * Set the filesystem this adapter belongs to.
 	 *
 	 * @param Filicious\Filesystem $fs The filesystem this adapter belongs to
@@ -715,9 +708,4 @@ interface Adapter
 	 * @throws Filicious\Exception\NotADirectoryException
 	 */
 	public function checkDirectory(Pathname $pathname);
-
-	/**
-	 * Notify about config changes.
-	 */
-	public function notifyConfigChange();
 }

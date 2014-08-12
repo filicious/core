@@ -15,7 +15,6 @@ namespace Filicious\Internals;
 
 use Filicious\File;
 use Filicious\Filesystem;
-use Filicious\FilesystemConfig;
 use Filicious\Exception\FileNotFoundException;
 use Filicious\Exception\NotAFileException;
 use Filicious\Exception\NotADirectoryException;
@@ -31,24 +30,11 @@ use Filicious\Exception\NotADirectoryException;
 abstract class AbstractAdapter
 	implements Adapter
 {
-	/**
-	 * @var FilesystemConfig
-	 */
-	protected $config;
-
 	protected $fs;
 
 	protected $root;
 
 	protected $parent;
-
-	/**
-	 * @see Filicious\Internals\Adapter::getConfig()
-	 */
-	public function getConfig()
-	{
-		return $this->config;
-	}
 
 	/**
 	 * @see Filicious\Internals\Adapter::setFilesystem()

@@ -14,12 +14,11 @@
 namespace Filicious\Exception;
 
 /**
- *
+ * Invalid argument exception.
  *
  * @package filicious-core
  * @author  Tristan Lins <tristan.lins@bit3.de>
  */
-class ImmutableConfigException extends ConfigurationException
+class InvalidArgumentException extends FilesystemException
 {
-
 }

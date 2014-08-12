@@ -13,11 +13,8 @@
 
 namespace Filicious\Local;
 
-use Filicious\File;
-use Filicious\FilesystemConfig;
-use Filicious\Internals\Adapter;
+use Filicious\Exception\InvalidArgumentException;
 use Filicious\Internals\AbstractAdapter;
-use Filicious\Internals\BoundFilesystemConfig;
 use Filicious\Internals\Pathname;
 use Filicious\Internals\Util;
 use Filicious\Exception\FilesystemException;
@@ -39,36 +36,39 @@ use Filicious\Stream\StreamMode;
 class LocalAdapter
 	extends AbstractAdapter
 {
-	protected $basepath = null;
 
 	/**
-	 * @param string|FilesystemConfig $basepath
+	 * @var string
 	 */
-	public function __construct($basepath = null)
+	protected $basePath;
+
+	/**
+	 * Create a new local adapter using a local pathname as base pathname.
+	 *
+	 * @param string $basePath The local base pathname.
+	 */
+	public function __construct($basePath = null)
 	{
-		$this->config = new BoundFilesystemConfig($this);
-		$this->config
-			->open()
-			->set(FilesystemConfig::BASEPATH, null);
+		$basePath = Util::normalizePath($basePath);
 
-		if ($basepath instanceof FilesystemConfig) {
-			$this->config->merge($basepath);
+		if (empty($basePath)) {
+			throw new InvalidArgumentException('Pathname cannot be empty');
 		}
-		else if (is_string($basepath)) {
-			$this->config->set(FilesystemConfig::BASEPATH, $basepath);
+		if (!is_dir($basePath)) {
+			throw new InvalidArgumentException(sprintf('Pathname "%s" is not a directory', $basePath));
 		}
 
-		$this->config
-			->set(FilesystemConfig::IMPLEMENTATION, __CLASS__)
-			->commit();
+		$this->basePath = $basePath . '/';
 	}
 
-	public function getBasepath()
+	/**
+	 * Return the local base pathname.
+	 *
+	 * @return string
+	 */
+	public function getBasePath()
 	{
-		if ($this->basepath === null) {
-			throw new ConfigurationException('basepath is not configured for local adapter.'); // TODO
-		}
-		return $this->basepath;
+		return $this->basePath;
 	}
 
 	/**
@@ -995,36 +995,5 @@ class LocalAdapter
 		}
 
 		return $result;
-	}
-
-	/**
-	 * Notify about config changes.
-	 */
-	public function notifyConfigChange()
-	{
-		$basepath = $this->config->get(FilesystemConfig::BASEPATH);
-
-		if ($basepath) {
-			$basepath = Util::normalizePath($basepath);
-
-			if (!is_dir($basepath) && $this->config->get(FilesystemConfig::CREATE_BASEPATH)) {
-					$this->execute(
-						function() use ($basepath) {
-							// second is_dir is required, because mkdir may return true even if only one,
-							// but not all directories of the path are created!
-							return mkdir($basepath, 0777, true) && is_dir($basepath);
-						},
-						0, // TODO,
-						'Could not create basepath %s',
-						$basepath
-					);
-			}
-
-			$this->basepath = $basepath;
-			return;
-		}
-
-		// TODO Logging missing basepath?
-		$this->basepath = null;
 	}
 }

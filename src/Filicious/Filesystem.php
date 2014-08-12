@@ -14,7 +14,6 @@
 namespace Filicious;
 
 use Filicious\Internals\Adapter;
-use Filicious\Internals\BoundFilesystemConfig;
 use Filicious\Internals\RootAdapter;
 use Filicious\Internals\Pathname;
 
@@ -27,46 +26,18 @@ use Filicious\Internals\Pathname;
  */
 class Filesystem
 {
-	/**
-	 * @var BoundFilesystemConfig
-	 */
-	protected $config;
-	
 	protected $adapter;
 
 	/**
-	 * @param FilesystemConfig|Adapter $root
+	 * @param Adapter $adapter
 	 */
-	public function __construct($root, $config = null)
+	public function __construct(Adapter $adapter)
 	{
 		$this->adapter = new RootAdapter($this);
-		$this->config = new BoundFilesystemConfig($this->adapter);
-		$this->config->open();
-
-		if (is_traversable($config)) {
-			$this->config->merge($config);
-		}
-
-		if ($root instanceof FilesystemConfig) {
-			$this->config->merge($root);
-		}
-		else if ($root instanceof Adapter) {
-			$this->adapter->setDelegate($root);
-
-			$this->config->linkConfig('/', $root->getConfig());
-		}
-		else {
-			throw new \InvalidArgumentException(); // TODO
-		}
-
-		$this->config->commit();
+		$this->adapter->setDelegate($adapter);
+	}
 	}
 
-	public function getConfig()
-	{
-		return $this->config;
-	}
-	
 	/**
 	 * Get the root (/) file node.
 	 *

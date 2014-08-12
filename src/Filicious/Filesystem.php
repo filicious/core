@@ -158,11 +158,11 @@ class Filesystem
 	{
 		// cheap recreate of File object
 		if ($path instanceof Pathname && $path->rootAdapter() == $this->adapter) {
-			return new File($this, $path);
+			return new File($path);
 		}
 
 		$pathname = implode('/', Util::getPathnameParts($path));
 		strlen($pathname) && $pathname = '/' . $pathname;
-		return new File($this, new Pathname($this->adapter, $pathname));
+		return new File(new Pathname($this->adapter, $pathname));
 	}
 }

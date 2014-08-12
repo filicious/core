@@ -128,13 +128,11 @@ class File
 	protected $pathname;
 
 	/**
-	 * @param string $pathname
-	 * @param FileState $stat
+	 * @param Pathname $pathname
 	 */
-	public function __construct(Filesystem $filesystem, Pathname $pathname)
+	public function __construct(Pathname $pathname)
 	{
-		$this->filesystem = $filesystem;
-		$this->pathname = $pathname;
+		$this->pathname   = $pathname->rootAdapter()->getFilesystem();
 	}
 
 	/**

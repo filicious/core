@@ -27,6 +27,10 @@ use Filicious\Internals\Util;
  */
 class Filesystem
 {
+
+	/**
+	 * @var RootAdapter
+	 */
 	protected $adapter;
 
 	/**
@@ -37,6 +41,13 @@ class Filesystem
 		$this->adapter = new RootAdapter($this);
 		$this->adapter->setDelegate($adapter);
 	}
+
+	/**
+	 * @return RootAdapter
+	 */
+	public function getRootAdapter()
+	{
+		return $this->adapter;
 	}
 
 	/**

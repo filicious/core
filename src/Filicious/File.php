@@ -14,6 +14,19 @@
 namespace Filicious;
 
 use Filicious\Internals\Adapter;
+use Filicious\Event\AppendEvent;
+use Filicious\Event\CopyEvent;
+use Filicious\Event\CreateDirectoryEvent;
+use Filicious\Event\CreateFileEvent;
+use Filicious\Event\DeleteEvent;
+use Filicious\Event\FiliciousEvents;
+use Filicious\Event\MoveEvent;
+use Filicious\Event\SetGroupEvent;
+use Filicious\Event\SetModeEvent;
+use Filicious\Event\SetOwnerEvent;
+use Filicious\Event\TouchEvent;
+use Filicious\Event\TruncateEvent;
+use Filicious\Event\WriteEvent;
 use Filicious\Internals\Pathname;
 
 /**
@@ -309,9 +322,23 @@ class File
 	 */
 	public function touch($time = 'now', $atime = null, $create = true)
 	{
-		$time = static::getDateTime($time);
-		$atime = $atime === null ? $time : static::getDateTime($atime);
-		$this->pathname->rootAdapter()->touch($this->pathname, $time, $atime, $create);
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+
+		if ($eventDispatcher) {
+			$exists = $this->pathname->rootAdapter()->exists($this->pathname);
+		}
+		else {
+			$exists = null;
+		}
+
+		$modifyTime  = static::getDateTime($modifyTime);
+		$accessTime = $accessTime === null ? $modifyTime : static::getDateTime($accessTime);
+		$this->pathname->rootAdapter()->touch($this->pathname, $modifyTime, $accessTime, $create);
+
+		if ($eventDispatcher) {
+			$event = new TouchEvent($this->filesystem, $this, $modifyTime, $accessTime, $create && !$exists);
+			$eventDispatcher->dispatch(FiliciousEvents::TOUCH, $event);
+		}
 	}
 
 	/**
@@ -345,6 +372,13 @@ class File
 	public function setOwner($user)
 	{
 		$this->pathname->rootAdapter()->setOwner($this->pathname, $user);
+
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+		if ($eventDispatcher) {
+			$event = new SetOwnerEvent($this->filesystem, $this, $user);
+			$eventDispatcher->dispatch(FiliciousEvents::SET_OWNER, $event);
+		}
+
 		return $this;
 	}
 
@@ -368,6 +402,13 @@ class File
 	public function setGroup($group)
 	{
 		$this->pathname->rootAdapter()->setGroup($this->pathname, $group);
+
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+		if ($eventDispatcher) {
+			$event = new SetGroupEvent($this->filesystem, $this, $group);
+			$eventDispatcher->dispatch(FiliciousEvents::SET_GROUP, $event);
+		}
+
 		return $this;
 	}
 
@@ -391,6 +432,13 @@ class File
 	public function setMode($mode)
 	{
 		$this->pathname->rootAdapter()->setMode($this->pathname, $mode);
+
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+		if ($eventDispatcher) {
+			$event = new SetModeEvent($this->filesystem, $this, $mode);
+			$eventDispatcher->dispatch(FiliciousEvents::SET_MODE, $event);
+		}
+
 		return $this;
 	}
 
@@ -444,7 +492,20 @@ class File
 	 */
 	public function delete($recursive = false, $force = false)
 	{
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+
+		if ($eventDispatcher) {
+			$event = new DeleteEvent($this->filesystem, $this, $recursive);
+			$eventDispatcher->dispatch(FiliciousEvents::BEFORE_DELETE, $event);
+		}
+
 		$this->pathname->rootAdapter()->delete($this->pathname, $recursive, $force);
+
+		if ($eventDispatcher) {
+			$event = new DeleteEvent($this->filesystem, $this, $recursive);
+			$eventDispatcher->dispatch(FiliciousEvents::DELETE, $event);
+		}
+
 		return $this;
 	}
 
@@ -467,6 +528,13 @@ class File
 			| ($parents ? File::OPERATION_PARENTS : 0)
 			| ($overwrite ? File::OPERATION_MERGE : 0)
 		);
+
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+		if ($eventDispatcher) {
+			$event = new CopyEvent($this->filesystem, $this, $destination, $recursive, $overwrite, $parents);
+			$eventDispatcher->dispatch(FiliciousEvents::COPY, $event);
+		}
+
 		return $this;
 	}
 
@@ -487,6 +555,13 @@ class File
 			($parents ? $parents : File::OPERATION_PARENTS)
 			| ($overwrite ? $overwrite : File::OPERATION_MERGE)
 		);
+
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+		if ($eventDispatcher) {
+			$event = new MoveEvent($this->filesystem, $this, $destination, $overwrite, $parents);
+			$eventDispatcher->dispatch(FiliciousEvents::MOVE, $event);
+		}
+
 		return $this;
 	}
 
@@ -500,6 +575,13 @@ class File
 	public function createDirectory($parents = false)
 	{
 		$this->pathname->rootAdapter()->createDirectory($this->pathname, $parents);
+
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+		if ($eventDispatcher) {
+			$event = new CreateDirectoryEvent($this->filesystem, $this, $parents);
+			$eventDispatcher->dispatch(FiliciousEvents::CREATE_DIRECTORY, $event);
+		}
+
 		return $this;
 	}
 
@@ -513,6 +595,13 @@ class File
 	public function createFile($parents = false)
 	{
 		$this->pathname->rootAdapter()->createFile($this->pathname, $parents);
+
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+		if ($eventDispatcher) {
+			$event = new CreateFileEvent($this->filesystem, $this, $parents);
+			$eventDispatcher->dispatch(FiliciousEvents::CREATE_FILE, $event);
+		}
+
 		return $this;
 	}
 
@@ -536,7 +625,22 @@ class File
 	 */
 	public function setContents($content, $create = true)
 	{
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+
+		if ($eventDispatcher) {
+			$exists = $this->pathname->rootAdapter()->exists($this->pathname);
+		}
+		else {
+			$exists = null;
+		}
+
 		$this->pathname->rootAdapter()->setContents($this->pathname, $content, $create);
+
+		if ($eventDispatcher) {
+			$event = new WriteEvent($this->filesystem, $this, $content, $create && !$exists);
+			$eventDispatcher->dispatch(FiliciousEvents::WRITE, $event);
+		}
+
 		return $this;
 	}
 
@@ -550,7 +654,22 @@ class File
 	 */
 	public function appendContents($content, $create = true)
 	{
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+
+		if ($eventDispatcher) {
+			$exists = $this->pathname->rootAdapter()->exists($this->pathname);
+		}
+		else {
+			$exists = null;
+		}
+
 		$this->pathname->rootAdapter()->appendContents($this->pathname, $content, $create);
+
+		if ($eventDispatcher) {
+			$event = new AppendEvent($this->filesystem, $this, $content, $create && !$exists);
+			$eventDispatcher->dispatch(FiliciousEvents::APPEND, $event);
+		}
+
 		return $this;
 	}
 
@@ -561,7 +680,15 @@ class File
 	 */
 	public function truncate($size = 0)
 	{
-		return $this->pathname->rootAdapter()->truncate($this->pathname, $size);
+		$result = $this->pathname->rootAdapter()->truncate($this->pathname, $size);
+
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+		if ($eventDispatcher) {
+			$event = new TruncateEvent($this->filesystem, $this, $size);
+			$eventDispatcher->dispatch(FiliciousEvents::TRUNCATE, $event);
+		}
+
+		return $result;
 	}
 
 	/**

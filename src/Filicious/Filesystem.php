@@ -17,6 +17,7 @@ use Filicious\Internals\Adapter;
 use Filicious\Internals\RootAdapter;
 use Filicious\Internals\Pathname;
 use Filicious\Internals\Util;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Virtual filesystem structure.
@@ -34,6 +35,11 @@ class Filesystem
 	protected $adapter;
 
 	/**
+	 * @var EventDispatcherInterface|null
+	 */
+	protected $eventDispatcher;
+
+	/**
 	 * @param Adapter $adapter
 	 */
 	public function __construct(Adapter $adapter)
@@ -48,6 +54,25 @@ class Filesystem
 	public function getRootAdapter()
 	{
 		return $this->adapter;
+	}
+
+	/**
+	 * @return EventDispatcherInterface|null
+	 */
+	public function getEventDispatcher()
+	{
+		return $this->eventDispatcher;
+	}
+
+	/**
+	 * @param EventDispatcherInterface|null $eventDispatcher
+	 *
+	 * @return static
+	 */
+	public function setEventDispatcher(EventDispatcherInterface $eventDispatcher = null)
+	{
+		$this->eventDispatcher = $eventDispatcher;
+		return $this;
 	}
 
 	/**

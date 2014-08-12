@@ -138,6 +138,15 @@ class File
 	}
 
 	/**
+	 * Get the filesystem this
+	 * @return Filesystem
+	 */
+	public function getFilesystem()
+	{
+		return $this->filesystem;
+	}
+
+	/**
 	 * Returns the full abstracted pathname of this file within the containing
 	 * filesystem.
 	 * A pathname always starts with a forward slash and never ends with one.

@@ -13,17 +13,8 @@
 
 namespace Filicious\Plugin\Hash;
 
-use Filicious\Exception\InvalidArgumentException;
-use Filicious\Exception\UnsupportedPluginException;
 use Filicious\File;
-use Filicious\Filesystem;
-use Filicious\Internals\AbstractAdapter;
-use Filicious\Internals\Pathname;
-use Filicious\Internals\Util;
-use Filicious\Exception\FilesystemException;
-use Filicious\Exception\AdapterException;
 use Filicious\Plugin\AbstractPlugin;
-Use Filicious\Stream\BuildInStream;
 
 class HashPlugin extends AbstractPlugin
 {

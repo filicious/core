@@ -13,10 +13,8 @@
 
 namespace Filicious\Stream;
 
-use Filicious\File;
-use Filicious\Stream;
-use Filicious\Stream\StreamMode;
 use Filicious\Internals\Pathname;
+use Filicious\Stream;
 
 /**
  * A file stream object.

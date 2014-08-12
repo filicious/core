@@ -13,10 +13,7 @@
 
 namespace Filicious\Internals;
 
-use Filicious\File;
 use Filicious\Filesystem;
-use Filicious\Internals\Adapter;
-use Filicious\Stream\StreamManager;
 
 /**
  * Local filesystem adapter.

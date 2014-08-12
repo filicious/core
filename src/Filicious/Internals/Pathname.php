@@ -13,8 +13,6 @@
 
 namespace Filicious\Internals;
 
-use Filicious\Internals\Adapter;
-
 /**
  * An object that hold the absolute and the adapter local pathname.
  *

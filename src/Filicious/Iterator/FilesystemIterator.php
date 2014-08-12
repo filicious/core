@@ -16,7 +16,6 @@ namespace Filicious\Iterator;
 use Filicious\File;
 use Filicious\FilesystemException;
 use Filicious\Internals\PathnameIterator;
-use Filicious\Internals\Util;
 
 /**
  * Filesystem iterator

@@ -13,13 +13,7 @@
 
 namespace Filicious\Plugin\DiskSpace;
 
-use Filicious\Exception\InvalidArgumentException;
-use Filicious\Internals\AbstractAdapter;
 use Filicious\Internals\Pathname;
-use Filicious\Internals\Util;
-use Filicious\Exception\FilesystemException;
-use Filicious\Exception\AdapterException;
-Use Filicious\Stream\BuildInStream;
 
 interface DiskSpaceAwareAdapterInterface
 {

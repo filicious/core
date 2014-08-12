@@ -16,8 +16,6 @@ namespace Filicious\Internals;
 use Filicious\Exception\AdapterException;
 use Filicious\File;
 use Filicious\Stream\StreamMode;
-use Filicious\Internals\Pathname;
-use \Exception;
 
 /**
  * Utility class

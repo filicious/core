@@ -13,7 +13,6 @@
 
 namespace Filicious;
 
-use Filicious\Internals\Adapter;
 use Filicious\Event\AppendEvent;
 use Filicious\Event\CopyEvent;
 use Filicious\Event\CreateDirectoryEvent;

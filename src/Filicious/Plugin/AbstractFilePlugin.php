@@ -13,14 +13,7 @@
 
 namespace Filicious\Plugin;
 
-use Filicious\Exception\InvalidArgumentException;
 use Filicious\File;
-use Filicious\Internals\AbstractAdapter;
-use Filicious\Internals\Pathname;
-use Filicious\Internals\Util;
-use Filicious\Exception\FilesystemException;
-use Filicious\Exception\AdapterException;
-Use Filicious\Stream\BuildInStream;
 
 abstract class AbstractFilePlugin implements FilePluginInterface
 {

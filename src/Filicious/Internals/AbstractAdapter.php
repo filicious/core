@@ -13,11 +13,11 @@
 
 namespace Filicious\Internals;
 
+use Filicious\Exception\FileNotFoundException;
+use Filicious\Exception\NotADirectoryException;
+use Filicious\Exception\NotAFileException;
 use Filicious\File;
 use Filicious\Filesystem;
-use Filicious\Exception\FileNotFoundException;
-use Filicious\Exception\NotAFileException;
-use Filicious\Exception\NotADirectoryException;
 
 /**
  * A mount aggregator can mount adapters to various paths.

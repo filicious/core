@@ -14,11 +14,10 @@
 namespace Filicious;
 
 use Filicious\Internals\Adapter;
-use Filicious\Internals\RootAdapter;
 use Filicious\Internals\Pathname;
+use Filicious\Internals\RootAdapter;
 use Filicious\Internals\Util;
 use Filicious\Plugin\FilesystemPluginInterface;
-use Filicious\Plugin\PluginInterface;
 use Filicious\Plugin\PluginManager;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 

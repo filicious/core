@@ -13,13 +13,6 @@
 
 namespace Filicious\Internals;
 
-use Filicious\File;
-use Filicious\Filesystem;
-use Filicious\Internals\Adapter;
-use Filicious\Internals\Pathname;
-use Iterator;
-use SeekableIterator;
-
 /**
  * Filesystem iterator
  *

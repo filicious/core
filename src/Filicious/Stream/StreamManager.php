@@ -13,9 +13,9 @@
 
 namespace Filicious\Stream;
 
-use Filicious\Filesystem;
 use Filicious\Exception\StreamWrapperAlreadyRegisteredException;
 use Filicious\Exception\StreamWrapperNotRegisteredException;
+use Filicious\Filesystem;
 
 /**
  * Stream wrapper manager and organizer.

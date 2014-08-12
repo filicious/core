@@ -1,7 +1,11 @@
 {
 	"name": "filicious/core",
 	"description": "filicious is a high level object oriented filesystem abstraction for PHP.",
-	"keywords": ["filesystem", "file", "vfs"],
+	"keywords": [
+		"filesystem",
+		"file",
+		"vfs"
+	],
 	"homepage": "http://filicious.org",
 	"license": "LGPL-3.0+",
 	"authors": [

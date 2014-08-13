@@ -37,7 +37,8 @@ use Filicious\Stream\BuildInStream;
  */
 class LocalAdapter
 	extends AbstractAdapter
-	implements DiskSpaceAwareAdapterInterface, HashAwareAdapterInterface, LinkAwareAdapterInterface, MimeAwareAdapterInterface
+	implements DiskSpaceAwareAdapterInterface, HashAwareAdapterInterface, LinkAwareAdapterInterface,
+				  MimeAwareAdapterInterface
 {
 
 	/**

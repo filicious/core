@@ -46,15 +46,6 @@ interface Adapter
 	public function getFilesystem();
 
 	/**
-	 * Set the root adapter of the filesystem this adapter belongs to.
-	 *
-	 * @param RootAdapter $root The filesystems root adapter
-	 *
-	 * @return static
-	 */
-	public function setRootAdapter(RootAdapter $root);
-
-	/**
 	 * Returns the root adapter of the filesystem this adapter belongs to.
 	 *
 	 * @return Adapter The filesystems root adapter

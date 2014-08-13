@@ -58,6 +58,7 @@ abstract class AbstractAdapter
 	public function setFilesystem(Filesystem $filesystem)
 	{
 		$this->filesystem = $filesystem;
+		$this->root       = $filesystem->getRootAdapter();
 		return $this;
 	}
 
@@ -67,15 +68,6 @@ abstract class AbstractAdapter
 	public function getFilesystem()
 	{
 		return $this->filesystem;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function setRootAdapter(RootAdapter $root)
-	{
-		$this->root = $root;
-		return $this;
 	}
 
 	/**

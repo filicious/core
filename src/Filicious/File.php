@@ -162,7 +162,8 @@ class File
 	 */
 	public function __construct(Pathname $pathname)
 	{
-		$this->pathname = $pathname->rootAdapter()->getFilesystem();
+		$this->pathname   = $pathname;
+		$this->filesystem = $pathname->rootAdapter()->getFilesystem();
 	}
 
 	/**

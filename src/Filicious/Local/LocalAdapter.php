@@ -102,7 +102,7 @@ class LocalAdapter
 	 */
 	public function getAccessTime(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self      = $this;
 		$timestamp = Util::executeFunction(
@@ -128,7 +128,7 @@ class LocalAdapter
 	 */
 	public function setAccessTime(Pathname $pathname, \DateTime $time)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
 		Util::executeFunction(
@@ -151,7 +151,7 @@ class LocalAdapter
 	 */
 	public function getCreationTime(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
 		return new \DateTime(
@@ -174,7 +174,7 @@ class LocalAdapter
 	 */
 	public function getModifyTime(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
 		return new \DateTime(
@@ -197,7 +197,7 @@ class LocalAdapter
 	 */
 	public function setModifyTime(Pathname $pathname, \DateTime $time)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
 		Util::executeFunction(
@@ -221,7 +221,7 @@ class LocalAdapter
 	public function touch(Pathname $pathname, \DateTime $time, \DateTime $atime, $create)
 	{
 		if (!$create) {
-			$this->requireExists($pathname);
+			Validator::requireExists($pathname);
 		}
 
 		$self = $this;
@@ -245,7 +245,7 @@ class LocalAdapter
 	 */
 	public function getSize(Pathname $pathname, $recursive)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		// get directory size
 		if ($this->isDirectory($pathname)) {
@@ -292,7 +292,7 @@ class LocalAdapter
 	 */
 	public function getOwner(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
 		return Util::executeFunction(
@@ -313,7 +313,7 @@ class LocalAdapter
 	 */
 	public function setOwner(Pathname $pathname, $user)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
 		Util::executeFunction(
@@ -335,7 +335,7 @@ class LocalAdapter
 	 */
 	public function getGroup(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
 		return Util::executeFunction(
@@ -356,7 +356,7 @@ class LocalAdapter
 	 */
 	public function setGroup(Pathname $pathname, $group)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
 		Util::executeFunction(
@@ -378,7 +378,7 @@ class LocalAdapter
 	 */
 	public function getMode(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
 		return Util::executeFunction(
@@ -399,7 +399,7 @@ class LocalAdapter
 	 */
 	public function setMode(Pathname $pathname, $mode)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
 		Util::executeFunction(
@@ -421,7 +421,7 @@ class LocalAdapter
 	 */
 	public function isReadable(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
 		return Util::executeFunction(
@@ -442,7 +442,7 @@ class LocalAdapter
 	 */
 	public function isWritable(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
 		return Util::executeFunction(
@@ -463,7 +463,7 @@ class LocalAdapter
 	 */
 	public function isExecutable(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		try {
 			$executable = is_executable($this->getBasePath() . $pathname->local());
@@ -503,7 +503,7 @@ class LocalAdapter
 	 */
 	public function delete(Pathname $pathname, $recursive, $force)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		if ($this->isDirectory($pathname)) {
 			// TODO Handling $force flag needed here!
@@ -626,7 +626,7 @@ class LocalAdapter
 				else {
 					$parentPathname = $pathname->parent();
 
-					$parentPathname->localAdapter()->requireExists($parentPathname);
+					Validator::requireExists($parentPathname);
 
 					return mkdir($self->getBasePath() . $pathname->local());
 				}
@@ -689,7 +689,7 @@ class LocalAdapter
 	 */
 	public function getContents(Pathname $pathname)
 	{
-		$this->checkFile($pathname);
+		Validator::checkFile($pathname);
 
 		$self = $this;
 		return Util::executeFunction(
@@ -711,11 +711,11 @@ class LocalAdapter
 	public function setContents(Pathname $pathname, $content, $create)
 	{
 		if (!$create) {
-			$this->requireExists($pathname);
+			Validator::requireExists($pathname);
 		}
 
 		if ($this->exists($pathname)) {
-			$this->checkFile($pathname);
+			Validator::checkFile($pathname);
 		}
 
 		$self = $this;
@@ -739,11 +739,11 @@ class LocalAdapter
 	public function appendContents(Pathname $pathname, $content, $create)
 	{
 		if (!$create) {
-			$this->requireExists($pathname);
+			Validator::requireExists($pathname);
 		}
 
 		if ($this->exists($pathname)) {
-			$this->checkFile($pathname);
+			Validator::checkFile($pathname);
 		}
 
 		$self = $this;
@@ -768,7 +768,7 @@ class LocalAdapter
 	 */
 	public function truncate(Pathname $pathname, $size)
 	{
-		$this->checkFile($pathname);
+		Validator::checkFile($pathname);
 
 		$self = $this;
 		return Util::executeFunction(
@@ -793,7 +793,7 @@ class LocalAdapter
 	 */
 	public function ls(Pathname $pathname)
 	{
-		$this->checkDirectory($pathname);
+		Validator::checkDirectory($pathname);
 
 		$self  = $this;
 		$files = Util::executeFunction(
@@ -826,7 +826,7 @@ class LocalAdapter
 	 */
 	public function getStream(Pathname $pathname)
 	{
-		$this->checkFile($pathname);
+		Validator::checkFile($pathname);
 
 		return new BuildInStream('file://' . $this->getBasePath() . $pathname->local(), $pathname);
 	}

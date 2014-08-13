@@ -535,36 +535,4 @@ abstract class AbstractAdapter
 			return new PathnameIterator($pathname, $filter);
 		}
 	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::requireExists()
-	 */
-	public function requireExists(Pathname $pathname)
-	{
-		if (!$this->exists($pathname)) {
-			throw new FileNotFoundException($pathname);
-		}
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::checkFile()
-	 */
-	public function checkFile(Pathname $pathname)
-	{
-		$this->requireExists($pathname);
-		if (!$this->isFile($pathname)) {
-			throw new NotAFileException($pathname);
-		}
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::checkDirectory()
-	 */
-	public function checkDirectory(Pathname $pathname)
-	{
-		$this->requireExists($pathname);
-		if (!$this->isDirectory($pathname)) {
-			throw new NotADirectoryException($pathname);
-		}
-	}
 }

@@ -19,11 +19,14 @@ use Filicious\Internals\Pathname;
  * Filesystem exception
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 class DirectoryOverwriteDirectoryException
 	extends FilesystemException
 {
+
 	/**
 	 * @var \Filicious\Internals\Pathname
 	 */
@@ -34,7 +37,8 @@ class DirectoryOverwriteDirectoryException
 	 */
 	protected $dstPathname;
 
-	public function __construct(Pathname $srcPathname, Pathname $dstPathname, $code = 0, $previous = null) {
+	public function __construct(Pathname $srcPathname, Pathname $dstPathname, $code = 0, $previous = null)
+	{
 		parent::__construct(
 			sprintf('Could not replace directory %s with directory %s!', $dstPathname->full(), $srcPathname->full()),
 			$code,

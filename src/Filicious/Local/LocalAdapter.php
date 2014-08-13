@@ -13,66 +13,72 @@
 
 namespace Filicious\Local;
 
-use Filicious\File;
-use Filicious\FilesystemConfig;
-use Filicious\Internals\Adapter;
+use Filicious\Exception\AdapterException;
+use Filicious\Exception\FilesystemException;
+use Filicious\Exception\InvalidArgumentException;
+use Filicious\Exception\StreamNotSupportedException;
 use Filicious\Internals\AbstractAdapter;
-use Filicious\Internals\BoundFilesystemConfig;
 use Filicious\Internals\Pathname;
 use Filicious\Internals\Util;
-use Filicious\Exception\FilesystemException;
-use Filicious\Exception\AdapterException;
-use Filicious\Exception\ConfigurationException;
-use Filicious\Exception\DirectoryOverwriteDirectoryException;
-use Filicious\Exception\DirectoryOverwriteFileException;
-use Filicious\Exception\FileOverwriteDirectoryException;
-use Filicious\Exception\FileOverwriteFileException;
-Use Filicious\Stream\BuildInStream;
-use Filicious\Stream\StreamMode;
+use Filicious\Internals\Validator;
+use Filicious\Plugin\DiskSpace\DiskSpaceAwareAdapterInterface;
+use Filicious\Plugin\Hash\HashAwareAdapterInterface;
+use Filicious\Plugin\Link\LinkAwareAdapterInterface;
+use Filicious\Plugin\Mime\MimeAwareAdapterInterface;
+use Filicious\Stream\BuildInStream;
 
 /**
  * Local filesystem adapter.
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 class LocalAdapter
 	extends AbstractAdapter
+	implements DiskSpaceAwareAdapterInterface, HashAwareAdapterInterface, LinkAwareAdapterInterface,
+				  MimeAwareAdapterInterface
 {
-	protected $basepath = null;
 
 	/**
-	 * @param string|FilesystemConfig $basepath
+	 * @var string
 	 */
-	public function __construct($basepath = null)
+	protected $basePath;
+
+	/**
+	 * Create a new local adapter using a local pathname as base pathname.
+	 *
+	 * @param string $basePath The local base pathname.
+	 *
+	 * @throws InvalidArgumentException
+	 */
+	public function __construct($basePath = null)
 	{
-		$this->config = new BoundFilesystemConfig($this);
-		$this->config
-			->open()
-			->set(FilesystemConfig::BASEPATH, null);
+		$basePath = Util::normalizePath($basePath);
 
-		if ($basepath instanceof FilesystemConfig) {
-			$this->config->merge($basepath);
+		if (empty($basePath)) {
+			throw new InvalidArgumentException('Pathname cannot be empty');
 		}
-		else if (is_string($basepath)) {
-			$this->config->set(FilesystemConfig::BASEPATH, $basepath);
+		if (!is_dir($basePath)) {
+			throw new InvalidArgumentException(sprintf('Pathname "%s" is not a directory', $basePath));
 		}
 
-		$this->config
-			->set(FilesystemConfig::IMPLEMENTATION, __CLASS__)
-			->commit();
-	}
-
-	public function getBasepath()
-	{
-		if ($this->basepath === null) {
-			throw new ConfigurationException('basepath is not configured for local adapter.'); // TODO
-		}
-		return $this->basepath;
+		$this->basePath = $basePath . '/';
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::isFile()
+	 * Return the local base pathname.
+	 *
+	 * @return string
+	 */
+	public function getBasePath()
+	{
+		return $this->basePath;
+	}
+
+	/**
+	 * {@inheritdoc}
 	 */
 	public function isFile(Pathname $pathname)
 	{
@@ -80,11 +86,11 @@ class LocalAdapter
 			return false;
 		}
 
-		return is_file($this->getBasepath() . $pathname->local());
+		return is_file($this->getBasePath() . $pathname->local());
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::isDirectory()
+	 * {@inheritdoc}
 	 */
 	public function isDirectory(Pathname $pathname)
 	{
@@ -92,59 +98,52 @@ class LocalAdapter
 			return false;
 		}
 
-		return is_dir($this->getBasepath() . $pathname->local());
+		return is_dir($this->getBasePath() . $pathname->local());
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::isLink()
-	 */
-	public function isLink(Pathname $pathname)
-	{
-		if (!$this->exists($pathname)) {
-			return false;
-		}
-
-		return is_link($this->getBasepath() . $pathname->local());
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::getAccessTime()
+	 * {@inheritdoc}
 	 */
 	public function getAccessTime(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
-		$self = $this;
-		return new \DateTime(
-			'@' . $this->execute(
-				function() use ($pathname, $self) {
-					return fileatime(
-						$self->getBasepath() . $pathname->local()
-					);
-				},
-				0,
-				'Could not get access time of %s.',
-				$pathname
-			)
+		$self      = $this;
+		$timestamp = Util::executeFunction(
+			function () use ($pathname, $self) {
+				return fileatime(
+					$self->getBasePath() . $pathname->local()
+				);
+			},
+			'Filicious\Exception\AdapterException',
+			0,
+			'Could not get access time of %s.',
+			$pathname
 		);
+
+		$date = new \DateTime();
+		$date->setTimestamp($timestamp);
+
+		return $date;
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::setAccessTime()
+	 * {@inheritdoc}
 	 */
 	public function setAccessTime(Pathname $pathname, \DateTime $time)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
-		$this->execute(
-			function() use ($pathname, $time, $self) {
+		Util::executeFunction(
+			function () use ($pathname, $time, $self) {
 				return touch(
-					$self->basepath . $pathname->local(),
-					$self->getModifyTime($pathname),
+					$self->basePath . $pathname->local(),
+					$self->getModifyTime($pathname)->getTimestamp(),
 					$time->getTimestamp()
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not set access time of %s.',
 			$pathname
@@ -152,65 +151,72 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getCreationTime()
+	 * {@inheritdoc}
 	 */
 	public function getCreationTime(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
-		$self = $this;
-		return new \DateTime(
-			'@' . $this->execute(
-				function() use ($pathname, $self) {
-					return filectime(
-						$self->getBasepath() . $pathname->local()
-					);
-				},
-				0,
-				'Could not get creation time of %s.',
-				$pathname
-			)
+		$self      = $this;
+		$timestamp = Util::executeFunction(
+			function () use ($pathname, $self) {
+				return filectime(
+					$self->getBasePath() . $pathname->local()
+				);
+			},
+			'Filicious\Exception\AdapterException',
+			0,
+			'Could not get creation time of %s.',
+			$pathname
 		);
+
+		$date = new \DateTime();
+		$date->setTimestamp($timestamp);
+		return $date;
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getCreationTime()
+	 * {@inheritdoc}
 	 */
 	public function getModifyTime(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
-		$self = $this;
-		return new \DateTime(
-			'@' . $this->execute(
-				function() use ($pathname, $self) {
-					return filemtime(
-						$self->getBasepath() . $pathname->local()
-					);
-				},
-				0,
-				'Could not get modify time of %s.',
-				$pathname
-			)
+		$self      = $this;
+		$timestamp = Util::executeFunction(
+			function () use ($pathname, $self) {
+				return filemtime(
+					$self->getBasePath() . $pathname->local()
+				);
+			},
+			'Filicious\Exception\AdapterException',
+			0,
+			'Could not get modify time of %s.',
+			$pathname
 		);
+
+		$date = new \DateTime();
+		$date->setTimestamp($timestamp);
+		return $date;
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::setModifyTime()
+	 * {@inheritdoc}
 	 */
 	public function setModifyTime(Pathname $pathname, \DateTime $time)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
-		$this->execute(
-			function() use ($pathname, $time, $self) {
+		Util::executeFunction(
+			function () use ($pathname, $time, $self) {
 				return touch(
-					$self->getBasepath() . $pathname->local(),
+					$self->getBasePath() . $pathname->local(),
 					$time->getTimestamp(),
-					$this->getAccessTime($pathname)
+					$this->getAccessTime($pathname)->getTimestamp()
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not set modify time of %s.',
 			$pathname
@@ -218,23 +224,24 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::touch()
+	 * {@inheritdoc}
 	 */
 	public function touch(Pathname $pathname, \DateTime $time, \DateTime $atime, $create)
 	{
 		if (!$create) {
-			$this->requireExists($pathname);
+			Validator::requireExists($pathname);
 		}
 
 		$self = $this;
-		$this->execute(
-			function() use ($pathname, $time, $atime, $self) {
+		Util::executeFunction(
+			function () use ($pathname, $time, $atime, $self) {
 				return touch(
-					$self->getBasepath() . $pathname->local(),
+					$self->getBasePath() . $pathname->local(),
 					$time->getTimestamp(),
 					$atime->getTimestamp()
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not touch %s.',
 			$pathname
@@ -242,11 +249,11 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getSize()
+	 * {@inheritdoc}
 	 */
 	public function getSize(Pathname $pathname, $recursive)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		// get directory size
 		if ($this->isDirectory($pathname)) {
@@ -257,7 +264,7 @@ class LocalAdapter
 				$iterator = $this->getIterator($pathname, array());
 
 				foreach ($iterator as $pathname) {
-					$size += $this->fs
+					$size += $this->filesystem
 						->getFile($pathname)
 						->getSize(true);
 				}
@@ -274,12 +281,13 @@ class LocalAdapter
 		// get file size
 		else {
 			$self = $this;
-			return $this->execute(
-				function() use ($pathname, $self) {
+			return Util::executeFunction(
+				function () use ($pathname, $self) {
 					return filesize(
-						$self->getBasepath() . $pathname->local()
+						$self->getBasePath() . $pathname->local()
 					);
 				},
+				'Filicious\Exception\AdapterException',
 				0,
 				'Could not get size of %s.',
 				$pathname
@@ -288,19 +296,20 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getSize()
+	 * {@inheritdoc}
 	 */
 	public function getOwner(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $self) {
+		return Util::executeFunction(
+			function () use ($pathname, $self) {
 				return fileowner(
-					$self->getBasepath() . $pathname->local()
+					$self->getBasePath() . $pathname->local()
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not get owner of %s.',
 			$pathname
@@ -308,20 +317,21 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::setOwner()
+	 * {@inheritdoc}
 	 */
 	public function setOwner(Pathname $pathname, $user)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
-		$this->execute(
-			function() use ($pathname, $user, $self) {
+		Util::executeFunction(
+			function () use ($pathname, $user, $self) {
 				return chown(
-					$self->getBasepath() . $pathname->local(),
+					$self->getBasePath() . $pathname->local(),
 					$user
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not set owner of %s.',
 			$pathname
@@ -329,19 +339,20 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getGroup()
+	 * {@inheritdoc}
 	 */
 	public function getGroup(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $self) {
+		return Util::executeFunction(
+			function () use ($pathname, $self) {
 				return filegroup(
-					$self->getBasepath() . $pathname->local()
+					$self->getBasePath() . $pathname->local()
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not get group of %s.',
 			$pathname
@@ -349,20 +360,21 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::setGroup()
+	 * {@inheritdoc}
 	 */
 	public function setGroup(Pathname $pathname, $group)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
-		$this->execute(
-			function() use ($pathname, $group, $self) {
+		Util::executeFunction(
+			function () use ($pathname, $group, $self) {
 				return chgrp(
-					$self->getBasepath() . $pathname->local(),
+					$self->getBasePath() . $pathname->local(),
 					$group
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not set group of %s.',
 			$pathname
@@ -370,19 +382,20 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getMode()
+	 * {@inheritdoc}
 	 */
 	public function getMode(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $self) {
+		return Util::executeFunction(
+			function () use ($pathname, $self) {
 				return fileperms(
-					$self->getBasepath() . $pathname->local()
+					$self->getBasePath() . $pathname->local()
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not get mode of %s.',
 			$pathname
@@ -390,20 +403,21 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::setMode()
+	 * {@inheritdoc}
 	 */
 	public function setMode(Pathname $pathname, $mode)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
-		$this->execute(
-			function() use ($pathname, $mode, $self) {
+		Util::executeFunction(
+			function () use ($pathname, $mode, $self) {
 				return chmod(
-					$self->getBasepath() . $pathname->local(),
+					$self->getBasePath() . $pathname->local(),
 					$mode
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not set mode of %s.',
 			$pathname
@@ -411,19 +425,20 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::isReadable()
+	 * {@inheritdoc}
 	 */
 	public function isReadable(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $self) {
+		return Util::executeFunction(
+			function () use ($pathname, $self) {
 				return is_readable(
-					$self->getBasepath() . $pathname->local()
+					$self->getBasePath() . $pathname->local()
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not get readable state of %s.',
 			$pathname
@@ -431,19 +446,20 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::isWritable()
+	 * {@inheritdoc}
 	 */
 	public function isWritable(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $self) {
+		return Util::executeFunction(
+			function () use ($pathname, $self) {
 				return is_writable(
-					$self->getBasepath() . $pathname->local()
+					$self->getBasePath() . $pathname->local()
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not get writeable state of %s.',
 			$pathname
@@ -451,14 +467,14 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::isExecutable()
+	 * {@inheritdoc}
 	 */
 	public function isExecutable(Pathname $pathname)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		try {
-			$executable = is_executable($this->getBasepath() . $pathname->local());
+			$executable = is_executable($this->getBasePath() . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new AdapterException(
@@ -472,12 +488,12 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::exists()
+	 * {@inheritdoc}
 	 */
 	public function exists(Pathname $pathname)
 	{
 		try {
-			$exists = file_exists($this->getBasepath() . $pathname->local());
+			$exists = file_exists($this->getBasePath() . $pathname->local());
 		}
 		catch (\ErrorException $e) {
 			throw new AdapterException(
@@ -491,11 +507,11 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::delete()
+	 * {@inheritdoc}
 	 */
 	public function delete(Pathname $pathname, $recursive, $force)
 	{
-		$this->requireExists($pathname);
+		Validator::requireExists($pathname);
 
 		if ($this->isDirectory($pathname)) {
 			// TODO Handling $force flag needed here!
@@ -505,7 +521,7 @@ class LocalAdapter
 				$iterator = $this->getIterator($pathname, array());
 
 				foreach ($iterator as $pathname) {
-					$this->fs
+					$this->filesystem
 						->getFile($pathname)
 						->delete($recursive, $force);
 				}
@@ -515,12 +531,13 @@ class LocalAdapter
 			}
 
 			$self = $this;
-			$this->execute(
-				function() use ($pathname, $self) {
+			Util::executeFunction(
+				function () use ($pathname, $self) {
 					return rmdir(
-						$self->getBasepath() . $pathname->local()
+						$self->getBasePath() . $pathname->local()
 					);
 				},
+				'Filicious\Exception\AdapterException',
 				0,
 				'Could not delete directory %s.',
 				$pathname
@@ -538,30 +555,42 @@ class LocalAdapter
 			}
 
 			$self = $this;
-			return $this->execute(
-				function() use ($pathname, $self) {
+			return Util::executeFunction(
+				function () use ($pathname, $self) {
 					return unlink(
-						$self->getBasepath() . $pathname->local()
+						$self->getBasePath() . $pathname->local()
 					);
 				},
+				'Filicious\Exception\AdapterException',
 				0,
 				'Could not delete file %s.',
 				$pathname
 			);
 		}
+
+		return $this;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function nativeCopy(
 		Pathname $srcPathname,
 		Pathname $dstPathname
 	) {
-		return $this->execute(
-			function() use ($srcPathname, $dstPathname) {
+		return Util::executeFunction(
+			function () use ($srcPathname, $dstPathname) {
+				/** @var LocalAdapter $srcAdapter */
+				$srcAdapter = $srcPathname->localAdapter();
+				/** @var LocalAdapter $dstAdapter */
+				$dstAdapter = $dstPathname->localAdapter();
+
 				return copy(
-					$srcPathname->localAdapter()->getBasepath() . $srcPathname->local(),
-					$dstPathname->localAdapter()->getBasepath() . $dstPathname->local()
+					$srcAdapter->getBasepath() . $srcPathname->local(),
+					$dstAdapter->getBasepath() . $dstPathname->local()
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not copy %s to %s.',
 			$srcPathname,
@@ -569,17 +598,26 @@ class LocalAdapter
 		);
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function nativeMove(
 		Pathname $srcPathname,
 		Pathname $dstPathname
 	) {
-		return $this->execute(
-			function() use ($srcPathname, $dstPathname) {
+		return Util::executeFunction(
+			function () use ($srcPathname, $dstPathname) {
+				/** @var LocalAdapter $srcAdapter */
+				$srcAdapter = $srcPathname->localAdapter();
+				/** @var LocalAdapter $dstAdapter */
+				$dstAdapter = $dstPathname->localAdapter();
+
 				return rename(
-					$srcPathname->localAdapter()->getBasepath() . $srcPathname->local(),
-					$dstPathname->localAdapter()->getBasepath() . $dstPathname->local()
+					$srcAdapter->getBasepath() . $srcPathname->local(),
+					$dstAdapter->getBasepath() . $dstPathname->local()
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not move %s to %s.',
 			$srcPathname,
@@ -588,7 +626,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::createDirectory()
+	 * {@inheritdoc}
 	 */
 	public function createDirectory(Pathname $pathname, $parents)
 	{
@@ -598,21 +636,22 @@ class LocalAdapter
 		}
 
 		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $parents, $self) {
+		return Util::executeFunction(
+			function () use ($pathname, $parents, $self) {
 				// create with parents
 				if ($parents) {
 					// TODO: apply umask.
-					return mkdir($self->getBasepath() . $pathname->local(), 0777, true);
+					return mkdir($self->getBasePath() . $pathname->local(), 0777, true);
 				}
 				else {
 					$parentPathname = $pathname->parent();
 
-					$parentPathname->localAdapter()->requireExists($parentPathname);
+					Validator::requireExists($parentPathname);
 
-					return mkdir($self->getBasepath() . $pathname->local());
+					return mkdir($self->getBasePath() . $pathname->local());
 				}
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not create directory %s.',
 			$pathname
@@ -620,7 +659,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::createFile()
+	 * {@inheritdoc}
 	 */
 	public function createFile(Pathname $pathname, $parents)
 	{
@@ -639,25 +678,22 @@ class LocalAdapter
 			}
 		}
 		else {
-			try {
-				$parentPathname->localAdapter()->checkDirectory($parentPathname);
-			}
-			catch (FilesystemException $e) {
+			if (!$parentPathname->localAdapter()->isDirectory($parentPathname)) {
 				throw new FilesystemException(
 					sprintf('Could not create file %s, parent directory %s does not exists!', $pathname, $parentPathname),
-					0,
-					$e
+					0
 				);
 			}
 		}
 
 		$self = $this;
-		$this->execute(
-			function() use ($pathname, $self) {
+		Util::executeFunction(
+			function () use ($pathname, $self) {
 				return touch(
-					$self->getBasepath() . $pathname->local()
+					$self->getBasePath() . $pathname->local()
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not create file %s.',
 			$pathname
@@ -665,19 +701,20 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getContents()
+	 * {@inheritdoc}
 	 */
 	public function getContents(Pathname $pathname)
 	{
-		$this->checkFile($pathname);
+		Validator::checkFile($pathname);
 
 		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $self) {
+		return Util::executeFunction(
+			function () use ($pathname, $self) {
 				return file_get_contents(
-					$self->getBasepath() . $pathname->local()
+					$self->getBasePath() . $pathname->local()
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not get contents of %s.',
 			$pathname
@@ -685,26 +722,27 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::setContents()
+	 * {@inheritdoc}
 	 */
 	public function setContents(Pathname $pathname, $content, $create)
 	{
 		if (!$create) {
-			$this->requireExists($pathname);
+			Validator::requireExists($pathname);
 		}
 
 		if ($this->exists($pathname)) {
-			$this->checkFile($pathname);
+			Validator::checkFile($pathname);
 		}
 
 		$self = $this;
-		$this->execute(
-			function() use ($pathname, $content, $self) {
+		Util::executeFunction(
+			function () use ($pathname, $content, $self) {
 				return file_put_contents(
-					$self->getBasepath() . $pathname->local(),
+					$self->getBasePath() . $pathname->local(),
 					$content
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not set contents of %s.',
 			$pathname
@@ -712,28 +750,29 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::appendContents()
+	 * {@inheritdoc}
 	 */
 	public function appendContents(Pathname $pathname, $content, $create)
 	{
 		if (!$create) {
-			$this->requireExists($pathname);
+			Validator::requireExists($pathname);
 		}
 
 		if ($this->exists($pathname)) {
-			$this->checkFile($pathname);
+			Validator::checkFile($pathname);
 		}
 
 		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $content, $self) {
+		return Util::executeFunction(
+			function () use ($pathname, $content, $self) {
 				$result = false;
-				if (false !== ($f = fopen($self->getBasepath() . $pathname->local(), 'ab'))) {
+				if (false !== ($f = fopen($self->getBasePath() . $pathname->local(), 'ab'))) {
 					$result = fwrite($f, $content);
 					fclose($f);
 				}
 				return $result;
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not append contents to %s.',
 			$pathname
@@ -741,22 +780,23 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::truncate()
+	 * {@inheritdoc}
 	 */
 	public function truncate(Pathname $pathname, $size)
 	{
-		$this->checkFile($pathname);
+		Validator::checkFile($pathname);
 
 		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $size, $self) {
+		return Util::executeFunction(
+			function () use ($pathname, $size, $self) {
 				$result = false;
-				if (false !== ($f = fopen($self->getBasepath() . $pathname->local(), 'ab'))) {
+				if (false !== ($f = fopen($self->getBasePath() . $pathname->local(), 'ab'))) {
 					$result = ftruncate($f, $size);
 					fclose($f);
 				}
 				return $result;
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not truncate file %s to %s.',
 			$pathname,
@@ -765,146 +805,21 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getStream()
-	 */
-	public function getStream(Pathname $pathname)
-	{
-		$this->checkFile($pathname);
-
-		return new BuildInStream('file://' . $this->getBasepath() . $pathname->local(), $pathname);
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::getStreamURL()
-	 */
-	public function getStreamURL(Pathname $pathname)
-	{
-		// TODO get stream protocol from filesystem!
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::getMIMEName()
-	 */
-	public function getMIMEName(Pathname $pathname)
-	{
-		$this->checkFile($pathname);
-
-		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $self) {
-				return finfo_file(
-					FS::getFileInfo(),
-					$self->getBasepath() . $pathname->local(),
-					FILEINFO_NONE
-				);
-			},
-			0,
-			'Could not get mime name of %s.',
-			$pathname
-		);
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::getMIMEType()
-	 */
-	public function getMIMEType(Pathname $pathname)
-	{
-		$this->checkFile($pathname);
-
-		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $self) {
-				return finfo_file(
-					FS::getFileInfo(),
-					$self->getBasepath() . $pathname->local(),
-					FILEINFO_MIME_TYPE
-				);
-			},
-			0,
-			'Could not get mime type of %s.',
-			$pathname
-		);
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::getMIMEEncoding()
-	 */
-	public function getMIMEEncoding(Pathname $pathname)
-	{
-		$this->checkFile($pathname);
-
-		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $self) {
-				return finfo_file(
-					FS::getFileInfo(),
-					$self->getBasepath() . $pathname->local(),
-					FILEINFO_MIME_ENCODING
-				);
-			},
-			0,
-			'Could not get mime encoding of %s.',
-			$pathname
-		);
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::getMD5()
-	 */
-	public function getMD5(Pathname $pathname, $binary)
-	{
-		$this->checkFile($pathname);
-
-		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $binary, $self) {
-				return md5_file(
-					$self->getBasepath() . $pathname->local(),
-					$binary
-				);
-			},
-			0,
-			'Could not calculate md5 sum of %s.',
-			$pathname
-		);
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::getSHA1()
-	 */
-	public function getSHA1(Pathname $pathname, $binary)
-	{
-		$this->checkFile($pathname);
-
-		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $binary, $self) {
-				return sha1_file(
-					$self->getBasepath() . $pathname->local(),
-					$binary
-				);
-			},
-			0,
-			'Could not calculate sha1 sum of %s.',
-			$pathname
-		);
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::ls()
+	 * {@inheritdoc}
 	 */
 	public function ls(Pathname $pathname)
 	{
-		$this->checkDirectory($pathname);
+		Validator::checkDirectory($pathname);
 
-		$self = $this;
-		$files = $this->execute(
-			function() use ($pathname, $self) {
+		$self  = $this;
+		$files = Util::executeFunction(
+			function () use ($pathname, $self) {
 				$temp = scandir(
-					$self->getBasepath() . $pathname->local()
+					$self->getBasePath() . $pathname->local()
 				);
 				return $temp;
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not list contents of %s.',
 			$pathname
@@ -923,23 +838,52 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getFreeSpace()
+	 * {@inheritdoc}
+	 */
+	public function getStream(Pathname $pathname)
+	{
+		Validator::requireExists($pathname);
+
+		if (!$this->filesystem->isStreamingEnabled()) {
+			throw new StreamNotSupportedException($pathname);
+		}
+
+		return new BuildInStream('file://' . $this->getBasePath() . $pathname->full(), $pathname);
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getStreamURL(Pathname $pathname)
+	{
+		Validator::requireExists($pathname);
+
+		if (!$this->filesystem->isStreamingEnabled()) {
+			throw new StreamNotSupportedException($pathname);
+		}
+
+		return $this->filesystem->getStreamPrefix() . $pathname->full();
+	}
+
+	/*
+	 * ------------------------------------------------------------
+	 *                       Disk space plugin
+	 * ------------------------------------------------------------
+	 */
+
+	/**
+	 * {@inheritdoc}
 	 */
 	public function getFreeSpace(Pathname $pathname)
 	{
-		if (!$this->isDirectory($pathname)) {
-			$parentPathname = $pathname->parent();
-
-			return $parentPathname->localAdapter()->getFreeSpace($parentPathname);
-		}
-
 		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $self) {
+		return Util::executeFunction(
+			function () use ($pathname, $self) {
 				return disk_free_space(
-					$self->getBasepath() . $pathname->local()
+					$self->getBasePath() . $pathname->local()
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not get free space for %s.',
 			$pathname
@@ -947,84 +891,157 @@ class LocalAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getTotalSpace()
+	 * {@inheritdoc}
 	 */
 	public function getTotalSpace(Pathname $pathname)
 	{
-		if (!$this->isDirectory($pathname)) {
-			$parentPathname = $pathname->parent();
-
-			return $parentPathname->localAdapter()->getTotalSpace($parentPathname);
-		}
-
 		$self = $this;
-		return $this->execute(
-			function() use ($pathname, $self) {
+		return Util::executeFunction(
+			function () use ($pathname, $self) {
 				return disk_total_space(
-					$self->getBasepath() . $pathname->local()
+					$self->getBasePath() . $pathname->local()
 				);
 			},
+			'Filicious\Exception\AdapterException',
 			0,
 			'Could not get total space for %s.',
 			$pathname
 		);
 	}
 
-	protected function execute($callback, $errorCode, $errorMessage) {
-		$error = null;
+	/*
+	 * ------------------------------------------------------------
+	 *                          Hash plugin
+	 * ------------------------------------------------------------
+	 */
 
-		try {
-			$result = $callback();
-		}
-		catch (\ErrorException $e) {
-			$error = $e;
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getHash(Pathname $pathname, $algorithm, $binary)
+	{
+		Validator::checkFile($pathname);
+
+		$self = $this;
+		return Util::executeFunction(
+			function () use ($pathname, $algorithm, $binary, $self) {
+				return hash_file(
+					$self->getBasePath() . $pathname->local(),
+					$algorithm,
+					$binary
+				);
+			},
+			'Filicious\Exception\AdapterException',
+			0,
+			'Could not calculate %s hash of %s.',
+			$algorithm,
+			$pathname
+		);
+	}
+
+	/*
+	 * ------------------------------------------------------------
+	 *                          Link plugin
+	 * ------------------------------------------------------------
+	 */
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function isLink(Pathname $pathname)
+	{
+		if (!$this->exists($pathname)) {
+			return false;
 		}
 
-		if ($error !== null || $result === false) {
-			throw new AdapterException(
-				vsprintf(
-					$errorMessage,
-					array_slice(
-						func_get_args(),
-						3
-					)
-				),
-				$errorCode,
-				$e
-			);
-		}
-
-		return $result;
+		return is_link($this->getBasePath() . $pathname->local());
 	}
 
 	/**
-	 * Notify about config changes.
+	 * {@inheritdoc}
 	 */
-	public function notifyConfigChange()
+	public function getLinkTarget(Pathname $pathname)
 	{
-		$basepath = $this->config->get(FilesystemConfig::BASEPATH);
-
-		if ($basepath) {
-			$basepath = Util::normalizePath($basepath);
-
-			if (!is_dir($basepath) && $this->config->get(FilesystemConfig::CREATE_BASEPATH)) {
-					$this->execute(
-						function() use ($basepath) {
-							// second is_dir is required, because mkdir may return true even if only one,
-							// but not all directories of the path are created!
-							return mkdir($basepath, 0777, true) && is_dir($basepath);
-						},
-						0, // TODO,
-						'Could not create basepath %s',
-						$basepath
-					);
-			}
-
-			$this->basepath = $basepath;
-			return;
+		if (!$this->isLink($pathname)) {
+			return null;
 		}
 
-		// TODO Logging missing basepath?
-		$this->basepath = null;
+		return readlink($this->getBasePath() . $pathname->local());
 	}
+
+	/*
+	 * ------------------------------------------------------------
+	 *                          Mime plugin
+	 * ------------------------------------------------------------
+	 */
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getMimeName(Pathname $pathname)
+	{
+		Validator::checkFile($pathname);
+
+		$self = $this;
+		return Util::executeFunction(
+			function () use ($pathname, $self) {
+				return finfo_file(
+					Util::getFileInfo(),
+					$self->getBasePath() . $pathname->local(),
+					FILEINFO_NONE
+				);
+			},
+			'Filicious\Exception\AdapterException',
+			0,
+			'Could not get mime name of %s.',
+			$pathname
+		);
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getMimeType(Pathname $pathname)
+	{
+		Validator::checkFile($pathname);
+
+		$self = $this;
+		return Util::executeFunction(
+			function () use ($pathname, $self) {
+				return finfo_file(
+					Util::getFileInfo(),
+					$self->getBasePath() . $pathname->local(),
+					FILEINFO_MIME_TYPE
+				);
+			},
+			'Filicious\Exception\AdapterException',
+			0,
+			'Could not get mime type of %s.',
+			$pathname
+		);
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getMimeEncoding(Pathname $pathname)
+	{
+		Validator::checkFile($pathname);
+
+		$self = $this;
+		return Util::executeFunction(
+			function () use ($pathname, $self) {
+				return finfo_file(
+					Util::getFileInfo(),
+					$self->getBasePath() . $pathname->local(),
+					FILEINFO_MIME_ENCODING
+				);
+			},
+			'Filicious\Exception\AdapterException',
+			0,
+			'Could not get mime encoding of %s.',
+			$pathname
+		);
+	}
+
 }

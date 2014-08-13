@@ -89,14 +89,6 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 
 		// create file <path>/zap/file.txt
 		$this->adapter->putContents('/zap/file.txt', 'Hello World!');
-
-		if ($this->adapter->isSymlinkSupported()) {
-			// create link <path>/foo/zap.lnk -> ../zap/file.txt
-			$this->adapter->symlink('../zap/file.txt', '/foo/file.lnk');
-
-			// create link <path>/zap/bar.lnk -> ../foo/bar/
-			$this->adapter->symlink('../foo/bar/', '/zap/bar.lnk');
-		}
 	}
 
 	protected function tearDown()
@@ -189,43 +181,6 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 	}
 
 	/**
-	 * @covers Filicious\Local\LocalFile::isLink
-	 */
-	public function testIsLink()
-	{
-		// TODO check fs ability: symlinks supported
-
-		// test files
-		foreach ($this->files as $pathname) {
-			$file = $this->fs->getFile($pathname);
-			$this->assertFalse($file->isLink());
-		}
-
-		// test directories
-		foreach ($this->dirs as $pathname) {
-			$file = $this->fs->getFile($pathname);
-			$this->assertFalse($file->isLink());
-		}
-
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				$this->assertTrue($file->isLink());
-			}
-
-			// test non existing files
-			foreach ($this->notExists as $pathname) {
-				$file = $this->fs->getFile($pathname);
-				$this->assertFalse($file->isLink());
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::isLink() test, symlinks not supported.');
-		}
-	}
-
-	/**
 	 * @covers Filicious\Local\LocalFile::isFile
 	 */
 	public function testIsFile()
@@ -240,24 +195,6 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 		foreach ($this->dirs as $pathname) {
 			$file = $this->fs->getFile($pathname);
 			$this->assertFalse($file->isFile());
-		}
-
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				switch ($type) {
-					case 'file':
-						$this->assertTrue($file->isFile());
-						break;
-					case 'dir':
-						$this->assertFalse($file->isFile());
-						break;
-				}
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::isFile() test, symlinks not supported.');
 		}
 
 		// test non existing files
@@ -284,24 +221,6 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			$this->assertTrue($file->isDirectory());
 		}
 
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				switch ($type) {
-					case 'file':
-						$this->assertFalse($file->isDirectory());
-						break;
-					case 'dir':
-						$this->assertTrue($file->isDirectory());
-						break;
-				}
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::isDirectory() test, symlinks not supported.');
-		}
-
 		// test non existing files
 		foreach ($this->notExists as $pathname) {
 			$file = $this->fs->getFile($pathname);
@@ -324,17 +243,6 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 		foreach ($this->dirs as $pathname) {
 			$file = $this->fs->getFile($pathname);
 			$this->assertTrue($file->exists());
-		}
-
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				$this->assertTrue($file->exists());
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::exists() test, symlinks not supported.');
 		}
 
 		// test non existing files
@@ -361,17 +269,6 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			$this->assertEquals('/' . $pathname, $file->getPathname());
 		}
 
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				$this->assertEquals('/' . $pathname, $file->getPathname());
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::getPathname() test, symlinks not supported.');
-		}
-
 		// test non existing files
 		foreach ($this->notExists as $pathname) {
 			$file = $this->fs->getFile($pathname);
@@ -394,17 +291,6 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 		foreach ($this->dirs as $pathname) {
 			$file = $this->fs->getFile($pathname);
 			$this->assertEquals(basename($pathname), $file->getBasename());
-		}
-
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				$this->assertEquals(basename($pathname), $file->getBasename());
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::getBasename() test, symlinks not supported.');
 		}
 
 		// test non existing files
@@ -435,20 +321,6 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 				preg_match('#^.*\.(\w+)$#', $pathname, $match) ? $match[1] : null,
 				$file->getExtension()
 			);
-		}
-
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				$this->assertEquals(
-					preg_match('#^.*\.(\w+)$#', $pathname, $match) ? $match[1] : null,
-					$file->getExtension()
-				);
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::getExtension() test, symlinks not supported.');
 		}
 
 		// test non existing files
@@ -492,20 +364,6 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			);
 		}
 
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				$this->assertEquals(
-					dirname($pathname) != '.' ? $this->fs->getFile(dirname($pathname)) : $this->fs->getRoot(),
-					$file->getParent()
-				);
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::getParent() test, symlinks not supported.');
-		}
-
 		// test non existing files
 		foreach ($this->notExists as $pathname) {
 			$file = $this->fs->getFile($pathname);
@@ -525,7 +383,7 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 		foreach ($this->files as $pathname) {
 			$file = $this->fs->getFile($pathname);
 			$this->assertEquals(
-				$this->adapter->getATime('/' . $pathname),
+				$this->adapter->getAccessTime('/' . $pathname),
 				$file->getAccessTime()
 			);
 		}
@@ -534,23 +392,9 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 		foreach ($this->dirs as $pathname) {
 			$file = $this->fs->getFile($pathname);
 			$this->assertEquals(
-				$this->adapter->getATime('/' . $pathname),
+				$this->adapter->getAccessTime('/' . $pathname),
 				$file->getAccessTime()
 			);
-		}
-
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				$this->assertEquals(
-					$this->adapter->getATime('/' . $pathname),
-					$file->getAccessTime()
-				);
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::getAccessTime() test, symlinks not supported.');
 		}
 
 		// test non existing files
@@ -577,7 +421,7 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 		foreach ($this->files as $pathname) {
 			$file = $this->fs->getFile($pathname);
 			$this->assertEquals(
-				$this->adapter->getCTime('/' . $pathname),
+				$this->adapter->getCreationTime('/' . $pathname),
 				$file->getCreationTime()
 			);
 		}
@@ -586,23 +430,9 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 		foreach ($this->dirs as $pathname) {
 			$file = $this->fs->getFile($pathname);
 			$this->assertEquals(
-				$this->adapter->getCTime('/' . $pathname),
+				$this->adapter->getCreationTime('/' . $pathname),
 				$file->getCreationTime()
 			);
-		}
-
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				$this->assertEquals(
-					$this->adapter->getCTime('/' . $pathname),
-					$file->getCreationTime()
-				);
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::getCreationTime() test, symlinks not supported.');
 		}
 
 		// test non existing files
@@ -629,7 +459,7 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 		foreach ($this->files as $pathname) {
 			$file = $this->fs->getFile($pathname);
 			$this->assertEquals(
-				$this->adapter->getMTime('/' . $pathname),
+				$this->adapter->getModifyTime('/' . $pathname),
 				$file->getModifyTime()
 			);
 		}
@@ -638,23 +468,9 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 		foreach ($this->dirs as $pathname) {
 			$file = $this->fs->getFile($pathname);
 			$this->assertEquals(
-				$this->adapter->getMTime('/' . $pathname),
+				$this->adapter->getModifyTime('/' . $pathname),
 				$file->getModifyTime()
 			);
-		}
-
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				$this->assertEquals(
-					$this->adapter->getMTime('/' . $pathname),
-					$file->getModifyTime()
-				);
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::getModifyTime() test, symlinks not supported.');
 		}
 
 		// test non existing files
@@ -689,31 +505,6 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			$this->assertEquals(0, $file->getSize());
 		}
 
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				switch ($type) {
-					case 'file':
-						$this->assertEquals(
-							$this->adapter->getFileSize('/' . $pathname),
-							$file->getSize()
-						);
-						break;
-
-					case 'dir':
-						$this->assertEquals(
-							0,
-							$file->getSize()
-						);
-						break;
-				}
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::getSize() test, symlinks not supported.');
-		}
-
 		// test non existing files
 		foreach ($this->notExists as $pathname) {
 			$file = $this->fs->getFile($pathname);
@@ -744,20 +535,6 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 		foreach ($this->dirs as $pathname) {
 			$file = $this->fs->getFile($pathname);
 			$this->assertEquals($this->adapter->getOwner('/' . $pathname), $file->getOwner());
-		}
-
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				$this->assertEquals(
-					$this->adapter->getOwner('/' . $pathname),
-					$file->getOwner()
-				);
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::getOwner() test, symlinks not supported.');
 		}
 
 		// test non existing files
@@ -792,20 +569,6 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			$this->assertEquals($this->adapter->getGroup('/' . $pathname), $file->getGroup());
 		}
 
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				$this->assertEquals(
-					$this->adapter->getGroup('/' . $pathname),
-					$file->getGroup()
-				);
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::getGroup() test, symlinks not supported.');
-		}
-
 		// test non existing files
 		foreach ($this->notExists as $pathname) {
 			$file = $this->fs->getFile($pathname);
@@ -836,17 +599,6 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 		foreach ($this->dirs as $pathname) {
 			$file = $this->fs->getFile($pathname);
 			$this->assertEquals($this->adapter->getMode('/' . $pathname), $file->getMode());
-		}
-
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				$this->assertEquals($this->adapter->getMode('/' . $pathname), $file->getMode());
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::getMode() test, symlinks not supported.');
 		}
 
 		// test non existing files
@@ -881,17 +633,6 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			$this->assertTrue($file->isReadable());
 		}
 
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				$this->assertTrue($file->isReadable());
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::isReadable() test, symlinks not supported.');
-		}
-
 		// test non existing files
 		foreach ($this->notExists as $pathname) {
 			$file = $this->fs->getFile($pathname);
@@ -924,17 +665,6 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 			$this->assertTrue($file->isWritable());
 		}
 
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				$this->assertTrue($file->isWritable());
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::isWriteable() test, symlinks not supported.');
-		}
-
 		// test non existing files
 		foreach ($this->notExists as $pathname) {
 			$file = $this->fs->getFile($pathname);
@@ -965,24 +695,6 @@ abstract class AbstractSingleFilesystemTest extends PHPUnit_Framework_TestCase
 		foreach ($this->dirs as $pathname) {
 			$file = $this->fs->getFile($pathname);
 			$this->assertTrue($file->isExecutable());
-		}
-
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file = $this->fs->getFile($pathname);
-				switch ($type) {
-					case 'file':
-						$this->assertFalse($file->isExecutable());
-						break;
-					case 'dir':
-						$this->assertTrue($file->isExecutable());
-						break;
-				}
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::isExecutable() test, symlinks not supported.');
 		}
 
 		// test non existing files

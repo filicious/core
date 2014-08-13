@@ -13,6 +13,9 @@
 
 namespace Filicious\Internals;
 
+use Filicious\Exception\AdapterException;
+use Filicious\Exception\InvalidArgumentException;
+
 
 /**
  * A mount aggregator can mount adapters to various paths.
@@ -20,18 +23,70 @@ namespace Filicious\Internals;
  * adapter can be seen.
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
+ * @author  Tristan Lins <tristan.lins@bit3.de>
  * @author  Oliver Hoff <oliver@hofff.com>
  */
-class MountAdapter
-	extends AggregateAdapter
+class MountAdapter extends AbstractDelegatorAdapter
 {
-	
-	public function __construct() {
-		parent::__construct();
+	protected $mounts;
+
+	public function mount($path, Adapter $adapter)
+	{
+		$path = Util::normalizePath($path);
+
+		if (empty($path)) {
+			throw new InvalidArgumentException('Mount path cannot be empty');
+		}
+		if (isset($this->mounts[$path])) {
+			throw new InvalidArgumentException('Could not mount over the already mounted path ' . $path);
+		}
+
 	}
-	
-	public function selectAdapter($pathname, array $entries) {
-		return end($entries);
+
+	public function unmount($path)
+	{
+		$path = Util::normalizePath($path);
+
+		if (empty($path)) {
+			throw new InvalidArgumentException('Mount path cannot be empty');
+		}
 	}
-	
+
+	/**
+	 * {@inheritdoc}
+	 */
+	protected function selectDelegate(Pathname $pathname = null)
+	{
+		$path = $pathname->full();
+
+		do {
+			if (isset($this->mounts[$path])) {
+				return $this->mounts[$path];
+			}
+		}
+		while ('/' !== $path = Util::dirname($path));
+
+		throw new AdapterException('No mount found for ' . $pathname->full());
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function resolveLocal(Pathname $pathname, &$localAdapter, &$local)
+	{
+		$path = $pathname->full();
+
+		do {
+			if (isset($this->mounts[$path])) {
+				$localAdapter = $this->mounts[$path];
+				$local        = substr($pathname->full(), strlen($path));
+				return $this;
+			}
+		}
+		while ('/' !== $path = Util::dirname($path));
+
+		throw new AdapterException('No mount found for ' . $pathname->full());
+	}
+
 }

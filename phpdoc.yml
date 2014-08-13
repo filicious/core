@@ -1,0 +1,6 @@
+src-path: /src
+
+# push apidocs to github page
+docs-repository: filicious/filicious.github.io
+docs-branch: master
+docs-path: /api

@@ -17,10 +17,13 @@ namespace Filicious\Stream;
  * Universal stream wrapper implementation.
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 class StreamWrapper
 {
+
 	/**
 	 * @var null
 	 */
@@ -62,15 +65,14 @@ class StreamWrapper
 	{
 		$this->url = (object) array_merge(
 			array(
-			     'scheme'   => 'filicious', // e.g. http
-			     'host'     => '',
-			     'port'     => '',
-			     'user'     => '',
-			     'pass'     => '',
-			     'path'     => '',
-			     'query'    => '', // after the question mark ?
-			     'fragment' => '', // after the hashmark #
-
+				'scheme'   => 'filicious', // e.g. http
+				'host'     => '',
+				'port'     => '',
+				'user'     => '',
+				'pass'     => '',
+				'path'     => '',
+				'query'    => '', // after the question mark ?
+				'fragment' => '', // after the hashmark #
 			),
 			parse_url($url)
 		);
@@ -80,7 +82,7 @@ class StreamWrapper
 			if (!$stream) {
 				throw new \InvalidArgumentException(); // TODO
 			}
-			$this->file = $stream->getFile();
+			$this->file   = $stream->getFile();
 			$this->stream = $stream;
 			return $this->file;
 		}

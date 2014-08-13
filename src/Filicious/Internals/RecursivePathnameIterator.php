@@ -13,18 +13,13 @@
 
 namespace Filicious\Internals;
 
-use Filicious\File;
-use Filicious\Filesystem;
-use Filicious\Internals\Adapter;
-use Filicious\Internals\Pathname;
-use Iterator;
-use SeekableIterator;
-
 /**
  * Filesystem iterator
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 class RecursivePathnameIterator extends PathnameIterator
 	implements \RecursiveIterator
@@ -40,13 +35,14 @@ class RecursivePathnameIterator extends PathnameIterator
 	public function hasChildren()
 	{
 		return $this->valid() &&
-			$this->current()->isDirectory() &&
-			$this->applyGlobSearchPattern();
+		$this->current()->isDirectory() &&
+		$this->applyGlobSearchPattern();
 	}
 
 	/**
 	 * (PHP 5 &gt;= 5.1.0)<br/>
 	 * Returns an iterator for the current entry.
+	 *
 	 * @link http://php.net/manual/en/recursiveiterator.getchildren.php
 	 * @return RecursiveIterator An iterator for the current entry.
 	 */
@@ -58,4 +54,5 @@ class RecursivePathnameIterator extends PathnameIterator
 		);
 		$iterator->prepareFilters($this);
 		return $iterator;
-	}}
+	}
+}

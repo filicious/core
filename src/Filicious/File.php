@@ -13,114 +13,169 @@
 
 namespace Filicious;
 
-use Filicious\Internals\Adapter;
+use Filicious\Event\AppendEvent;
+use Filicious\Event\CopyEvent;
+use Filicious\Event\CreateDirectoryEvent;
+use Filicious\Event\CreateFileEvent;
+use Filicious\Event\DeleteEvent;
+use Filicious\Event\FiliciousEvents;
+use Filicious\Event\MoveEvent;
+use Filicious\Event\SetGroupEvent;
+use Filicious\Event\SetModeEvent;
+use Filicious\Event\SetOwnerEvent;
+use Filicious\Event\TouchEvent;
+use Filicious\Event\TruncateEvent;
+use Filicious\Event\WriteEvent;
+use Filicious\Exception\FileNotFoundException;
+use Filicious\Exception\NotADirectoryException;
+use Filicious\Exception\NotAFileException;
 use Filicious\Internals\Pathname;
+use Filicious\Internals\Util;
+use Filicious\Iterator\FilesystemIterator;
+use Filicious\Plugin\FilePluginInterface;
 
 /**
- * A file object
+ * A generic file object.
  *
  * @package filicious-core
- * @author  Tristan Lins <tristan.lins@bit3.de>
  * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
+ * @author  Tristan Lins <tristan.lins@bit3.de>
  * @author  Oliver Hoff <oliver@hofff.com>
  */
 class File
 	implements \IteratorAggregate, \Countable
 {
 
-	public static function getDateTime($time) {
-		if($time instanceof \DateTime) {
-			return $time;
-		}
-		if(is_int($time) || is_float($time)) {
-			return new \DateTime('@' . intval($time));
-		}
-		return new \DateTime($time);
-	}
+	/**
+	 * @var int Flag for file operations, which involve a file target
+	 *      destination, indicating that missing parent directories of the
+	 *      operations file target destination should be created before the
+	 *      execution of the operation is done
+	 *
+	 * @api
+	 */
+	const OPERATION_PARENTS = 0x01;
+
+	/**
+	 * @var int Flag for file operations to apply the execution recrusivly, if
+	 *      the file being operated on is a directory.
+	 *
+	 * @api
+	 */
+	const OPERATION_RECURSIVE = 0x02;
 
 	/**
 	 * @var int Flag for file operations, which involve a file target
-	 * 		destination, indicating that missing parent directories of the
-	 * 		operations file target destination should be created before the
-	 * 		execution of the operation is done
+	 *      destination, to reject the execution of the operation, if the
+	 *      operations file target destination already exists. This flag
+	 *      overrules the OPERATION_REPLACE flag.
+	 *
+	 * @api
 	 */
-	const OPERATION_PARENTS		= 0x01;
-	/**
-	 * @var int Flag for file operations to apply the execution recrusivly, if
-	 * 		the file being operated on is a directory.
-	 */
-	const OPERATION_RECURSIVE	= 0x02;
+	const OPERATION_REJECT = 0x10;
+
 	/**
 	 * @var int Flag for file operations, which involve a file target
-	 * 		destination, to reject the execution of the operation, if the
-	 * 		operations file target destination already exists. This flag
-	 * 		overrules the OPERATION_REPLACE flag.
+	 *      destination, to merge the operations file source with the operations
+	 *      file target destination.
+	 *
+	 * @api
 	 */
-	const OPERATION_REJECT		= 0x10;
+	const OPERATION_MERGE = 0x20;
+
 	/**
 	 * @var int Flag for file operations, which involve a file target
-	 * 		destination, to merge the operations file source with the operations
-	 * 		file target destination.
+	 *      destination, to replace the target destination.
+	 *
+	 * @api
 	 */
-	const OPERATION_MERGE		= 0x20;
-	/**
-	 * @var int Flag for file operations, which involve a file target
-	 * 		destination, to replace the target destination.
-	 */
-	const OPERATION_REPLACE		= 0x40;
+	const OPERATION_REPLACE = 0x40;
 
 	/**
 	 * List everything (LIST_HIDDEN | LIST_VISIBLE | LIST_FILES | LIST_DIRECTORIES | LIST_LINKS | LIST_OPAQUE)
+	 *
+	 * @api
 	 */
 	const LIST_ALL = 64512;
 
 	/**
 	 * Return hidden files (starting with ".")
+	 *
+	 * @api
 	 */
 	const LIST_HIDDEN = 1024;
 
 	/**
 	 * Return non-hidden (not starting with ".")
+	 *
+	 * @api
 	 */
 	const LIST_VISIBLE = 2048;
 
 	/**
 	 * Return only files.
+	 *
+	 * @api
 	 */
 	const LIST_FILES = 4096;
 
 	/**
 	 * Return only directories.
+	 *
+	 * @api
 	 */
 	const LIST_DIRECTORIES = 8192;
 
 	/**
 	 * Return only links.
+	 *
+	 * @api
 	 */
 	const LIST_LINKS = 16384;
 
 	/**
 	 * List non-links.
+	 *
+	 * @api
 	 */
 	const LIST_OPAQUE = 32768;
 
 	/**
 	 * List recursive.
+	 *
+	 * @api
 	 */
 	const LIST_RECURSIVE = 65536;
 
+	/**
+	 * @var Filesystem
+	 */
 	protected $filesystem;
 
+	/**
+	 * @var Pathname
+	 */
 	protected $pathname;
 
 	/**
-	 * @param string $pathname
-	 * @param FileState $stat
+	 * @param Pathname $pathname
 	 */
-	public function __construct(Filesystem $filesystem, Pathname $pathname)
+	public function __construct(Pathname $pathname)
 	{
-		$this->filesystem = $filesystem;
-		$this->pathname = $pathname;
+		$this->pathname   = $pathname;
+		$this->filesystem = $pathname->rootAdapter()->getFilesystem();
+	}
+
+	/**
+	 * Get the filesystem this file belongs to.
+	 *
+	 * @return Filesystem
+	 *
+	 * @api
+	 */
+	public function getFilesystem()
+	{
+		return $this->filesystem;
 	}
 
 	/**
@@ -131,6 +186,8 @@ class File
 	 * string.
 	 *
 	 * @return string The full abstracted pathname
+	 *
+	 * @api
 	 */
 	public function getPathname()
 	{
@@ -144,7 +201,10 @@ class File
 	 * of the end of the basename.
 	 *
 	 * @param string $suffix The suffix to truncate
+	 *
 	 * @return string The basename
+	 *
+	 * @api
 	 */
 	public function getBasename($suffix = null)
 	{
@@ -156,6 +216,8 @@ class File
 	 * May return an empty string, if filename has no extension.
 	 *
 	 * @return string
+	 *
+	 * @api
 	 */
 	public function getExtension()
 	{
@@ -168,8 +230,11 @@ class File
 	 * Return the dirname or parent name.
 	 *
 	 * @return string
+	 *
+	 * @api
 	 */
-	public function getDirname() {
+	public function getDirname()
+	{
 		return $this->pathname->parent()->full();
 	}
 
@@ -178,6 +243,8 @@ class File
 	 * May return null if called on the root "/" node.
 	 *
 	 * @return File|null
+	 *
+	 * @api
 	 */
 	public function getParent()
 	{
@@ -191,6 +258,8 @@ class File
 	 * Checks if the file is a file.
 	 *
 	 * @return bool True if the file exists and is a file; otherwise false
+	 *
+	 * @api
 	 */
 	public function isFile()
 	{
@@ -198,21 +267,11 @@ class File
 	}
 
 	/**
-	 * TODO PROPOSED TO BE REMOVED
-	 *
-	 * Checks if the file is a (symbolic) link.
-	 *
-	 * @return bool True if the file exists and is a link; otherwise false
-	 */
-	public function isLink()
-	{
-		return $this->pathname->rootAdapter()->isLink($this->pathname);
-	}
-
-	/**
 	 * Checks if the file is a directory.
 	 *
 	 * @return bool True if the file exists and is a directory; otherwise false
+	 *
+	 * @api
 	 */
 	public function isDirectory()
 	{
@@ -220,19 +279,13 @@ class File
 	}
 
 	/**
-	 * TODO PROPOSED TO BE REMOVED
-	 * @return mixed
-	 */
-	public function getLinkTarget()
-	{
-		return $this->pathname->rootAdapter()->getLinkTarget($this->pathname);
-	}
-
-	/**
 	 * Returns the date and time at which the file was accessed last time.
 	 *
 	 * @return \DateTime The last access time
-	 * @throws FileStateException If the file does not exists
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
 	public function getAccessTime()
 	{
@@ -241,16 +294,20 @@ class File
 
 	/**
 	 * Set the date and time at which the file was accessed last time.
-	 * The given $atime parameter is converted to a \DateTime object via
-	 * File::getDateTime.
+	 * The given $accessTime parameter is converted to a \DateTime object via
+	 * Util::createDateTime.
 	 *
-	 * @param mixed $atime The new access time
-	 * @return void
-	 * @throws FileStateException If the file does not exists
+	 * @param int|string|\DateTime $accessTime The new access time
+	 *
+	 * @return File
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
-	public function setAccessTime($atime = 'now')
+	public function setAccessTime($accessTime = 'now')
 	{
-		$this->pathname->rootAdapter()->setAccessTime($this->pathname, static::getDateTime($atime));
+		$this->pathname->rootAdapter()->setAccessTime($this->pathname, Util::createDateTime($accessTime));
 		return $this;
 	}
 
@@ -258,7 +315,10 @@ class File
 	 * Returns the date and time at which the file was created.
 	 *
 	 * @return \DateTime The creation time
-	 * @throws FileStateException If the file does not exists
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
 	public function getCreationTime()
 	{
@@ -269,7 +329,10 @@ class File
 	 * Returns the time at which the file was modified last time.
 	 *
 	 * @return \DateTime The modify time
-	 * @throws FileStateException If the file does not exists
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
 	public function getModifyTime()
 	{
@@ -278,16 +341,20 @@ class File
 
 	/**
 	 * Set the date and time at which the file was modified last time.
-	 * The given $mtime parameter is converted to a \DateTime object via
-	 * File::getDateTime.
+	 * The given $modifyTime parameter is converted to a \DateTime object via
+	 * Util::createDateTime.
 	 *
-	 * @param mixed $atime The new modify time
-	 * @return void
-	 * @throws FileStateException If the file does not exists
+	 * @param int|string|\DateTime $modifyTime The new modify time
+	 *
+	 * @return static
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
-	public function setModifyTime($mtime = 'now')
+	public function setModifyTime($modifyTime = 'now')
 	{
-		$this->pathname->rootAdapter()->setModifyTime($this->pathname, static::getDateTime($mtime));
+		$this->pathname->rootAdapter()->setModifyTime($this->pathname, Util::createDateTime($modifyTime));
 		return $this;
 	}
 
@@ -295,30 +362,51 @@ class File
 	 * Set the date and time at which the file was modified and / or accessed
 	 * last time.
 	 * The given $time and $atime parameters are converted to \DateTime objects
-	 * via File::getDateTime, with the one exception, that if $atime parameter
+	 * via Util::createDateTime, with the one exception, that if $atime parameter
 	 * is set to null, then the date and time given in the $time parameter will
 	 * be used for $atime.
 	 *
-	 * @param mixed $time The new modify time
-	 * @param mixed $atime The new access time; If null then $time will be used
-	 * @param bool $create Whether to create the file, if it does not already
-	 * 		exists
+	 * @param int|string|\DateTime $modifyTime The new modify time
+	 * @param int|string|\DateTime $accessTime The new access time; If null then $time will be used
+	 * @param bool  $create     Whether to create the file, if it does not already
+	 *                          exists
+	 *
 	 * @return void
-	 * @throws FileStateException If the file does not exists and $create is set
-	 * 		to false
+	 *
+	 * @throws FileNotFoundException If the file does not exists and $create is set
+	 *      to false
+	 *
+	 * @api
 	 */
-	public function touch($time = 'now', $atime = null, $create = true)
+	public function touch($modifyTime = 'now', $accessTime = null, $create = true)
 	{
-		$time = static::getDateTime($time);
-		$atime = $atime === null ? $time : static::getDateTime($atime);
-		$this->pathname->rootAdapter()->touch($this->pathname, $time, $atime, $create);
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+
+		if ($eventDispatcher) {
+			$exists = $this->pathname->rootAdapter()->exists($this->pathname);
+		}
+		else {
+			$exists = null;
+		}
+
+		$modifyTime = Util::createDateTime($modifyTime);
+		$accessTime = $accessTime === null ? $modifyTime : Util::createDateTime($accessTime);
+		$this->pathname->rootAdapter()->touch($this->pathname, $modifyTime, $accessTime, $create);
+
+		if ($eventDispatcher) {
+			$event = new TouchEvent($this->filesystem, $this, $modifyTime, $accessTime, $create && !$exists);
+			$eventDispatcher->dispatch(FiliciousEvents::TOUCH, $event);
+		}
 	}
 
 	/**
 	 * Returns the size of the file.
 	 *
 	 * @return int The file size
-	 * @throws FileStateException If the file does not exists
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
 	public function getSize($recursive = false)
 	{
@@ -329,6 +417,10 @@ class File
 	 * Return the owner of the file.
 	 *
 	 * @return int|string
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
 	public function getOwner()
 	{
@@ -338,13 +430,24 @@ class File
 	/**
 	 * Set the owner of the file.
 	 *
-	 * @param $user
+	 * @param string|int $user
 	 *
 	 * @return File
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
 	public function setOwner($user)
 	{
 		$this->pathname->rootAdapter()->setOwner($this->pathname, $user);
+
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+		if ($eventDispatcher) {
+			$event = new SetOwnerEvent($this->filesystem, $this, $user);
+			$eventDispatcher->dispatch(FiliciousEvents::SET_OWNER, $event);
+		}
+
 		return $this;
 	}
 
@@ -352,6 +455,10 @@ class File
 	 * Return the group of the file.
 	 *
 	 * @return int|string
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
 	public function getGroup()
 	{
@@ -361,13 +468,23 @@ class File
 	/**
 	 * Set the group of the file.
 	 *
-	 * @param $group
+	 * @param string|int $group
 	 *
 	 * @return File
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
 	public function setGroup($group)
 	{
 		$this->pathname->rootAdapter()->setGroup($this->pathname, $group);
+
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+		if ($eventDispatcher) {
+			$event = new SetGroupEvent($this->filesystem, $this, $group);
+			$eventDispatcher->dispatch(FiliciousEvents::SET_GROUP, $event);
+		}
+
 		return $this;
 	}
 
@@ -375,6 +492,10 @@ class File
 	 * Return the permission mode of the file.
 	 *
 	 * @return int
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
 	public function getMode()
 	{
@@ -384,13 +505,24 @@ class File
 	/**
 	 * Set the permission mode of the file.
 	 *
-	 * @param $mode
+	 * @param int $mode
 	 *
 	 * @return File
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
 	public function setMode($mode)
 	{
 		$this->pathname->rootAdapter()->setMode($this->pathname, $mode);
+
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+		if ($eventDispatcher) {
+			$event = new SetModeEvent($this->filesystem, $this, $mode);
+			$eventDispatcher->dispatch(FiliciousEvents::SET_MODE, $event);
+		}
+
 		return $this;
 	}
 
@@ -398,6 +530,10 @@ class File
 	 * Check if file is readable.
 	 *
 	 * @return bool
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
 	public function isReadable()
 	{
@@ -408,6 +544,10 @@ class File
 	 * Check if file is writable.
 	 *
 	 * @return bool
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
 	public function isWritable()
 	{
@@ -418,6 +558,10 @@ class File
 	 * Check if file is executable.
 	 *
 	 * @return bool
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
 	public function isExecutable()
 	{
@@ -428,6 +572,8 @@ class File
 	 * Check if file exists.
 	 *
 	 * @return bool
+	 *
+	 * @api
 	 */
 	public function exists()
 	{
@@ -441,10 +587,27 @@ class File
 	 * @param bool $force
 	 *
 	 * @return File
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
 	public function delete($recursive = false, $force = false)
 	{
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+
+		if ($eventDispatcher) {
+			$event = new DeleteEvent($this->filesystem, $this, $recursive);
+			$eventDispatcher->dispatch(FiliciousEvents::BEFORE_DELETE, $event);
+		}
+
 		$this->pathname->rootAdapter()->delete($this->pathname, $recursive, $force);
+
+		if ($eventDispatcher) {
+			$event = new DeleteEvent($this->filesystem, $this, $recursive);
+			$eventDispatcher->dispatch(FiliciousEvents::DELETE, $event);
+		}
+
 		return $this;
 	}
 
@@ -454,19 +617,30 @@ class File
 	 * @param File $destination The target destination.
 	 * @param bool $recursive
 	 * @param int  $overwrite
-	 * @param bool $parents
+	 * @param bool $createParents
 	 *
 	 * @return File
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
-	public function copyTo(File $destination, $recursive = false, $overwrite = self::OPERATION_REJECT, $parents = false)
+	public function copyTo(File $destination, $recursive = false, $overwrite = self::OPERATION_REJECT, $createParents = false)
 	{
 		$this->pathname->rootAdapter()->copyTo(
 			$this->pathname,
 			$destination->pathname,
 			($recursive ? File::OPERATION_RECURSIVE : 0)
-			| ($parents ? File::OPERATION_PARENTS : 0)
+			| ($createParents ? File::OPERATION_PARENTS : 0)
 			| ($overwrite ? File::OPERATION_MERGE : 0)
 		);
+
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+		if ($eventDispatcher) {
+			$event = new CopyEvent($this->filesystem, $this, $destination, $recursive, $overwrite, $createParents);
+			$eventDispatcher->dispatch(FiliciousEvents::COPY, $event);
+		}
+
 		return $this;
 	}
 
@@ -475,44 +649,73 @@ class File
 	 *
 	 * @param File $destination The target destination.
 	 * @param int  $overwrite
-	 * @param bool $parents
+	 * @param bool $createParents
 	 *
 	 * @return File
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
-	public function moveTo(File $destination, $overwrite = self::OPERATION_REJECT, $parents = false)
+	public function moveTo(File $destination, $overwrite = self::OPERATION_REJECT, $createParents = false)
 	{
 		$this->pathname->rootAdapter()->moveTo(
 			$this->pathname,
 			$destination->pathname,
-			($parents ? $parents : File::OPERATION_PARENTS)
+			($createParents ? $createParents : File::OPERATION_PARENTS)
 			| ($overwrite ? $overwrite : File::OPERATION_MERGE)
 		);
+
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+		if ($eventDispatcher) {
+			$event = new MoveEvent($this->filesystem, $this, $destination, $overwrite, $createParents);
+			$eventDispatcher->dispatch(FiliciousEvents::MOVE, $event);
+		}
+
 		return $this;
 	}
 
 	/**
 	 * Create a new directory.
 	 *
-	 * @param bool $parents
+	 * @param bool $createParents
 	 *
 	 * @return File
+	 *
+	 * @api
 	 */
-	public function createDirectory($parents = false)
+	public function createDirectory($createParents = false)
 	{
-		$this->pathname->rootAdapter()->createDirectory($this->pathname, $parents);
+		$this->pathname->rootAdapter()->createDirectory($this->pathname, $createParents);
+
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+		if ($eventDispatcher) {
+			$event = new CreateDirectoryEvent($this->filesystem, $this, $createParents);
+			$eventDispatcher->dispatch(FiliciousEvents::CREATE_DIRECTORY, $event);
+		}
+
 		return $this;
 	}
 
 	/**
 	 * Create an empty file.
 	 *
-	 * @param bool $parents
+	 * @param bool $createParents
 	 *
 	 * @return File
+	 *
+	 * @api
 	 */
-	public function createFile($parents = false)
+	public function createFile($createParents = false)
 	{
-		$this->pathname->rootAdapter()->createFile($this->pathname, $parents);
+		$this->pathname->rootAdapter()->createFile($this->pathname, $createParents);
+
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+		if ($eventDispatcher) {
+			$event = new CreateFileEvent($this->filesystem, $this, $createParents);
+			$eventDispatcher->dispatch(FiliciousEvents::CREATE_FILE, $event);
+		}
+
 		return $this;
 	}
 
@@ -520,6 +723,10 @@ class File
 	 * Get contents of the file.
 	 *
 	 * @return string
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
 	public function getContents()
 	{
@@ -529,28 +736,66 @@ class File
 	/**
 	 * Set contents of the file.
 	 *
-	 * @param      $content
+	 * @param string $content
 	 * @param bool $create
 	 *
 	 * @return File
+	 *
+	 * @throws NotAFileException If the pathname is not a file.
+	 *
+	 * @api
 	 */
 	public function setContents($content, $create = true)
 	{
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+
+		if ($eventDispatcher) {
+			$exists = $this->pathname->rootAdapter()->exists($this->pathname);
+		}
+		else {
+			$exists = null;
+		}
+
 		$this->pathname->rootAdapter()->setContents($this->pathname, $content, $create);
+
+		if ($eventDispatcher) {
+			$event = new WriteEvent($this->filesystem, $this, $content, $create && !$exists);
+			$eventDispatcher->dispatch(FiliciousEvents::WRITE, $event);
+		}
+
 		return $this;
 	}
 
 	/**
 	 * Append contents to the file.
 	 *
-	 * @param      $content
+	 * @param string $content
 	 * @param bool $create
 	 *
 	 * @return File
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 *
+	 * @api
 	 */
 	public function appendContents($content, $create = true)
 	{
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+
+		if ($eventDispatcher) {
+			$exists = $this->pathname->rootAdapter()->exists($this->pathname);
+		}
+		else {
+			$exists = null;
+		}
+
 		$this->pathname->rootAdapter()->appendContents($this->pathname, $content, $create);
+
+		if ($eventDispatcher) {
+			$event = new AppendEvent($this->filesystem, $this, $content, $create && !$exists);
+			$eventDispatcher->dispatch(FiliciousEvents::APPEND, $event);
+		}
+
 		return $this;
 	}
 
@@ -558,16 +803,36 @@ class File
 	 * Truncate file to a given size.
 	 *
 	 * @param int $size
+	 *
+	 * @return static
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 * @throws NotAFileException If the pathname is not a file.
+	 *
+	 * @api
 	 */
 	public function truncate($size = 0)
 	{
-		return $this->pathname->rootAdapter()->truncate($this->pathname, $size);
+		$this->pathname->rootAdapter()->truncate($this->pathname, $size);
+
+		$eventDispatcher = $this->filesystem->getEventDispatcher();
+		if ($eventDispatcher) {
+			$event = new TruncateEvent($this->filesystem, $this, $size);
+			$eventDispatcher->dispatch(FiliciousEvents::TRUNCATE, $event);
+		}
+
+		return $this;
 	}
 
 	/**
 	 * Get a stream object to the file.
 	 *
 	 * @return Stream
+	 *
+	 * @throws FileNotFoundException If the file does not exists
+	 * @throws NotAFileException If the pathname is not a file.
+	 *
+	 * @api
 	 */
 	public function getStream()
 	{
@@ -578,6 +843,8 @@ class File
 	 * Get a streaming url to the file.
 	 *
 	 * @return string
+	 *
+	 * @api
 	 */
 	public function getStreamURL()
 	{
@@ -585,68 +852,18 @@ class File
 	}
 
 	/**
-	 * Get the mime name (e.g. "OpenDocument Text") of the file.
-	 *
-	 * @return string
-	 */
-	public function getMIMEName()
-	{
-		return $this->pathname->rootAdapter()->getMIMEName($this->pathname);
-	}
-
-	/**
-	 * Get the mime type (e.g. "application/vnd.oasis.opendocument.text") of the file.
-	 *
-	 * @return string
-	 */
-	public function getMIMEType()
-	{
-		return $this->pathname->rootAdapter()->getMIMEType($this->pathname);
-	}
-
-	/**
-	 * Get the mime encoding (e.g. "binary" or "us-ascii" or "utf-8") of the file.
-	 *
-	 * @return string
-	 */
-	public function getMIMEEncoding()
-	{
-		return $this->pathname->rootAdapter()->getMIMEEncoding($this->pathname);
-	}
-
-	/**
-	 * Get the md5 hash of the file.
-	 *
-	 * @param bool $raw
-	 *
-	 * @return string
-	 */
-	public function getMD5($raw = false)
-	{
-		return $this->pathname->rootAdapter()->getMD5($this->pathname, $raw);
-	}
-
-	/**
-	 * Get the sha1 hash of the file.
-	 *
-	 * @param bool $raw
-	 *
-	 * @return string
-	 */
-	public function getSHA1($raw = false)
-	{
-		return $this->pathname->rootAdapter()->getSHA1($this->pathname, $raw);
-	}
-
-	/**
 	 * List all children of this directory.
 	 *
-	 * @param Variable list of filters.
-	 * - Flags File::LIST_*
-	 * - Glob pattern
-	 * - Callables
-	 * @return array
-	 * @throws \Filicious\Exception\NotADirectoryException
+	 * @param int|string|\Closure|callable $filter Variable list of filters.
+	 *                                             - Flags File::LIST_*
+	 *                                             - Glob pattern
+	 *                                             - Callables
+	 *
+	 * @return File[]
+	 *
+	 * @throws NotADirectoryException
+	 *
+	 * @api
 	 */
 	public function ls($filter = null, $_ = null)
 	{
@@ -667,12 +884,16 @@ class File
 	/**
 	 * Count all children of this directory.
 	 *
-	 * @param Variable list of filters.
-	 * - Flags File::LIST_*
-	 * - Glob pattern
-	 * - Callables
+	 * @param int|string|\Closure|callable $filter Variable list of filters.
+	 *                                             - Flags File::LIST_*
+	 *                                             - Glob pattern
+	 *                                             - Callables
+	 *
 	 * @return int
-	 * @throws \Filicious\Exception\NotADirectoryException
+	 *
+	 * @throws NotADirectoryException
+	 *
+	 * @api
 	 */
 	public function count($filter = null, $_ = null)
 	{
@@ -682,11 +903,14 @@ class File
 	/**
 	 * Get an iterator for this directory.
 	 *
-	 * @param Variable list of filters.
-	 * - Flags File::LIST_*
-	 * - Glob pattern
-	 * - Callables
-	 * @return \Iterator|\Traversable
+	 * @param int|string|\Closure|callable $filter Variable list of filters.
+	 *                                             - Flags File::LIST_*
+	 *                                             - Glob pattern
+	 *                                             - Callables
+	 *
+	 * @return \Iterator
+	 *
+	 * @api
 	 */
 	public function getIterator($filter = null, $_ = null)
 	{
@@ -694,29 +918,54 @@ class File
 	}
 
 	/**
-	 * Get the free space.
+	 * Return a plugin for the filesystem.
 	 *
-	 * @return float
+	 * @param string $name
+	 *
+	 * @return bool
+	 *
+	 * @api
 	 */
-	public function getFreeSpace()
+	public function hasPlugin($name)
 	{
-		return $this->pathname->rootAdapter()->getFreeSpace($this->pathname);
+		$pluginManager = $this->filesystem->getPluginManager();
+
+		return $pluginManager &&
+		$pluginManager->hasPlugin($name) &&
+		$pluginManager->getPlugin($name)->providesFilePlugin($this);
 	}
 
 	/**
-	 * Get the total space.
+	 * Return a plugin for the filesystem.
 	 *
-	 * @return float
+	 * @param string $name
+	 *
+	 * @return FilePluginInterface|null
+	 *
+	 * @api
 	 */
-	public function getTotalSpace()
+	public function getPlugin($name)
 	{
-		return $this->pathname->rootAdapter()->getTotalSpace($this->pathname);
+		$pluginManager = $this->filesystem->getPluginManager();
+
+		if ($pluginManager && $pluginManager->hasPlugin($name)) {
+			$plugin = $pluginManager->getPlugin($name);
+
+			if ($plugin->providesFilePlugin($this)) {
+				return $plugin->getFilePlugin($this);
+			}
+		}
+
+		return null;
 	}
 
 	/**
 	 * INTERNAL USE ONLY
 	 *
-	 * @return Internals\Pathname|string
+	 * @return Internals\Pathname
+	 *
+	 * @internal Used to access the internal API.
+	 *           This is formally used within adapters or plugins.
 	 */
 	public function internalPathname()
 	{
@@ -726,10 +975,12 @@ class File
 	/**
 	 * Return a stream url or pathname, if streaming is not supported.
 	 *
+	 * @see File::getStreamUrl()
+	 *
 	 * @return string
 	 */
 	public function __toString()
 	{
-		return $this->pathname->rootAdapter()->getStreamURL($this->pathname);
+		return $this->getStreamURL();
 	}
 }

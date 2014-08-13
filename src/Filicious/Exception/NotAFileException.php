@@ -19,11 +19,14 @@ use Filicious\Internals\Pathname;
  * Filesystem exception
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 class NotAFileException
 	extends FilesystemException
 {
+
 	/**
 	 * @var \Filicious\Internals\Pathname
 	 */
@@ -31,7 +34,8 @@ class NotAFileException
 
 	protected $local;
 
-	public function __construct(Pathname $pathname, $code = 0, $previous = null) {
+	public function __construct(Pathname $pathname, $code = 0, $previous = null)
+	{
 		if ($code === 0) {
 			$code = FilesystemException::NOT_A_FILE;
 		}

@@ -13,19 +13,20 @@
 
 namespace Filicious\Stream;
 
-use Filicious\File;
-use Filicious\Stream;
-use Filicious\Stream\StreamMode;
 use Filicious\Internals\Pathname;
+use Filicious\Stream;
 
 /**
  * A file stream object.
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 class BuildInStream extends ObservableStream
 {
+
 	/**
 	 * @var string
 	 */
@@ -61,7 +62,7 @@ class BuildInStream extends ObservableStream
 	 */
 	public function __construct($url, Pathname $file)
 	{
-		$this->url  = $url;
+		$this->url      = $url;
 		$this->pathname = $file;
 	}
 
@@ -92,7 +93,7 @@ class BuildInStream extends ObservableStream
 	 */
 	public function open(StreamMode $mode)
 	{
-		$this->mode = $mode;
+		$this->mode     = $mode;
 		$this->resource = fopen($this->url, $mode->getMode());
 
 		$this->notifyOpened($mode);

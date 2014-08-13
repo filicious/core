@@ -14,59 +14,221 @@
 namespace Filicious;
 
 use Filicious\Internals\Adapter;
-use Filicious\Internals\BoundFilesystemConfig;
-use Filicious\Internals\RootAdapter;
 use Filicious\Internals\Pathname;
+use Filicious\Internals\RootAdapter;
+use Filicious\Internals\Util;
+use Filicious\Plugin\FilesystemPluginInterface;
+use Filicious\Plugin\PluginManager;
+use Filicious\Stream\StreamManager;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Virtual filesystem structure.
  *
  * @package filicious-core
- * @author  Tristan Lins <tristan.lins@bit3.de>
  * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
+ * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 class Filesystem
 {
+
 	/**
-	 * @var BoundFilesystemConfig
+	 * @var RootAdapter
 	 */
-	protected $config;
-	
 	protected $adapter;
 
 	/**
-	 * @param FilesystemConfig|Adapter $root
+	 * @var EventDispatcherInterface|null
 	 */
-	public function __construct($root, $config = null)
+	protected $eventDispatcher;
+
+	/**
+	 * @var PluginManager|null
+	 */
+	protected $pluginManager;
+
+	/**
+	 * @var string
+	 */
+	protected $streamHost;
+
+	/**
+	 * @var string
+	 */
+	protected $streamScheme;
+
+	/**
+	 * @param Adapter $adapter
+	 */
+	public function __construct(Adapter $adapter)
 	{
 		$this->adapter = new RootAdapter($this);
-		$this->config = new BoundFilesystemConfig($this->adapter);
-		$this->config->open();
-
-		if (is_traversable($config)) {
-			$this->config->merge($config);
-		}
-
-		if ($root instanceof FilesystemConfig) {
-			$this->config->merge($root);
-		}
-		else if ($root instanceof Adapter) {
-			$this->adapter->setDelegate($root);
-
-			$this->config->linkConfig('/', $root->getConfig());
-		}
-		else {
-			throw new \InvalidArgumentException(); // TODO
-		}
-
-		$this->config->commit();
+		$this->adapter->setDelegate($adapter);
 	}
 
-	public function getConfig()
+	public function __destruct()
 	{
-		return $this->config;
+		if ($this->streamHost) {
+			$this->disableStreaming();
+		}
 	}
-	
+
+	/**
+	 * @return RootAdapter
+	 */
+	public function getRootAdapter()
+	{
+		return $this->adapter;
+	}
+
+	/**
+	 * @return EventDispatcherInterface|null
+	 */
+	public function getEventDispatcher()
+	{
+		return $this->eventDispatcher;
+	}
+
+	/**
+	 * @param EventDispatcherInterface|null $eventDispatcher
+	 *
+	 * @return static
+	 */
+	public function setEventDispatcher(EventDispatcherInterface $eventDispatcher = null)
+	{
+		$this->eventDispatcher = $eventDispatcher;
+		return $this;
+	}
+
+	/**
+	 * @return PluginManager|null
+	 */
+	public function getPluginManager()
+	{
+		return $this->pluginManager;
+	}
+
+	/**
+	 * @param PluginManager|null $pluginManager
+	 *
+	 * @return static
+	 */
+	public function setPluginManager(PluginManager $pluginManager = null)
+	{
+		$this->pluginManager = $pluginManager;
+		return $this;
+	}
+
+	/**
+	 * Enable streaming for this filesystem.
+	 *
+	 * @param      $host
+	 * @param null $scheme
+	 *
+	 * @return static
+	 */
+	public function enableStreaming($host, $scheme = null)
+	{
+		if ($this->streamHost) {
+			$this->disableStreaming();
+		}
+
+		$this->streamHost   = $host;
+		$this->streamScheme = $scheme ?: 'filicious';
+		StreamManager::registerFilesystem($this, $host, $scheme);
+
+		return $this;
+	}
+
+	/**
+	 * Disable streaming for this filesystem.
+	 *
+	 * @throws Exception\StreamWrapperNotRegisteredException
+	 */
+	public function disableStreaming()
+	{
+		if ($this->streamHost) {
+			StreamManager::unregisterFilesystem($this->streamHost, $this->streamScheme);
+			$this->streamHost   = null;
+			$this->streamScheme = null;
+		}
+	}
+
+	/**
+	 * Determine is streaming currently enabled.
+	 *
+	 * @return bool
+	 */
+	public function isStreamingEnabled()
+	{
+		return (bool) $this->streamHost;
+	}
+
+	/**
+	 * Return the stream host or null if streaming is disabled.
+	 *
+	 * @return string|null
+	 */
+	public function getStreamHost()
+	{
+		return $this->streamHost;
+	}
+
+	/**
+	 * Return the stream scheme or null if streaming is disabled.
+	 *
+	 * @return string|null
+	 */
+	public function getStreamScheme()
+	{
+		return $this->streamScheme;
+	}
+
+	/**
+	 * Return the complete stream url prefix, e.g. filicious://example
+	 *
+	 * @return string|null
+	 */
+	public function getStreamPrefix()
+	{
+		return sprintf('%s://%s', $this->streamScheme, $this->streamHost);
+	}
+
+	/**
+	 * Return a plugin for the filesystem.
+	 *
+	 * @param $name
+	 *
+	 * @return FilesystemPluginInterface|null
+	 */
+	public function hasPlugin($name)
+	{
+		return $this->pluginManager &&
+		$this->pluginManager->hasPlugin($name) &&
+		$this->pluginManager->getPlugin($name)->providesFilesystemPlugin($this);
+	}
+
+	/**
+	 * Return a plugin for the filesystem.
+	 *
+	 * @param $name
+	 *
+	 * @return FilesystemPluginInterface|null
+	 */
+	public function getPlugin($name)
+	{
+		if ($this->pluginManager && $this->pluginManager->hasPlugin($name)) {
+			$plugin = $this->pluginManager->getPlugin($name);
+
+			if ($plugin->providesFilesystemPlugin($this)) {
+				return $plugin->getFilesystemPlugin($this);
+			}
+		}
+
+		return null;
+	}
+
 	/**
 	 * Get the root (/) file node.
 	 *
@@ -88,118 +250,11 @@ class Filesystem
 	{
 		// cheap recreate of File object
 		if ($path instanceof Pathname && $path->rootAdapter() == $this->adapter) {
-			return new File($this, $path);
+			return new File($path);
 		}
 
-		$pathname = implode('/', static::getPathnameParts($path));
+		$pathname = implode('/', Util::getPathnameParts($path));
 		strlen($pathname) && $pathname = '/' . $pathname;
-		return new File($this, new Pathname($this->adapter, $pathname));
+		return new File(new Pathname($this->adapter, $pathname));
 	}
-	
-	public static function getPathnameParts($path)
-	{
-		$path = strval($path);
-		if(!strlen($path)) {
-			return array();
-		}
-		$path = str_replace('\\', '/', $path);
-		$path = preg_replace('@^(?>[a-zA-Z]:)?[/\s]+|[/\s]+$@', '', $path); // TODO how to handle win pathnames?
-		$parts = array();
-		
-		foreach (explode('/', $path) as $part) {
-			if($part === '..') {
-				array_pop($parts);
-			}
-			elseif($part !== '.' && strlen($part)) {
-				$parts[] = $part;
-			}
-		}
-		
-		return $parts;
-	}
-
-// 	/**
-// 	 * Create a temporary file and return the file object.
-// 	 *
-// 	 * @param string $prefix
-// 	 *
-// 	 * @return File
-// 	 */
-// 	public static function createTempFile($prefix) {
-// // 		// create a temporary file
-// // 		$pathname = tempnam($this->getBasePath(), $prefix);
-
-// // 		// remove the base path from pathname
-// // 		$file = substr($pathname, strlen($this->getBasePath()));
-
-// // 		// create new local file object
-// // 		$file = $this->getFile($file);
-
-// 		return $file;
-// 	}
-
-// 	/**
-// 	 * Create a temporary directory and return the file object.
-// 	 *
-// 	 * @param string $prefix
-// 	 *
-// 	 * @return File
-// 	 */
-// 	public static function createTempDirectory($prefix) {
-// // 		// create a temporary file
-// // 		$file = $this->createTempFile($prefix);
-
-// // 		// delete the file and...
-// // 		$file->delete();
-
-// // 		// finally create a directory
-// // 		$file->createDirectory();
-
-// 		// return the local file object
-// 		return $file;
-// 	}
-
-	
-// 	/**
-// 	 * @var string|null
-// 	 */
-// 	protected static $tempFilesystemConfig = null;
-	
-// 	/**
-// 	 * Get the default temporary directory.
-// 	 *
-// 	 * @return string
-// 	 */
-// 	public static function getTempFilesystemConfig()
-// 	{
-// 		if(!static::$tempFilesystemConfig) {
-// 			$config = FilesystemConfig::create();
-// 			$config->addAdapterConfig(array(
-// // 				'impl' => 'Filicious\Local\LocalAdapter',
-// 				'base' => sys_get_temp_dir()
-// 			));
-// 			$this->setTempFilesystemConfig($config);
-// 		}
-// 		return static::$tempFilesystemConfig;
-// 	}
-	
-// 	/**
-// 	 * Set the default temporary directory.
-// 	 * Warning: Changing this pass will only new initialized TemporaryFilesystem's!
-// 	 *
-// 	 * @param string $tempPath
-// 	 */
-// 	public static function setTempFilesystemConfig(FilesystemConfig $config = null)
-// 	{
-// 		static::$tempFilesystemConfig = $config;
-// 	}
-	
-// 	/**
-// 	 * @return TemporaryFilesystem
-// 	 */
-// 	public static function getTempFilesystem()
-// 	{
-// 		return static::getTempFilesystemConfig()->getFilesystem();
-// 	}
-	
 }

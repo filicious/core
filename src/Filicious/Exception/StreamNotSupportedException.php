@@ -19,10 +19,13 @@ use Exception;
  * Stream wrapper already registered exception.
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 class StreamNotSupportedException extends StreamException
 {
+
 	protected $pathname;
 
 	public function __construct($srcPathname, Exception $previous = null)

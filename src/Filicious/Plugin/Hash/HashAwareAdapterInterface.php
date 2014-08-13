@@ -11,15 +11,14 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Filicious\Exception;
+namespace Filicious\Plugin\Hash;
 
-/**
- *
- *
- * @package filicious-core
- * @author  Tristan Lins <tristan.lins@bit3.de>
- */
-class ImmutableConfigException extends ConfigurationException
+use Filicious\Internals\Pathname;
+
+interface HashAwareAdapterInterface
 {
-
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getHash(Pathname $pathname, $algorithm, $binary);
 }

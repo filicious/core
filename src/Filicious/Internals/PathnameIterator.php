@@ -13,11 +13,8 @@
 
 namespace Filicious\Internals;
 
-use Filicious\File;
-use Filicious\Filesystem;
-use Filicious\Internals\Adapter;
-use Filicious\Internals\Pathname;
 use Filicious\Exception\FilesystemException;
+use Filicious\File;
 use Iterator;
 use SeekableIterator;
 
@@ -25,11 +22,14 @@ use SeekableIterator;
  * Filesystem iterator
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 class PathnameIterator
 	implements Iterator, SeekableIterator
 {
+
 	/**
 	 * @var Pathname
 	 */
@@ -238,7 +238,7 @@ class PathnameIterator
 
 	protected function evaluateFilters($filters)
 	{
-		if (\Filicious\is_traversable($filters)) {
+		if (Util::isTraversable($filters)) {
 			// search for File::LIST_RECURSIVE
 			foreach ($filters as $arg) {
 				if (is_int($arg)) {
@@ -292,17 +292,17 @@ class PathnameIterator
 		$basename = $file->getBasename();
 
 		if (!($this->bitmask & File::LIST_HIDDEN) &&
-				$basename[0] == '.' ||
+			$basename[0] == '.' ||
 			!($this->bitmask & File::LIST_VISIBLE) &&
-				$basename[0] != '.' ||
+			$basename[0] != '.' ||
 			!($this->bitmask & File::LIST_FILES) &&
-				$file->isFile() ||
+			$file->isFile() ||
 			!($this->bitmask & File::LIST_DIRECTORIES) &&
-				$file->isDirectory() ||
+			$file->isDirectory() ||
 			!($this->bitmask & File::LIST_LINKS) &&
-				$file->isLink() ||
+			$file->isLink() ||
 			!($this->bitmask & File::LIST_OPAQUE) &&
-				!$file->isLink()
+			!$file->isLink()
 		) {
 			return false;
 		}
@@ -454,7 +454,7 @@ class PathnameIterator
 	 *
 	 * @param int $position <p>
 	 *                      The position to seek to.
-	 * </p>
+	 *                      </p>
 	 *
 	 * @return void
 	 */

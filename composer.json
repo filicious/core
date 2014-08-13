@@ -1,7 +1,11 @@
 {
 	"name": "filicious/core",
 	"description": "filicious is a high level object oriented filesystem abstraction for PHP.",
-	"keywords": ["filesystem", "file", "vfs"],
+	"keywords": [
+		"filesystem",
+		"file",
+		"vfs"
+	],
 	"homepage": "http://filicious.org",
 	"license": "LGPL-3.0+",
 	"authors": [
@@ -31,23 +35,29 @@
 		"php": ">=5.3"
 	},
 	"require-dev": {
-		"phpunit/phpunit": "3.*"
-	},
-	"minimum-stability": "dev",
-	"prefer-stable": true,
-	"suggest": {
-		"filicious/ftp": "Adds ftp support to Filicious.",
-		"filicious/sftp": "Adds sftp support to Filicious."
+		"phpunit/phpunit": "3.*",
+		"symfony/event-dispatcher": "~2.4"
 	},
 	"autoload": {
 		"psr-0": {
-			"Filicious": "src/",
+			"Filicious": "src/"
+		}
+	},
+	"autoload-dev": {
+		"psr-0": {
 			"Filicious\\Test": "test/"
 		}
 	},
+	"suggest": {
+		"symfony/event-dispatcher": "Add events to Filicious.",
+		"filicious/ftp": "Adds ftp support to Filicious.",
+		"filicious/sftp": "Adds sftp support to Filicious."
+	},
+	"minimum-stability": "dev",
+	"prefer-stable": true,
 	"extra": {
 		"branch-alias": {
-			"dev-master": "1.0.x-dev"
+			"dev-develop": "1.0.x-dev"
 		}
 	}
 }

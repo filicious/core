@@ -13,16 +13,17 @@
 
 namespace Filicious\Internals;
 
-use Filicious\Internals\Adapter;
-
 /**
  * An object that hold the absolute and the adapter local pathname.
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 final class Pathname
 {
+
 	/**
 	 * The root adapter
 	 *
@@ -53,34 +54,37 @@ final class Pathname
 
 	/**
 	 * @param Adapter $adapter The root adapter
-	 * @param string $full  The full abstracted pathname
+	 * @param string  $full    The full abstracted pathname
 	 */
 	public function __construct(RootAdapter $adapter, $full)
 	{
-		$this->adapter = $adapter;
-		$this->full  = Util::normalizePath('/' . $full);
+		$this->adapter      = $adapter;
+		$this->full         = Util::normalizePath('/' . $full);
 		$this->localAdapter = null;
-		$this->local = null;
+		$this->local        = null;
 	}
 
 	/**
 	 * @return RootAdapter
 	 */
-	public function rootAdapter() {
+	public function rootAdapter()
+	{
 		return $this->adapter;
 	}
 
 	/**
 	 * @return string
 	 */
-	public function full() {
+	public function full()
+	{
 		return $this->full;
 	}
 
 	/**
 	 * @return Adapter
 	 */
-	public function localAdapter() {
+	public function localAdapter()
+	{
 		if ($this->localAdapter === null) {
 			$this->adapter->resolveLocal(
 				$this,
@@ -95,7 +99,8 @@ final class Pathname
 	/**
 	 * @return string
 	 */
-	public function local() {
+	public function local()
+	{
 		if ($this->local === null) {
 			$this->adapter->resolveLocal(
 				$this,
@@ -110,7 +115,8 @@ final class Pathname
 	/**
 	 * @return string
 	 */
-	public function basename() {
+	public function basename()
+	{
 		return basename($this->full);
 	}
 
@@ -119,8 +125,9 @@ final class Pathname
 	 *
 	 * @return Pathname
 	 */
-	public function parent() {
-		return new Pathname($this->adapter, dirname($this->full()));
+	public function parent()
+	{
+		return new Pathname($this->adapter, Util::dirname($this->full()));
 	}
 
 	/**
@@ -130,7 +137,8 @@ final class Pathname
 	 *
 	 * @return Pathname
 	 */
-	public function child($basename) {
+	public function child($basename)
+	{
 		if ($basename instanceof Pathname) {
 			$basename = $basename->basename();
 		}

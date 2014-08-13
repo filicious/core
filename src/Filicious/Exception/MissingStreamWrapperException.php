@@ -17,10 +17,13 @@ namespace Filicious\Exception;
  * Missing stream wrapper exception.
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 class MissingStreamWrapperException extends StreamException
 {
+
 	protected $scheme;
 
 	protected $host;

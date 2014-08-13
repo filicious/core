@@ -19,17 +19,21 @@ use Filicious\Internals\Pathname;
  * Filesystem exception
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 class FileOperationException
 	extends FilesystemException
 {
+
 	/**
 	 * @var \Filicious\Internals\Pathname
 	 */
 	protected $pathname;
 
-	public function __construct(Pathname $pathname, $code = 0, \Exception $previous = null) {
+	public function __construct(Pathname $pathname, $code = 0, \Exception $previous = null)
+	{
 		if ($code === 0) {
 			$code = FilesystemException::NOT_A_DIRECTORY;
 		}

@@ -13,16 +13,17 @@
 
 namespace Filicious\Internals;
 
+use Filicious\Exception\AdapterException;
 use Filicious\File;
 use Filicious\Stream\StreamMode;
-use Filicious\Internals\Pathname;
-use \Exception;
 
 /**
  * Utility class
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
 class Util
 {
@@ -45,15 +46,15 @@ class Util
 			$abs = '';
 		}
 		else {
-			$abs = $match[1];
+			$abs  = $match[1];
 			$path = substr($path, strlen($abs));
 		}
-		$path = preg_replace('@^[/\s]+|[/\s]+$@', '', $path);
-		$path = preg_replace('@/+@', '/', $path);
+		$path  = preg_replace('@^[/\s]+|[/\s]+$@', '', $path);
+		$path  = preg_replace('@/+@', '/', $path);
 		$parts = array();
 
 		foreach (explode('/', $path) as $part) {
-			if($part === '.' || $part === '..' && array_pop($parts) || $part == $abs) {
+			if ($part === '.' || $part === '..' && array_pop($parts) || $part == $abs) {
 				continue;
 			}
 			$parts[] = $part;
@@ -202,7 +203,7 @@ class Util
 
 	static public function hasBit($haystack, $bit)
 	{
-		if (\Filicious\is_traversable($haystack)) {
+		if (static::isTraversable($haystack)) {
 			foreach ($haystack as $temp) {
 				if (static::hasBit($temp, $bit)) {
 					return true;
@@ -236,9 +237,9 @@ class Util
 		}
 		else if (strlen($string) == 9) {
 			return '0' .
-				static::string2bitMode(substr($string, 0, 3)) .
-				static::string2bitMode(substr($string, 3, 3)) .
-				static::string2bitMode(substr($string, 6, 3));
+			static::string2bitMode(substr($string, 0, 3)) .
+			static::string2bitMode(substr($string, 3, 3)) .
+			static::string2bitMode(substr($string, 6, 3));
 		}
 		else if (strlen($string) == 10) {
 			return static::string2bitMode(substr($string, 1));
@@ -250,7 +251,7 @@ class Util
 	 * @var resource
 	 */
 	protected static $finfo = null;
-	
+
 	/**
 	 * Get the FileInfo resource identifier.
 	 *
@@ -261,8 +262,119 @@ class Util
 		if (static::$finfo === null) {
 			static::$finfo = finfo_open();
 		}
-	
+
 		return static::$finfo;
 	}
-	
+
+	public static function getPathnameParts($path)
+	{
+		$path = strval($path);
+		if (!strlen($path)) {
+			return array();
+		}
+		$path  = str_replace('\\', '/', $path);
+		$path  = preg_replace('@^(?>[a-zA-Z]:)?[/\s]+|[/\s]+$@', '', $path); // TODO how to handle win pathnames?
+		$parts = array();
+
+		foreach (explode('/', $path) as $part) {
+			if ($part === '..') {
+				array_pop($parts);
+			}
+			elseif ($part !== '.' && strlen($part)) {
+				$parts[] = $part;
+			}
+		}
+
+		return $parts;
+	}
+
+	/**
+	 * Dirname function that only split on "/", required because we use UNIX path names all the time, even on windows!
+	 *
+	 * @param string $path
+	 *
+	 * @return string
+	 */
+	public static function dirname($path)
+	{
+		$index = strrpos($path, '/');
+
+		if ($index > 0) {
+			return substr($path, 0, $index);
+		}
+
+		return '/';
+	}
+
+	/**
+	 * Determine if the variable is traversable.
+	 *
+	 * @param mixed $var
+	 */
+	public static function isTraversable($var)
+	{
+		return is_array($var) || is_object($var) && $var instanceof \Traversable;
+	}
+
+	/**
+	 * Execute a php function, throw an AdapterException if the function failed.
+	 *
+	 * @param $callback
+	 * @param $errorCode
+	 * @param $errorMessage
+	 *
+	 * @return mixed
+	 * @throws AdapterException
+	 */
+	public static function executeFunction($callback, $exceptionClass, $errorCode, $errorMessage)
+	{
+		$error = null;
+
+		try {
+			$result = $callback();
+		}
+		catch (\ErrorException $exception) {
+			$result = false;
+			$error  = $exception;
+		}
+
+		if ($error !== null || $result === false) {
+			throw new $exceptionClass(
+				vsprintf(
+					$errorMessage,
+					array_slice(
+						func_get_args(),
+						3
+					)
+				),
+				$errorCode,
+				$error
+			);
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Create a date time object.
+	 *
+	 * @param \DateTime|int|string $time A \DateTime object, a timestamp or a time format string.
+	 *
+	 * @return \DateTime
+	 */
+	public static function createDateTime($time)
+	{
+		if ($time instanceof \DateTime) {
+			return $time;
+		}
+
+		if (is_int($time) || is_float($time)) {
+			$date = new \DateTime();
+			$date->setTimestamp($time);
+			return $date;
+		}
+
+		return new \DateTime($time);
+	}
+
 }

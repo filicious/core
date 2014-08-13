@@ -13,12 +13,15 @@
 
 namespace Filicious\Internals;
 
+use Filicious\Exception\DirectoryOverwriteDirectoryException;
+use Filicious\Exception\DirectoryOverwriteFileException;
+use Filicious\Exception\FileOverwriteDirectoryException;
+use Filicious\Exception\FileOverwriteFileException;
+use Filicious\Exception\FilesystemException;
+use Filicious\Exception\NotADirectoryException;
 use Filicious\File;
 use Filicious\Filesystem;
-use Filicious\FilesystemConfig;
-use Filicious\Exception\FileNotFoundException;
-use Filicious\Exception\NotAFileException;
-use Filicious\Exception\NotADirectoryException;
+use Filicious\Stream\StreamMode;
 
 /**
  * A mount aggregator can mount adapters to various paths.
@@ -26,58 +29,49 @@ use Filicious\Exception\NotADirectoryException;
  * adapter can be seen.
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
+ * @author  Tristan Lins <tristan.lins@bit3.de>
  * @author  Oliver Hoff <oliver@hofff.com>
  */
 abstract class AbstractAdapter
 	implements Adapter
 {
+
 	/**
-	 * @var FilesystemConfig
+	 * @var Filesystem
 	 */
-	protected $config;
+	protected $filesystem;
 
-	protected $fs;
-
+	/**
+	 * @var RootAdapter
+	 */
 	protected $root;
 
+	/**
+	 * @var Adapter
+	 */
 	protected $parent;
 
 	/**
-	 * @see Filicious\Internals\Adapter::getConfig()
+	 * {@inheritdoc}
 	 */
-	public function getConfig()
+	public function setFilesystem(Filesystem $filesystem = null)
 	{
-		return $this->config;
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::setFilesystem()
-	 */
-	public function setFilesystem(Filesystem $fs)
-	{
-		$this->fs = $fs;
+		$this->filesystem = $filesystem;
+		$this->root       = $filesystem->getRootAdapter();
 		return $this;
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getFilesystem()
+	 * {@inheritdoc}
 	 */
 	public function getFilesystem()
 	{
-		return $this->fs;
+		return $this->filesystem;
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::setRootAdapter()
-	 */
-	public function setRootAdapter(Adapter $root)
-	{
-		$this->root = $root;
-		return $this;
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::getRootAdapter()
+	 * {@inheritdoc}
 	 */
 	public function getRootAdapter()
 	{
@@ -85,16 +79,16 @@ abstract class AbstractAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::setParentAdapter()
+	 * {@inheritdoc}
 	 */
-	public function setParentAdapter(Adapter $parent)
+	public function setParentAdapter(Adapter $parent = null)
 	{
 		$this->parent = $parent;
 		return $this;
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getParentAdapter()
+	 * {@inheritdoc}
 	 */
 	public function getParentAdapter()
 	{
@@ -102,16 +96,16 @@ abstract class AbstractAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::resolveLocal()
+	 * {@inheritdoc}
 	 */
 	public function resolveLocal(Pathname $pathname, &$localAdapter, &$local)
 	{
 		$localAdapter = $this;
-		$local = $pathname->full();
+		$local        = $pathname->full();
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::copyTo()
+	 * {@inheritdoc}
 	 */
 	public function copyTo(
 		Pathname $srcPathname,
@@ -126,7 +120,7 @@ abstract class AbstractAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::copyFrom()
+	 * {@inheritdoc}
 	 */
 	public function copyFrom(
 		Pathname $dstPathname,
@@ -141,8 +135,8 @@ abstract class AbstractAdapter
 				true
 			);
 		}
-		else {
-			$dstParentPathname->localAdapter()->checkDirectory($dstParentPathname);
+		else if (!$dstParentPathname->localAdapter()->isDirectory($dstParentPathname)) {
+			throw new NotADirectoryException($dstParentPathname);
 		}
 
 		$dstExists      = $this->exists($dstPathname);
@@ -179,7 +173,7 @@ abstract class AbstractAdapter
 					$dstInsidePathname,
 					$flags
 				);
-				return;
+				return $this;
 			}
 
 			else {
@@ -254,13 +248,13 @@ abstract class AbstractAdapter
 					$srcClass->isSubclassOf($dstClass)
 				) {
 					if ($this->nativeCopy($srcPathname, $dstPathname)) {
-						return;
+						return $this;
 					}
 				}
 
 				// stream copy
-				return $this->execute(
-					function() use ($srcPathname, $dstPathname) {
+				return Util::executeFunction(
+					function () use ($srcPathname, $dstPathname) {
 						$srcStream = $srcPathname->localAdapter()->getStream($srcPathname);
 						$srcStream->open(new StreamMode('rb'));
 
@@ -268,8 +262,8 @@ abstract class AbstractAdapter
 						$dstStream->open(new StreamMode('wb'));
 
 						$result = stream_copy_to_stream(
-							$srcStream->getRessource(),
-							$dstStream->getRessource()
+							$srcStream->getResource(),
+							$dstStream->getResource()
 						);
 
 						$srcStream->close();
@@ -296,6 +290,8 @@ abstract class AbstractAdapter
 		else {
 			throw new FilesystemException('Illegal state!');
 		}
+
+		return $this;
 	}
 
 	public function nativeCopy(
@@ -306,7 +302,7 @@ abstract class AbstractAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::moveTo()
+	 * {@inheritdoc}
 	 */
 	public function moveTo(
 		Pathname $srcPathname,
@@ -318,10 +314,12 @@ abstract class AbstractAdapter
 			$srcPathname,
 			$flags
 		);
+
+		return $this;
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::moveFrom()
+	 * {@inheritdoc}
 	 */
 	public function moveFrom(
 		Pathname $dstPathname,
@@ -336,8 +334,8 @@ abstract class AbstractAdapter
 				true
 			);
 		}
-		else {
-			$dstParentPathname->localAdapter()->checkDirectory($dstParentPathname);
+		else if (!$dstParentPathname->localAdapter()->isDirectory($dstParentPathname)) {
+			throw new NotADirectoryException($dstParentPathname);
 		}
 
 		$dstExists      = $this->exists($dstPathname);
@@ -373,7 +371,7 @@ abstract class AbstractAdapter
 					$dstInsidePathname,
 					$flags
 				);
-				return;
+				return $this;
 			}
 
 			else {
@@ -423,7 +421,7 @@ abstract class AbstractAdapter
 					$srcClass->isSubclassOf($dstClass)
 				) {
 					if ($this->nativeMove($srcPathname, $dstPathname)) {
-						return;
+						return $this;
 					}
 				}
 
@@ -460,13 +458,13 @@ abstract class AbstractAdapter
 					$srcClass->isSubclassOf($dstClass)
 				) {
 					if ($this->nativeMove($srcPathname, $dstPathname)) {
-						return;
+						return $this;
 					}
 				}
 
 				// stream move
-				return $this->execute(
-					function() use ($srcPathname, $dstPathname) {
+				return Util::executeFunction(
+					function () use ($srcPathname, $dstPathname) {
 						$srcStream = $srcPathname->localAdapter()->getStream($srcPathname);
 						$srcStream->open(new StreamMode('rb'));
 
@@ -474,8 +472,8 @@ abstract class AbstractAdapter
 						$dstStream->open(new StreamMode('wb'));
 
 						$result = stream_copy_to_stream(
-							$srcStream->getRessource(),
-							$dstStream->getRessource()
+							$srcStream->getResource(),
+							$dstStream->getResource()
 						);
 
 						$srcStream->close();
@@ -505,35 +503,15 @@ abstract class AbstractAdapter
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getMD5()
-	 */
-	public function getMD5(Pathname $pathname, $binary)
-	{
-		return md5($this->getContents($pathname), $binary);
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::getSHA1()
-	 */
-	public function getSHA1(Pathname $pathname, $binary)
-	{
-		return sha1($this->getContents($pathname), $binary);
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::count()
+	 * {@inheritdoc}
 	 */
 	public function count(Pathname $pathname, array $filter)
 	{
-		$i = 0;
-		foreach ($this->getIterator($pathname, $filter) as $pathname) {
-			$i++;
-		}
-		return $i;
+		return iterator_count($this->getIterator($pathname, $filter));
 	}
 
 	/**
-	 * @see Filicious\Internals\Adapter::getIterator()
+	 * {@inheritdoc}
 	 */
 	public function getIterator(Pathname $pathname, array $filter)
 	{
@@ -544,38 +522,6 @@ abstract class AbstractAdapter
 		}
 		else {
 			return new PathnameIterator($pathname, $filter);
-		}
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::requireExists()
-	 */
-	public function requireExists(Pathname $pathname)
-	{
-		if (!$this->exists($pathname)) {
-			throw new FileNotFoundException($pathname);
-		}
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::checkFile()
-	 */
-	public function checkFile(Pathname $pathname)
-	{
-		$this->requireExists($pathname);
-		if (!$this->isFile($pathname)) {
-			throw new NotAFileException($pathname);
-		}
-	}
-
-	/**
-	 * @see Filicious\Internals\Adapter::checkDirectory()
-	 */
-	public function checkDirectory(Pathname $pathname)
-	{
-		$this->requireExists($pathname);
-		if (!$this->isDirectory($pathname)) {
-			throw new NotADirectoryException($pathname);
 		}
 	}
 }

@@ -13,31 +13,60 @@
 
 namespace Filicious\Internals;
 
-use Filicious\File;
+use Filicious\Exception\InvalidArgumentException;
 use Filicious\Filesystem;
-use Filicious\FilesystemConfig;
-use Filicious\Internals\Adapter;
-use Filicious\Stream\StreamManager;
 
 /**
  * Local filesystem adapter.
  *
  * @package filicious-core
+ * @author  Christian Schiffler <c.schiffler@cyberspectrum.de>
  * @author  Tristan Lins <tristan.lins@bit3.de>
+ * @author  Oliver Hoff <oliver@hofff.com>
  */
-class RootAdapter
-	extends DelegatorAdapter
+class RootAdapter extends AbstractDelegatorAdapter
 {
-	protected $streamScheme;
-
-	protected $streamHost;
 
 	/**
-	 * @param string|FilesystemConfig $basepath
+	 * @var Adapter
 	 */
-	public function __construct(Filesystem $fs)
+	protected $delegate;
+
+	public function __construct(Filesystem $filesystem)
 	{
-		$this->fs = $fs;
+		$this->filesystem = $filesystem;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function setFilesystem(Filesystem $filesystem = null)
+	{
+		throw new InvalidArgumentException('You cannot overwrite the filesystem of the root adapter');
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getRootAdapter()
+	{
+		return $this;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getParentAdapter()
+	{
+		return $this;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function setParentAdapter(Adapter $parent = null)
+	{
+		throw new InvalidArgumentException('You cannot overwrite parent adapter of the root adapter');
 	}
 
 	/**
@@ -45,7 +74,14 @@ class RootAdapter
 	 */
 	public function setDelegate($delegate)
 	{
+		if ($this->delegate) {
+			$this->delegate->setParentAdapter(null);
+			$this->delegate->setFilesystem(null);
+		}
+
 		$this->delegate = $delegate;
+		$this->delegate->setFilesystem($this->filesystem);
+		$this->delegate->setParentAdapter($this);
 		return $this;
 	}
 
@@ -57,55 +93,11 @@ class RootAdapter
 		return $this->delegate;
 	}
 
-	public function getConfig()
+	/**
+	 * {@inheritdoc}
+	 */
+	protected function selectDelegate(Pathname $pathname = null)
 	{
-		return $this->fs->getConfig();
-	}
-
-	public function getStreamURL(Pathname $pathname)
-	{
-		if ($this->streamScheme && $this->streamHost) {
-			return $this->streamScheme . '://' . $this->streamHost . $pathname->full();
-		}
-		return $pathname->full();
-	}
-
-	public function notifyConfigChange()
-	{
-		// unregister previous registered stream wrapper
-		if ($this->streamHost && $this->streamScheme) {
-			StreamManager::unregisterFilesystem($this->streamHost, $this->streamScheme);
-			$this->streamHost = null;
-			$this->streamScheme = null;
-		}
-
-		// streaming disabled
-		if (!$this->getConfig()->get(FilesystemConfig::STREAM_SUPPORTED, true)) {
-			$this->streamHost = null;
-			$this->streamScheme = null;
-		}
-		else {
-			// register stream wrapper
-			$host = $this->fs->getConfig()->get(FilesystemConfig::STREAM_HOST);
-			$scheme = $this->fs->getConfig()->get(FilesystemConfig::STREAM_SCHEME);
-
-			if ($host) {
-				StreamManager::registerFilesystem($this->fs, $host, $scheme);
-			}
-			else {
-				list($host, $scheme) = StreamManager::autoregisterFilesystem($this->fs);
-			}
-
-			$this->streamHost = $host;
-			$this->streamScheme = $scheme;
-
-			$this->fs->getConfig()->set(FilesystemConfig::STREAM_HOST, $host);
-			$this->fs->getConfig()->set(FilesystemConfig::STREAM_SCHEME, $scheme);
-		}
-
-		// release unused stream wrappers
-		StreamManager::free();
-
-		parent::notifyConfigChange();
+		return $this->delegate;
 	}
 }

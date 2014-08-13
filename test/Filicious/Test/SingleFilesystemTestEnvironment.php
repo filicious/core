@@ -20,17 +20,23 @@ namespace Filicious\Test;
 interface SingleFilesystemTestEnvironment
 {
 	/**
+	 * Get the test adapter.
+	 *
 	 * @return TestAdapter
 	 */
 	public function getAdapter();
 
 	/**
+	 * Get the filesystem.
+	 *
 	 * @return \Filicious\Filesystem
 	 */
 	public function getFilesystem();
 
 	/**
 	 * Cleanup environment.
+	 *
+	 * @return void
 	 */
 	public function cleanup();
 }

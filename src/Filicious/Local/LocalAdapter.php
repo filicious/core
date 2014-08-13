@@ -16,6 +16,7 @@ namespace Filicious\Local;
 use Filicious\Exception\AdapterException;
 use Filicious\Exception\FilesystemException;
 use Filicious\Exception\InvalidArgumentException;
+use Filicious\Exception\StreamNotSupportedException;
 use Filicious\Internals\AbstractAdapter;
 use Filicious\Internals\Pathname;
 use Filicious\Internals\Util;

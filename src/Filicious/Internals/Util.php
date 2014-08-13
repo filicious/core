@@ -203,7 +203,7 @@ class Util
 
 	static public function hasBit($haystack, $bit)
 	{
-		if (\Filicious\is_traversable($haystack)) {
+		if (static::isTraversable($haystack)) {
 			foreach ($haystack as $temp) {
 				if (static::hasBit($temp, $bit)) {
 					return true;
@@ -304,6 +304,16 @@ class Util
 		}
 
 		return '/';
+	}
+
+	/**
+	 * Determine if the variable is traversable.
+	 *
+	 * @param mixed $var
+	 */
+	public static function isTraversable($var)
+	{
+		return is_array($var) || is_object($var) && $var instanceof \Traversable;
 	}
 
 	/**

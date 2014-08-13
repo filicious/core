@@ -238,7 +238,7 @@ class PathnameIterator
 
 	protected function evaluateFilters($filters)
 	{
-		if (\Filicious\is_traversable($filters)) {
+		if (Util::isTraversable($filters)) {
 			// search for File::LIST_RECURSIVE
 			foreach ($filters as $arg) {
 				if (is_int($arg)) {

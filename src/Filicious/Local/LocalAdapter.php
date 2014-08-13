@@ -19,6 +19,7 @@ use Filicious\Exception\InvalidArgumentException;
 use Filicious\Internals\AbstractAdapter;
 use Filicious\Internals\Pathname;
 use Filicious\Internals\Util;
+use Filicious\Internals\Validator;
 use Filicious\Plugin\DiskSpace\DiskSpaceAwareAdapterInterface;
 use Filicious\Plugin\Hash\HashAwareAdapterInterface;
 use Filicious\Plugin\Link\LinkAwareAdapterInterface;
@@ -35,8 +36,7 @@ use Filicious\Stream\BuildInStream;
  */
 class LocalAdapter
 	extends AbstractAdapter
-	implements MimeAwareAdapterInterface, HashAwareAdapterInterface, LinkAwareAdapterInterface,
-				  DiskSpaceAwareAdapterInterface
+	implements DiskSpaceAwareAdapterInterface, HashAwareAdapterInterface, LinkAwareAdapterInterface, MimeAwareAdapterInterface
 {
 
 	/**
@@ -48,6 +48,8 @@ class LocalAdapter
 	 * Create a new local adapter using a local pathname as base pathname.
 	 *
 	 * @param string $basePath The local base pathname.
+	 *
+	 * @throws InvalidArgumentException
 	 */
 	public function __construct($basePath = null)
 	{
@@ -135,7 +137,7 @@ class LocalAdapter
 			function () use ($pathname, $time, $self) {
 				return touch(
 					$self->basePath . $pathname->local(),
-					$self->getModifyTime($pathname),
+					$self->getModifyTime($pathname)->getTimestamp(),
 					$time->getTimestamp()
 				);
 			},
@@ -205,7 +207,7 @@ class LocalAdapter
 				return touch(
 					$self->getBasePath() . $pathname->local(),
 					$time->getTimestamp(),
-					$this->getAccessTime($pathname)
+					$this->getAccessTime($pathname)->getTimestamp()
 				);
 			},
 			'Filicious\Exception\AdapterException',
@@ -256,7 +258,7 @@ class LocalAdapter
 				$iterator = $this->getIterator($pathname, array());
 
 				foreach ($iterator as $pathname) {
-					$size += $this->fs
+					$size += $this->filesystem
 						->getFile($pathname)
 						->getSize(true);
 				}
@@ -513,7 +515,7 @@ class LocalAdapter
 				$iterator = $this->getIterator($pathname, array());
 
 				foreach ($iterator as $pathname) {
-					$this->fs
+					$this->filesystem
 						->getFile($pathname)
 						->delete($recursive, $force);
 				}
@@ -559,6 +561,8 @@ class LocalAdapter
 				$pathname
 			);
 		}
+
+		return $this;
 	}
 
 	/**
@@ -570,9 +574,14 @@ class LocalAdapter
 	) {
 		return Util::executeFunction(
 			function () use ($srcPathname, $dstPathname) {
+				/** @var LocalAdapter $srcAdapter */
+				$srcAdapter = $srcPathname->localAdapter();
+				/** @var LocalAdapter $dstAdapter */
+				$dstAdapter = $dstPathname->localAdapter();
+
 				return copy(
-					$srcPathname->localAdapter()->getBasepath() . $srcPathname->local(),
-					$dstPathname->localAdapter()->getBasepath() . $dstPathname->local()
+					$srcAdapter->getBasepath() . $srcPathname->local(),
+					$dstAdapter->getBasepath() . $dstPathname->local()
 				);
 			},
 			'Filicious\Exception\AdapterException',
@@ -592,9 +601,14 @@ class LocalAdapter
 	) {
 		return Util::executeFunction(
 			function () use ($srcPathname, $dstPathname) {
+				/** @var LocalAdapter $srcAdapter */
+				$srcAdapter = $srcPathname->localAdapter();
+				/** @var LocalAdapter $dstAdapter */
+				$dstAdapter = $dstPathname->localAdapter();
+
 				return rename(
-					$srcPathname->localAdapter()->getBasepath() . $srcPathname->local(),
-					$dstPathname->localAdapter()->getBasepath() . $dstPathname->local()
+					$srcAdapter->getBasepath() . $srcPathname->local(),
+					$dstAdapter->getBasepath() . $dstPathname->local()
 				);
 			},
 			'Filicious\Exception\AdapterException',
@@ -658,14 +672,10 @@ class LocalAdapter
 			}
 		}
 		else {
-			try {
-				$parentPathname->localAdapter()->checkDirectory($parentPathname);
-			}
-			catch (FilesystemException $e) {
+			if (!$parentPathname->localAdapter()->isDirectory($parentPathname)) {
 				throw new FilesystemException(
 					sprintf('Could not create file %s, parent directory %s does not exists!', $pathname, $parentPathname),
-					0,
-					$e
+					0
 				);
 			}
 		}
@@ -836,34 +846,30 @@ class LocalAdapter
 	 */
 	public function getStreamURL(Pathname $pathname)
 	{
-		// TODO get stream protocol from filesystem!
+		return 'file://' . $this->getBasePath() . $pathname->local();
 	}
 
 	/*
 	 * ------------------------------------------------------------
-	 *                          Mime plugin
+	 *                       Disk space plugin
 	 * ------------------------------------------------------------
 	 */
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getMimeName(Pathname $pathname)
+	public function getFreeSpace(Pathname $pathname)
 	{
-		$this->checkFile($pathname);
-
 		$self = $this;
 		return Util::executeFunction(
 			function () use ($pathname, $self) {
-				return finfo_file(
-					Util::getFileInfo(),
-					$self->getBasePath() . $pathname->local(),
-					FILEINFO_NONE
+				return disk_free_space(
+					$self->getBasePath() . $pathname->local()
 				);
 			},
 			'Filicious\Exception\AdapterException',
 			0,
-			'Could not get mime name of %s.',
+			'Could not get free space for %s.',
 			$pathname
 		);
 	}
@@ -871,45 +877,18 @@ class LocalAdapter
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getMimeType(Pathname $pathname)
+	public function getTotalSpace(Pathname $pathname)
 	{
-		$this->checkFile($pathname);
-
 		$self = $this;
 		return Util::executeFunction(
 			function () use ($pathname, $self) {
-				return finfo_file(
-					Util::getFileInfo(),
-					$self->getBasePath() . $pathname->local(),
-					FILEINFO_MIME_TYPE
+				return disk_total_space(
+					$self->getBasePath() . $pathname->local()
 				);
 			},
 			'Filicious\Exception\AdapterException',
 			0,
-			'Could not get mime type of %s.',
-			$pathname
-		);
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	public function getMimeEncoding(Pathname $pathname)
-	{
-		$this->checkFile($pathname);
-
-		$self = $this;
-		return Util::executeFunction(
-			function () use ($pathname, $self) {
-				return finfo_file(
-					Util::getFileInfo(),
-					$self->getBasePath() . $pathname->local(),
-					FILEINFO_MIME_ENCODING
-				);
-			},
-			'Filicious\Exception\AdapterException',
-			0,
-			'Could not get mime encoding of %s.',
+			'Could not get total space for %s.',
 			$pathname
 		);
 	}
@@ -925,7 +904,7 @@ class LocalAdapter
 	 */
 	public function getHash(Pathname $pathname, $algorithm, $binary)
 	{
-		$this->checkFile($pathname);
+		Validator::checkFile($pathname);
 
 		$self = $this;
 		return Util::executeFunction(
@@ -963,9 +942,7 @@ class LocalAdapter
 	}
 
 	/**
-	 * Receive the link target from symbolic links.
-	 *
-	 * @return string|null
+	 * {@inheritdoc}
 	 */
 	public function getLinkTarget(Pathname $pathname)
 	{
@@ -978,31 +955,29 @@ class LocalAdapter
 
 	/*
 	 * ------------------------------------------------------------
-	 *                       Disk space plugin
+	 *                          Mime plugin
 	 * ------------------------------------------------------------
 	 */
 
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getFreeSpace(Pathname $pathname)
+	public function getMimeName(Pathname $pathname)
 	{
-		if (!$this->isDirectory($pathname)) {
-			$parentPathname = $pathname->parent();
-
-			return $parentPathname->localAdapter()->getFreeSpace($parentPathname);
-		}
+		Validator::checkFile($pathname);
 
 		$self = $this;
 		return Util::executeFunction(
 			function () use ($pathname, $self) {
-				return disk_free_space(
-					$self->getBasePath() . $pathname->local()
+				return finfo_file(
+					Util::getFileInfo(),
+					$self->getBasePath() . $pathname->local(),
+					FILEINFO_NONE
 				);
 			},
 			'Filicious\Exception\AdapterException',
 			0,
-			'Could not get free space for %s.',
+			'Could not get mime name of %s.',
 			$pathname
 		);
 	}
@@ -1010,24 +985,45 @@ class LocalAdapter
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getTotalSpace(Pathname $pathname)
+	public function getMimeType(Pathname $pathname)
 	{
-		if (!$this->isDirectory($pathname)) {
-			$parentPathname = $pathname->parent();
-
-			return $parentPathname->localAdapter()->getTotalSpace($parentPathname);
-		}
+		Validator::checkFile($pathname);
 
 		$self = $this;
 		return Util::executeFunction(
 			function () use ($pathname, $self) {
-				return disk_total_space(
-					$self->getBasePath() . $pathname->local()
+				return finfo_file(
+					Util::getFileInfo(),
+					$self->getBasePath() . $pathname->local(),
+					FILEINFO_MIME_TYPE
 				);
 			},
 			'Filicious\Exception\AdapterException',
 			0,
-			'Could not get total space for %s.',
+			'Could not get mime type of %s.',
+			$pathname
+		);
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getMimeEncoding(Pathname $pathname)
+	{
+		Validator::checkFile($pathname);
+
+		$self = $this;
+		return Util::executeFunction(
+			function () use ($pathname, $self) {
+				return finfo_file(
+					Util::getFileInfo(),
+					$self->getBasePath() . $pathname->local(),
+					FILEINFO_MIME_ENCODING
+				);
+			},
+			'Filicious\Exception\AdapterException',
+			0,
+			'Could not get mime encoding of %s.',
 			$pathname
 		);
 	}

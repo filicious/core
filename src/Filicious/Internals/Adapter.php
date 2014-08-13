@@ -616,37 +616,4 @@ interface Adapter
 	 *      due to technical reasons like connection problems or timeouts
 	 */
 	public function getIterator(Pathname $pathname, array $filter);
-
-	/**
-	 * Check if the pathname exists and throw an exception if not.
-	 *
-	 * @param string $pathname The full abstracted pathname
-	 * @param string $local    The adapter local path
-	 *
-	 * @return void
-	 * @throws FileNotFoundException
-	 */
-	public function requireExists(Pathname $pathname);
-
-	/**
-	 * Check if the pathname is a file and throw an exception if not.
-	 *
-	 * @param string $pathname The full abstracted pathname
-	 * @param string $local    The adapter local path
-	 *
-	 * @return void
-	 * @throws NotAFileException
-	 */
-	public function checkFile(Pathname $pathname);
-
-	/**
-	 * Check if the pathname is a directory and throw an exception if not.
-	 *
-	 * @param string $pathname The full abstracted pathname
-	 * @param string $local    The adapter local path
-	 *
-	 * @return void
-	 * @throws NotADirectoryException
-	 */
-	public function checkDirectory(Pathname $pathname);
 }

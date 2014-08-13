@@ -13,6 +13,9 @@
 
 namespace Filicious\Internals;
 
+use Filicious\Exception\AdapterException;
+use Filicious\Exception\InvalidArgumentException;
+
 
 /**
  * A mount aggregator can mount adapters to various paths.
@@ -24,18 +27,66 @@ namespace Filicious\Internals;
  * @author  Tristan Lins <tristan.lins@bit3.de>
  * @author  Oliver Hoff <oliver@hofff.com>
  */
-class MountAdapter
-	extends AggregateAdapter
+class MountAdapter extends AbstractDelegatorAdapter
 {
+	protected $mounts;
 
-	public function __construct()
+	public function mount($path, Adapter $adapter)
 	{
-		parent::__construct();
+		$path = Util::normalizePath($path);
+
+		if (empty($path)) {
+			throw new InvalidArgumentException('Mount path cannot be empty');
+		}
+		if (isset($this->mounts[$path])) {
+			throw new InvalidArgumentException('Could not mount over the already mounted path ' . $path);
+		}
+
 	}
 
-	public function selectAdapter($pathname, array $entries)
+	public function unmount($path)
 	{
-		return end($entries);
+		$path = Util::normalizePath($path);
+
+		if (empty($path)) {
+			throw new InvalidArgumentException('Mount path cannot be empty');
+		}
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	protected function selectDelegate(Pathname $pathname = null)
+	{
+		$path = $pathname->full();
+
+		do {
+			if (isset($this->mounts[$path])) {
+				return $this->mounts[$path];
+			}
+		}
+		while ('/' !== $path = Util::dirname($path));
+
+		throw new AdapterException('No mount found for ' . $pathname->full());
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function resolveLocal(Pathname $pathname, &$localAdapter, &$local)
+	{
+		$path = $pathname->full();
+
+		do {
+			if (isset($this->mounts[$path])) {
+				$localAdapter = $this->mounts[$path];
+				$local        = substr($pathname->full(), strlen($path));
+				return $this;
+			}
+		}
+		while ('/' !== $path = Util::dirname($path));
+
+		throw new AdapterException('No mount found for ' . $pathname->full());
 	}
 
 }

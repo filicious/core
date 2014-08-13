@@ -74,7 +74,14 @@ class RootAdapter extends AbstractDelegatorAdapter
 	 */
 	public function setDelegate($delegate)
 	{
+		if ($this->delegate) {
+			$this->delegate->setParentAdapter(null);
+			$this->delegate->setFilesystem(null);
+		}
+
 		$this->delegate = $delegate;
+		$this->delegate->setFilesystem($this->filesystem);
+		$this->delegate->setParentAdapter($this);
 		return $this;
 	}
 

@@ -36,7 +36,7 @@ interface Adapter
 	 *
 	 * @return static
 	 */
-	public function setFilesystem(Filesystem $fs);
+	public function setFilesystem(Filesystem $fs = null);
 
 	/**
 	 * Returns the filesystem this adapter belongs to.
@@ -59,7 +59,7 @@ interface Adapter
 	 *
 	 * @return static
 	 */
-	public function setParentAdapter(Adapter $parent);
+	public function setParentAdapter(Adapter $parent = null);
 
 	/**
 	 * Returns the parent adapter of this adapter, if any.

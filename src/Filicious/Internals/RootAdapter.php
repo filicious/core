@@ -13,6 +13,7 @@
 
 namespace Filicious\Internals;
 
+use Filicious\Exception\InvalidArgumentException;
 use Filicious\Filesystem;
 
 /**
@@ -26,16 +27,46 @@ use Filicious\Filesystem;
 class RootAdapter extends AbstractDelegatorAdapter
 {
 
-	protected $streamScheme;
+	/**
+	 * @var Adapter
+	 */
+	protected $delegate;
 
-	protected $streamHost;
+	public function __construct(Filesystem $filesystem)
+	{
+		$this->filesystem = $filesystem;
+	}
 
 	/**
-	 * @param string $basepath
+	 * {@inheritdoc}
 	 */
-	public function __construct(Filesystem $fs)
+	public function setFilesystem(Filesystem $filesystem = null)
 	{
-		$this->fs = $fs;
+		throw new InvalidArgumentException('You cannot overwrite the filesystem of the root adapter');
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getRootAdapter()
+	{
+		return $this;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getParentAdapter()
+	{
+		return $this;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function setParentAdapter(Adapter $parent = null)
+	{
+		throw new InvalidArgumentException('You cannot overwrite parent adapter of the root adapter');
 	}
 
 	/**

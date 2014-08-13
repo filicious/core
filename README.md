@@ -1,7 +1,7 @@
 Filicious high level object oriented filesystem abstraction for PHP
 ===================================================================
 
-[![Build Status](https://travis-ci.org/Filicious/FiliciousCore.png)](https://travis-ci.org/Filicious/FiliciousCore)
+[![Build Status](https://travis-ci.org/filicious/core.png)](https://travis-ci.org/filicious/core)
 
 This is a high level filesystem abstraction for php,
 inspired by the Java filesystem API.

@@ -836,9 +836,13 @@ class LocalAdapter
 	 */
 	public function getStream(Pathname $pathname)
 	{
-		Validator::checkFile($pathname);
+		Validator::requireExists($pathname);
 
-		return new BuildInStream('file://' . $this->getBasePath() . $pathname->local(), $pathname);
+		if (!$this->filesystem->isStreamingEnabled()) {
+			throw new StreamNotSupportedException($pathname);
+		}
+
+		return new BuildInStream('file://' . $this->getBasePath() . $pathname->full(), $pathname);
 	}
 
 	/**
@@ -846,7 +850,13 @@ class LocalAdapter
 	 */
 	public function getStreamURL(Pathname $pathname)
 	{
-		return 'file://' . $this->getBasePath() . $pathname->local();
+		Validator::requireExists($pathname);
+
+		if (!$this->filesystem->isStreamingEnabled()) {
+			throw new StreamNotSupportedException($pathname);
+		}
+
+		return $this->filesystem->getStreamPrefix() . $pathname->full();
 	}
 
 	/*

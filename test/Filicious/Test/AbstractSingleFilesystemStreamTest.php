@@ -13,10 +13,10 @@
 
 namespace Filicious\Test;
 
-use Filicious\Stream;
-use Filicious\Stream\StreamMode;
 use Filicious\Exception\FileNotFoundException;
 use Filicious\Exception\NotAFileException;
+use Filicious\Stream;
+use Filicious\Stream\StreamMode;
 use PHPUnit_Framework_TestCase;
 
 /**
@@ -24,6 +24,7 @@ use PHPUnit_Framework_TestCase;
  */
 abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_TestCase
 {
+
 	/**
 	 * @var SingleFilesystemTestEnvironment
 	 */
@@ -78,38 +79,31 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 	 */
 	protected function setUp()
 	{
-		try {
-			$this->environment = $this->setUpEnvironment();
-			$this->adapter     = $this->environment->getAdapter();
-			$this->fs          = $this->environment->getFilesystem();
+		$this->environment = $this->setUpEnvironment();
+		$this->adapter     = $this->environment->getAdapter();
+		$this->fs          = $this->environment->getFilesystem();
 
-			// create directory <path>/foo/bar/
-			$this->adapter->createDirectory('/foo');
-			$this->adapter->createDirectory('/foo/bar');
+		// create directory <path>/foo/bar/
+		$this->adapter->createDirectory('/foo');
+		$this->adapter->createDirectory('/foo/bar');
 
-			// create directory <path>/zap
-			$this->adapter->createDirectory('/zap');
+		// create directory <path>/zap
+		$this->adapter->createDirectory('/zap');
 
-			// create file <path>/example.txt
-			$this->adapter->putContents('/example.txt', $this->contents['example.txt']);
+		// create file <path>/example.txt
+		$this->adapter->putContents('/example.txt', $this->contents['example.txt']);
 
-			// create file <path>/zap/file.txt
-			$this->adapter->putContents('/zap/file.txt', $this->contents['zap/file.txt']);
+		// create file <path>/zap/file.txt
+		$this->adapter->putContents('/zap/file.txt', $this->contents['zap/file.txt']);
 
-			if ($this->adapter->isSymlinkSupported()) {
-				// create link <path>/foo/zap.lnk -> ../zap/file.txt
-				$this->adapter->symlink('../zap/file.txt', '/foo/file.lnk');
-
-				// create link <path>/zap/bar.lnk -> ../foo/bar/
-				$this->adapter->symlink('../foo/bar/', '/zap/bar.lnk');
-			}
-		} catch(\Exception $e) {
-			throw $e;
-		}
+		// enable streaming on the filesystem
+		$host = substr(md5(uniqid()), 0, 8);
+		$this->fs->enableStreaming($host, 'test');
 	}
 
 	protected function tearDown()
 	{
+		$this->fs->disableStreaming();
 		$this->environment->cleanup();
 	}
 
@@ -127,55 +121,25 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 
 		// test directories
 		foreach ($this->dirs as $pathname) {
-			$file   = $this->fs->getFile($pathname);
-			try {
-				$file->getStream();
-				$this->fail('Open stream on directory does NOT throw a NotAFileException.');
-			} catch(NotAFileException $e) {
-				// hide
-			} catch (\Exception $e) {
-				$this->fail('Open stream on directory does NOT throw a NotAFileException, got a ' . get_class($e));
-			}
-		}
-
-		if ($this->adapter->isSymlinkSupported()) {
-			// test links
-			foreach ($this->links as $pathname => $type) {
-				$file   = $this->fs->getFile($pathname);
-
-				switch ($type) {
-					case 'file':
-						$stream = $file->getStream();
-						$this->assertTrue($stream instanceof Stream);
-						break;
-
-					case 'dir':
-						try {
-							$file->getStream();
-							$this->fail('Open stream on directory does NOT throw a NotAFileException.');
-						} catch(NotAFileException $e) {
-							// hide
-						} catch (\Exception $e) {
-							$this->fail('Open stream on directory does NOT throw a NotAFileException, got a ' . get_class($e));
-						}
-						break;
-				}
-			}
-		}
-		else {
-			$this->markTestSkipped('Skip Symlink::getStream() test, symlinks not supported.');
+			$file = $this->fs->getFile($pathname);
+			$stream = $file->getStream();
+			$this->assertTrue($stream instanceof Stream);
 		}
 
 		// test non existing files
 		foreach ($this->notExists as $pathname) {
-			$file   = $this->fs->getFile($pathname);
+			$file = $this->fs->getFile($pathname);
 			try {
 				$file->getStream();
 				$this->fail('Open stream on non existing file does NOT throw a FileNotFoundException.');
-			} catch(FileNotFoundException $e) {
+			}
+			catch (FileNotFoundException $e) {
 				// hide
-			} catch (\Exception $e) {
-				$this->fail('Open stream on non existing file does NOT throw a FileNotFoundException, got a ' . get_class($e));
+			}
+			catch (\Exception $e) {
+				$this->fail(
+					'Open stream on non existing file does NOT throw a FileNotFoundException, got a ' . get_class($e)
+				);
 			}
 		}
 	}
@@ -188,8 +152,8 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 	{
 		// test files
 		foreach ($this->files as $pathname) {
-			$file  = $this->fs->getFile($pathname);
-			$url   = $file->getStreamURL();
+			$file     = $this->fs->getFile($pathname);
+			$url      = $file->getStreamURL();
 			$resource = fopen($url, 'r');
 
 			$this->assertTrue(is_resource($resource));
@@ -210,12 +174,12 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 	{
 		// test files
 		foreach ($this->files as $pathname) {
-			$file  = $this->fs->getFile($pathname);
-			$url   = $file->getStreamURL();
+			$file     = $this->fs->getFile($pathname);
+			$url      = $file->getStreamURL();
 			$resource = fopen($url, 'r');
 
-			$read = array($resource);
-			$write = null;
+			$read   = array($resource);
+			$write  = null;
 			$except = null;
 
 			$this->assertTrue(false !== stream_select($read, $write, $except, 0));
@@ -232,7 +196,7 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 
 		$self = $this;
 
-		$test = function($stat, $pathname) use ($self) {
+		$test = function ($stat, $pathname) use ($self) {
 			$self->assertTrue(isset($stat['dev']));
 			$self->assertTrue(isset($stat['ino']));
 			$self->assertTrue(isset($stat['mode']));
@@ -252,8 +216,8 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 
 		// test files
 		foreach ($this->files as $pathname) {
-			$file  = $this->fs->getFile($pathname);
-			$url   = $file->getStreamURL();
+			$file = $this->fs->getFile($pathname);
+			$url  = $file->getStreamURL();
 
 			// from stream object
 			$stream = $file->getStream();
@@ -264,7 +228,7 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 
 			// from opened stream
 			$resource = fopen($url, 'r');
-			$stat = fstat($resource);
+			$stat     = fstat($resource);
 			fclose($resource);
 			$test($stat, $pathname);
 
@@ -294,11 +258,11 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 	{
 		// test files
 		foreach ($this->files as $pathname) {
-			$file  = $this->fs->getFile($pathname);
-			$url   = $file->getStreamURL();
-			$content = $this->contents[$pathname];
-			$length = strlen($content);
-			$n = (int) floor($length / 5);
+			$file     = $this->fs->getFile($pathname);
+			$url      = $file->getStreamURL();
+			$content  = $this->contents[$pathname];
+			$length   = strlen($content);
+			$n        = (int) floor($length / 5);
 			$resource = fopen($url, 'rb+');
 
 
@@ -439,7 +403,7 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 	 */
 	public function testPhpFileOperations()
 	{
-		$root = $this->fs->getRoot();
+		$root    = $this->fs->getRoot();
 		$rootURL = $root->getStreamURL();
 
 		$directory1 = 'test1';
@@ -555,14 +519,14 @@ abstract class AbstractSingleFilesystemStreamTest extends PHPUnit_Framework_Test
 	 */
 	public function testPhpDirOperation()
 	{
-		$root = $this->fs->getRoot();
+		$root    = $this->fs->getRoot();
 		$rootURL = $root->getStreamURL();
 
 		$this->assertEquals(
 			array_values(
 				array_filter(
 					$this->adapter->scandir('/'),
-					function($entry) {
+					function ($entry) {
 						return $entry != '.' && $entry != '..';
 					}
 				)

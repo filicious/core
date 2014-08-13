@@ -13,20 +13,12 @@
 
 namespace Filicious\Test;
 
-use Filicious\Iterator\FilesystemIterator;
-use Filicious\Iterator\RecursiveFilesystemIterator;
-
 /**
  * A test adapter allow direct access to a filesystem.
- * This adapter is an alternative implementation to a filesystem.
+ * This adapter is an alternative, low-level implementation to the filesystem.
  */
 interface TestAdapter
 {
-	/**
-	 * @return bool
-	 */
-	public function isSymlinkSupported();
-
 	public function createDirectory($path);
 
 	public function putContents($path, $content);
@@ -37,8 +29,6 @@ interface TestAdapter
 
 	public function deleteDirectory($path);
 
-	public function symlink($target, $link);
-
 	public function isFile($path);
 
 	public function isDirectory($path);
@@ -47,11 +37,11 @@ interface TestAdapter
 
 	public function exists($path);
 
-	public function getATime($path);
+	public function getAccessTime($path);
 
-	public function getCTime($path);
+	public function getCreationTime($path);
 
-	public function getMTime($path);
+	public function getModifyTime($path);
 
 	public function getFileSize($path);
 

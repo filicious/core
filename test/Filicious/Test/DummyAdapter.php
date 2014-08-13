@@ -16,30 +16,11 @@ namespace Filicious\Test;
 use Filicious\Filesystem;
 use Filicious\Internals\Adapter;
 use Filicious\Internals\Pathname;
-use Filicious\Internals\BoundFilesystemConfig;
+use Filicious\Internals\RootAdapter;
 
 class DummyAdapter implements Adapter
 {
-	protected $notified = false;
-
-	protected $config;
-
-	function __construct(array $config)
-	{
-		$this->config = new BoundFilesystemConfig($this, $config);
-	}
-
-	public function isNotified()
-	{
-		return $this->notified;
-	}
-
-	public function getConfig()
-	{
-		return $this->config;
-	}
-
-	public function setFilesystem(Filesystem $fs)
+	public function setFilesystem(Filesystem $fs = null)
 	{
 	}
 
@@ -47,15 +28,11 @@ class DummyAdapter implements Adapter
 	{
 	}
 
-	public function setRootAdapter(Adapter $root)
-	{
-	}
-
 	public function getRootAdapter()
 	{
 	}
 
-	public function setParentAdapter(Adapter $parent)
+	public function setParentAdapter(Adapter $parent = null)
 	{
 	}
 
@@ -211,26 +188,6 @@ class DummyAdapter implements Adapter
 	{
 	}
 
-	public function getMIMEName(Pathname $pathname)
-	{
-	}
-
-	public function getMIMEType(Pathname $pathname)
-	{
-	}
-
-	public function getMIMEEncoding(Pathname $pathname)
-	{
-	}
-
-	public function getMD5(Pathname $pathname, $binary)
-	{
-	}
-
-	public function getSHA1(Pathname $pathname, $binary)
-	{
-	}
-
 	public function ls(Pathname $pathname)
 	{
 	}
@@ -241,30 +198,5 @@ class DummyAdapter implements Adapter
 
 	public function getIterator(Pathname $pathname, array $filter)
 	{
-	}
-
-	public function getFreeSpace(Pathname $pathname)
-	{
-	}
-
-	public function getTotalSpace(Pathname $pathname)
-	{
-	}
-
-	public function requireExists(Pathname $pathname)
-	{
-	}
-
-	public function checkFile(Pathname $pathname)
-	{
-	}
-
-	public function checkDirectory(Pathname $pathname)
-	{
-	}
-
-	public function notifyConfigChange()
-	{
-		$this->notified = true;
 	}
 }

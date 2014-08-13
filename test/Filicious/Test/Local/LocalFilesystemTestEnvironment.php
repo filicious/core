@@ -15,9 +15,8 @@ namespace Filicious\Test\Local;
 
 use Filicious\Filesystem;
 use Filicious\Local\LocalAdapter;
-use Filicious\Test\SingleFilesystemTest;
 use Filicious\Test\SingleFilesystemTestEnvironment;
-use PHPUnit_Framework_TestSuite;
+use Filicious\Test\TestAdapter;
 
 class LocalFilesystemTestEnvironment
 	implements SingleFilesystemTestEnvironment
@@ -52,7 +51,7 @@ class LocalFilesystemTestEnvironment
 	}
 
 	/**
-	 * @return \Filicious\Filesystem
+	 * @return Filesystem
 	 */
 	public function getFilesystem()
 	{

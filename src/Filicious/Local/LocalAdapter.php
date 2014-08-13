@@ -155,20 +155,22 @@ class LocalAdapter
 	{
 		Validator::requireExists($pathname);
 
-		$self = $this;
-		return new \DateTime(
-			'@' . Util::executeFunction(
-				function () use ($pathname, $self) {
-					return filectime(
-						$self->getBasePath() . $pathname->local()
-					);
-				},
-				'Filicious\Exception\AdapterException',
-				0,
-				'Could not get creation time of %s.',
-				$pathname
-			)
+		$self      = $this;
+		$timestamp = Util::executeFunction(
+			function () use ($pathname, $self) {
+				return filectime(
+					$self->getBasePath() . $pathname->local()
+				);
+			},
+			'Filicious\Exception\AdapterException',
+			0,
+			'Could not get creation time of %s.',
+			$pathname
 		);
+
+		$date = new \DateTime();
+		$date->setTimestamp($timestamp);
+		return $date;
 	}
 
 	/**
@@ -178,20 +180,22 @@ class LocalAdapter
 	{
 		Validator::requireExists($pathname);
 
-		$self = $this;
-		return new \DateTime(
-			'@' . Util::executeFunction(
-				function () use ($pathname, $self) {
-					return filemtime(
-						$self->getBasePath() . $pathname->local()
-					);
-				},
-				'Filicious\Exception\AdapterException',
-				0,
-				'Could not get modify time of %s.',
-				$pathname
-			)
+		$self      = $this;
+		$timestamp = Util::executeFunction(
+			function () use ($pathname, $self) {
+				return filemtime(
+					$self->getBasePath() . $pathname->local()
+				);
+			},
+			'Filicious\Exception\AdapterException',
+			0,
+			'Could not get modify time of %s.',
+			$pathname
 		);
+
+		$date = new \DateTime();
+		$date->setTimestamp($timestamp);
+		return $date;
 	}
 
 	/**

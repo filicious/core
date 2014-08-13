@@ -23,8 +23,7 @@ use Filicious\Filesystem;
  * @author  Tristan Lins <tristan.lins@bit3.de>
  * @author  Oliver Hoff <oliver@hofff.com>
  */
-class RootAdapter
-	extends DelegatorAdapter
+class RootAdapter extends AbstractDelegatorAdapter
 {
 
 	protected $streamScheme;
@@ -56,11 +55,11 @@ class RootAdapter
 		return $this->delegate;
 	}
 
-	public function getStreamURL(Pathname $pathname)
+	/**
+	 * {@inheritdoc}
+	 */
+	protected function selectDelegate(Pathname $pathname = null)
 	{
-		if ($this->streamScheme && $this->streamHost) {
-			return $this->streamScheme . '://' . $this->streamHost . $pathname->full();
-		}
-		return $pathname->full();
+		return $this->delegate;
 	}
 }

@@ -147,6 +147,7 @@ abstract class AbstractAdapter
 		if (!$dstExists) {
 			if ($srcIsDirectory) {
 				$dstIsDirectory = true;
+				$flags |= File::OPERATION_RECURSIVE;
 			}
 			else {
 				$dstIsDirectory = false;

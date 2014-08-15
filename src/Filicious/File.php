@@ -127,20 +127,6 @@ class File
 	const LIST_DIRECTORIES = 8192;
 
 	/**
-	 * Return only links.
-	 *
-	 * @api
-	 */
-	const LIST_LINKS = 16384;
-
-	/**
-	 * List non-links.
-	 *
-	 * @api
-	 */
-	const LIST_OPAQUE = 32768;
-
-	/**
 	 * List recursive.
 	 *
 	 * @api

@@ -171,8 +171,6 @@ class PathnameIterator
 				) {
 					$this->bitmask |= File::LIST_FILES;
 					$this->bitmask |= File::LIST_DIRECTORIES;
-					$this->bitmask |= File::LIST_LINKS;
-					$this->bitmask |= File::LIST_OPAQUE;
 				}
 
 				// if only decided between files/directories, also list links
@@ -183,21 +181,6 @@ class PathnameIterator
 					$this->bitmask === (File::LIST_FILES | File::LIST_RECURSIVE) ||
 					$this->bitmask === (File::LIST_DIRECTORIES | File::LIST_RECURSIVE) ||
 					$this->bitmask === (File::LIST_FILES | File::LIST_DIRECTORIES | File::LIST_RECURSIVE)
-				) {
-					$this->bitmask |= File::LIST_HIDDEN;
-					$this->bitmask |= File::LIST_VISIBLE;
-					$this->bitmask |= File::LIST_LINKS;
-					$this->bitmask |= File::LIST_OPAQUE;
-				}
-
-				// if only decided between links/non-links, list hidden and visible
-				else if (
-					$this->bitmask === File::LIST_LINKS ||
-					$this->bitmask === File::LIST_OPAQUE ||
-					$this->bitmask === (File::LIST_LINKS | File::LIST_OPAQUE) ||
-					$this->bitmask === (File::LIST_LINKS | File::LIST_RECURSIVE) ||
-					$this->bitmask === (File::LIST_OPAQUE | File::LIST_RECURSIVE) ||
-					$this->bitmask === (File::LIST_LINKS | File::LIST_OPAQUE | File::LIST_RECURSIVE)
 				) {
 					$this->bitmask |= File::LIST_HIDDEN;
 					$this->bitmask |= File::LIST_VISIBLE;
@@ -298,11 +281,7 @@ class PathnameIterator
 			!($this->bitmask & File::LIST_FILES) &&
 			$file->isFile() ||
 			!($this->bitmask & File::LIST_DIRECTORIES) &&
-			$file->isDirectory() ||
-			!($this->bitmask & File::LIST_LINKS) &&
-			$file->isLink() ||
-			!($this->bitmask & File::LIST_OPAQUE) &&
-			!$file->isLink()
+			$file->isDirectory()
 		) {
 			return false;
 		}

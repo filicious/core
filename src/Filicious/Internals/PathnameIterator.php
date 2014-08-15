@@ -299,7 +299,7 @@ class PathnameIterator
 	protected function applyGlobFilters(File $file)
 	{
 		foreach ($this->globs as $glob) {
-			if (!fnmatch($glob, $file->getPathname())) {
+			if (!fnmatch($glob, $file->getBasename())) {
 				return false;
 			}
 		}

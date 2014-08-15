@@ -24,7 +24,7 @@ class MimeFilePlugin extends AbstractFilePlugin
 	 *
 	 * @return string
 	 */
-	public function getMIMEName()
+	public function getMimeName()
 	{
 		$adapter = $this->file->internalPathname()->localAdapter();
 
@@ -51,7 +51,7 @@ class MimeFilePlugin extends AbstractFilePlugin
 	 *
 	 * @return string
 	 */
-	public function getMIMEType()
+	public function getMimeType()
 	{
 		$adapter = $this->file->internalPathname()->localAdapter();
 
@@ -78,7 +78,7 @@ class MimeFilePlugin extends AbstractFilePlugin
 	 *
 	 * @return string
 	 */
-	public function getMIMEEncoding()
+	public function getMimeEncoding()
 	{
 		$adapter = $this->file->internalPathname()->localAdapter();
 

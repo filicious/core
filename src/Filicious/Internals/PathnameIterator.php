@@ -252,7 +252,7 @@ class PathnameIterator
 						ob_end_clean();
 					}
 
-					throw new Exception(
+					throw new \RuntimeException(
 						sprintf(
 							'Can not use %s as listing filter.',
 							$type

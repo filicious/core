@@ -11,7 +11,7 @@
  * @license http://www.gnu.org/licenses/lgpl-3.0.html LGPL
  */
 
-namespace Filicious\Plugin\Hash;
+namespace Filicious\Plugin\Mime;
 
 use Filicious\File;
 use Filicious\Plugin\AbstractPlugin;

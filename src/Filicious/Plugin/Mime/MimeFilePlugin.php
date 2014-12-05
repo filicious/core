@@ -56,7 +56,7 @@ class MimeFilePlugin extends AbstractFilePlugin
 		$adapter = $this->file->internalPathname()->localAdapter();
 
 		if ($adapter instanceof MimeAwareAdapterInterface) {
-			return $adapter->getMimeName($this->file->internalPathname());
+			return $adapter->getMimeType($this->file->internalPathname());
 		}
 
 		return Util::executeFunction(

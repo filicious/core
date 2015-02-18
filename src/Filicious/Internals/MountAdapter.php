@@ -34,6 +34,7 @@ class MountAdapter extends AbstractDelegatorAdapter
 	public function mount($path, Adapter $adapter)
 	{
 		$path = Util::normalizePath($path);
+		$path = '/' . ltrim($path, '/');
 
 		if (empty($path)) {
 			throw new InvalidArgumentException('Mount path cannot be empty');

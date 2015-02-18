@@ -517,9 +517,11 @@ abstract class AbstractAdapter
 	public function getIterator(Pathname $pathname, array $filter)
 	{
 		if (Util::hasBit($filter, File::LIST_RECURSIVE)) {
-			return new \RecursiveIteratorIterator(
-				new RecursivePathnameIterator($pathname, $filter)
-			);
+			$iterator = new RecursivePathnameIterator($pathname, $filter);
+			$mode = $iterator->shouldIncludeDirectories() ?
+				\RecursiveIteratorIterator::SELF_FIRST :
+				\RecursiveIteratorIterator::LEAVES_ONLY;
+			return new \RecursiveIteratorIterator($iterator, $mode);
 		}
 		else {
 			return new PathnameIterator($pathname, $filter);

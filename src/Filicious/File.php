@@ -855,16 +855,7 @@ class File
 	{
 		$iterator = $this->pathname->rootAdapter()->getIterator($this->pathname, func_get_args());
 
-		// cheap array creation
-		if (method_exists($iterator, 'toArray')) {
-			return $iterator->toArray();
-		}
-
-		$files = array();
-		foreach ($iterator as $file) {
-			$files[] = $file;
-		}
-		return $files;
+		return iterator_to_array($iterator, false);
 	}
 
 	/**

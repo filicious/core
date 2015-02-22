@@ -29,11 +29,12 @@ use Filicious\Exception\InvalidArgumentException;
  */
 class MountAdapter extends AbstractDelegatorAdapter
 {
-	protected $mounts;
+	protected $mounts = array();
 
 	public function mount($path, Adapter $adapter)
 	{
 		$path = Util::normalizePath($path);
+		$path = '/' . ltrim($path, '/');
 
 		if (empty($path)) {
 			throw new InvalidArgumentException('Mount path cannot be empty');
@@ -42,6 +43,7 @@ class MountAdapter extends AbstractDelegatorAdapter
 			throw new InvalidArgumentException('Could not mount over the already mounted path ' . $path);
 		}
 
+		$this->mounts[$path] = $adapter;
 	}
 
 	public function unmount($path)
@@ -51,6 +53,8 @@ class MountAdapter extends AbstractDelegatorAdapter
 		if (empty($path)) {
 			throw new InvalidArgumentException('Mount path cannot be empty');
 		}
+
+		unset($this->mounts[$path]);
 	}
 
 	/**

@@ -50,4 +50,4 @@ $starterMenuInLounge = $lounge->getFile('/starter.menu');
 $starterMenuInKitchen->moveTo($starterMenuInLounge);
 ```
 
-Find out more on [filicious.org/how-to-use](http://filicious.org/how-to-use/).
+Find out more on [filicious.github.io/how-to-use](https://filicious.github.io/how-to-use/).
